@@ -19,16 +19,23 @@ Obsidian Vault/
 ├── requirements.txt          # Python dependencies
 ├── gmail_watcher.py          # Gmail monitoring script
 ├── office_watcher.py         # Office files monitoring script
+├── whatsapp_watcher.py       # WhatsApp Web monitoring script
+├── linkedin_post_generator.py # LinkedIn post generator
+├── facebook_instagram_post.py # Facebook & Instagram post generator
+├── twitter_post.py           # Twitter post generator
+├── ceo_briefing.py           # CEO weekly briefing generator
 ├── credentials.json          # Gmail API credentials (create your own)
 ├── token.pickle             # Auto-generated auth token
 ├── Dashboard.md              # Sales/metrics dashboard
 ├── Company_Handbook.md       # Tone and style guidelines
+├── Business_Goals.md         # Quarterly/annual goals (optional)
 ├── Inbox/                    # New incoming items
 ├── Needs_Action/             # Pending action items (auto-created)
 ├── Pending_Approval/         # Drafts awaiting review
 ├── Approved/                 # Approved items
 ├── Done/                     # Completed/processed items
 ├── Logs/                     # Processing logs
+├── Briefings/                # CEO weekly briefings
 ├── Office_Files/             # Office documents to process
 ├── Plans/                    # Future plans
 ├── Social_Drafts/            # Social media drafts
@@ -124,6 +131,65 @@ python whatsapp_watcher.py
 - Creates action files in `Needs_Action/` folder
 - Auto-triggers AI to draft responses
 - Checks every 30 seconds
+
+### Run LinkedIn Post Generator
+
+Generates professional LinkedIn posts from Dashboard data:
+
+```bash
+python linkedin_post_generator.py
+```
+
+- Reads latest metrics from `Dashboard.md`
+- Generates engaging post with achievements
+- Saves draft to `Social_Drafts/` folder
+- Prompts for approval before posting
+
+### Run Facebook & Instagram Post Generator
+
+Generates engaging Facebook and Instagram posts:
+
+```bash
+python facebook_instagram_post.py
+```
+
+- Reads Dashboard.md for business metrics
+- Creates platform-specific posts (Facebook + Instagram)
+- Includes emojis and hashtags
+- Saves drafts to `Social_Drafts/` folder
+- Prompts for approval before posting
+
+### Run Twitter Post Generator
+
+Generates 3 tweet options (under 280 characters):
+
+```bash
+python twitter_post.py
+```
+
+- Reads Dashboard.md for business metrics
+- Creates 3 different tweet styles (revenue, client, motivational)
+- Validates character count (280 limit)
+- Saves drafts to `Social_Drafts/` folder
+- Prompts for approval before posting
+
+### Run CEO Weekly Briefing Generator
+
+Generates professional CEO briefing every Monday:
+
+```bash
+python ceo_briefing.py
+```
+
+- Reads Dashboard.md, Business_Goals.md, and Done/ folder
+- Creates comprehensive weekly briefing including:
+  - Weekly revenue and metrics
+  - Completed tasks summary
+  - Bottlenecks and issues
+  - Cost optimization suggestions
+  - Upcoming deadlines
+- Saves to `Briefings/` folder
+- Prompts for approval before sending
 
 ### Run Multiple Watchers (Separate Terminals)
 
