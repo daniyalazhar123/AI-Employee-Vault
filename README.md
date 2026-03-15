@@ -24,6 +24,7 @@ Obsidian Vault/
 ├── facebook_instagram_post.py # Facebook & Instagram post generator
 ├── twitter_post.py           # Twitter post generator
 ├── ceo_briefing.py           # CEO weekly briefing generator
+├── ralph_loop.py             # Persistent task processor loop
 ├── credentials.json          # Gmail API credentials (create your own)
 ├── token.pickle             # Auto-generated auth token
 ├── Dashboard.md              # Sales/metrics dashboard
@@ -190,6 +191,21 @@ python ceo_briefing.py
   - Upcoming deadlines
 - Saves to `Briefings/` folder
 - Prompts for approval before sending
+
+### Run Ralph Loop (Persistent Task Processor)
+
+Keeps running qwen until a task is complete:
+
+```bash
+python ralph_loop.py "Your task description here"
+```
+
+- Creates task file in `Needs_Action/` folder
+- Runs qwen -y to process the task
+- Checks if task moved to `Done/` folder
+- If NOT done, runs qwen again (max 10 iterations)
+- Prints iteration count and status each time
+- "Me fail English? That's unpossible!"
 
 ### Run Multiple Watchers (Separate Terminals)
 
