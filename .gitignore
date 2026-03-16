@@ -80,3 +80,6 @@ Thumbs.db
 .DS_Store
 .AppleDouble
 .LSOverride
+mcp-email/token.json
+mcp-email/token.pickle
+whatsapp_session/

@@ -200,6 +200,7 @@
   },
   "active": "7d49ea9d6c37d228",
   "lastOpenFiles": [
+    "mcp-email/token.json",
     "CREDENTIALS_CHECKLIST.md",
     "ODOO_API_KEY_GUIDE.md",
     "CREDENTIALS_STATUS.md",
@@ -238,7 +239,6 @@
     "mcp-social/node_modules/playwright/lib/agents/playwright-test-healer.agent.md",
     "mcp-social/node_modules/playwright/lib/agents/playwright-test-heal.prompt.md",
     "mcp-social/node_modules/playwright/lib/agents/playwright-test-generator.agent.md",
-    "mcp-social/node_modules/playwright/lib/agents/playwright-test-generate.prompt.md",
     "mcp-browser/node_modules/playwright-core/lib/vite/recorder/playwright-logo.svg",
     "mcp-browser/node_modules/playwright-core/lib/vite/traceViewer/playwright-logo.svg",
     "mcp-browser/node_modules/playwright-core/lib/server/chromium/appIcon.png"
