@@ -1,0 +1,56 @@
+{
+  "platform": "twitter",
+  "period_days": 7,
+  "generated_at": "2026-03-16T12:25:29.899174",
+  "statistics": {
+    "total_posts": 1,
+    "total_hashtags": 9,
+    "total_mentions": 0,
+    "avg_word_count": 217.0,
+    "avg_engagement_score": 18.0
+  },
+  "status_breakdown": {
+    "approved": 1
+  },
+  "top_hashtags": [
+    {
+      "tag": "#Success",
+      "count": 1
+    },
+    {
+      "tag": "#Entrepreneurship",
+      "count": 1
+    },
+    {
+      "tag": "#Growth",
+      "count": 1
+    },
+    {
+      "tag": "#Motivation",
+      "count": 1
+    },
+    {
+      "tag": "#Progress",
+      "count": 1
+    }
+  ],
+  "recent_posts": [
+    {
+      "file": "twitter_post_2026-03-15.md",
+      "platform": "Twitter/X",
+      "status": "approved",
+      "created": "2026-03-15 03:21:06",
+      "hashtags": [
+        "#Success",
+        "#Entrepreneurship",
+        "#Growth",
+        "#Motivation",
+        "#Progress",
+        "#Goals",
+        "#BusinessGrowth",
+        "#ClientSuccess",
+        "#Business"
+      ]
+    }
+  ]
+}

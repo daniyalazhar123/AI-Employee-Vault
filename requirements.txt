@@ -1,6 +1,26 @@
+# ============================================
+# AI Employee Vault - Python Dependencies
+# ============================================
+
+# File System Monitoring
 watchdog>=3.0.0
+
+# Google API (Gmail Integration)
 google-auth>=2.27.0
 google-auth-oauthlib>=1.2.0
 google-auth-httplib2>=0.2.0
 google-api-python-client>=2.118.0
+
+# Browser Automation (WhatsApp Web)
 playwright>=1.40.0
+
+# Odoo CRM Integration (Optional)
+# Uncomment if using Odoo:
+# odoo>=16.0
+
+# ============================================
+# Installation
+# ============================================
+# pip install -r requirements.txt
+# playwright install chromium
+# ============================================

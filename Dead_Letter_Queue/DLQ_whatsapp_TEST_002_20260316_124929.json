@@ -1,0 +1,10 @@
+{
+  "id": "TEST_002",
+  "type": "whatsapp",
+  "error": "Authentication failed",
+  "severity": "high",
+  "retry_count": 5,
+  "added_at": "2026-03-16T12:49:29.459125",
+  "status": "pending",
+  "original_data": {}
+}

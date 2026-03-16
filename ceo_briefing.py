@@ -1,12 +1,21 @@
 """
 CEO Weekly Briefing Generator for AI Employee Vault
 
-Every Monday, reads Dashboard.md, Business_Goals.md, and Done/ folder to create
-a professional CEO briefing with revenue, tasks, bottlenecks, and suggestions.
+Gold Tier Requirement #7 - Weekly Business and Accounting Audit
+
+Every Monday, reads Dashboard.md, Business_Goals.md, Done/ folder, and accounting data
+to create a professional CEO briefing with:
+- Revenue and accounting metrics
+- Tasks completed
+- Bottlenecks identified
+- Social media summaries
+- Audit log summary
+- Cost optimization suggestions
 """
 
 import os
 import re
+import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -17,6 +26,9 @@ DASHBOARD_FILE = VAULT_PATH / "Dashboard.md"
 BUSINESS_GOALS_FILE = VAULT_PATH / "Business_Goals.md"
 DONE_FOLDER = VAULT_PATH / "Done"
 BRIEFINGS_FOLDER = VAULT_PATH / "Briefings"
+LOGS_FOLDER = VAULT_PATH / "Logs"
+AUDIT_FOLDER = LOGS_FOLDER / "Audit"
+SOCIAL_SUMMARIES_FOLDER = VAULT_PATH / "Social_Summaries"
 
 
 def ensure_folders():
@@ -207,29 +219,164 @@ def generate_bottlenecks(completed_tasks, dashboard_data):
 
 def generate_cost_optimization(dashboard_data, completed_tasks):
     """Generate cost optimization suggestions."""
-    
+
     suggestions = []
-    
+
     # Automation opportunities
     automation_tasks = [t for t in completed_tasks if 'email' in t['type'].lower() or 'whatsapp' in t['type'].lower()]
     if len(automation_tasks) > 10:
         suggestions.append("✅ High email/WhatsApp volume detected - consider automated response templates")
-    
+
     # Social media efficiency
     social_drafts_folder = VAULT_PATH / "Social_Drafts"
     if social_drafts_folder.exists():
         social_count = len(list(social_drafts_folder.glob('*.md')))
         if social_count > 5:
             suggestions.append("📱 Multiple social media drafts pending - consider scheduling tool integration")
-    
+
     # General suggestions
     suggestions.append("💡 Review recurring manual tasks for automation potential")
     suggestions.append("💡 Consider batch processing similar tasks to improve efficiency")
-    
+
     if dashboard_data and dashboard_data.get('pending_invoices'):
         suggestions.append("💰 Implement automated invoice reminders to reduce pending payments")
-    
+
     return suggestions
+
+
+def generate_accounting_audit_summary() -> dict:
+    """
+    Generate accounting audit summary from audit logs.
+    Gold Tier Requirement #7 - Weekly Business and Accounting Audit
+    """
+    summary = {
+        'total_transactions': 0,
+        'invoices_created': 0,
+        'payments_recorded': 0,
+        'emails_sent': 0,
+        'social_posts': 0,
+        'errors': 0,
+        'success_rate': 0,
+        'top_actions': []
+    }
+    
+    try:
+        # Read audit logs
+        if not AUDIT_FOLDER.exists():
+            return summary
+        
+        # Get last 7 days of logs
+        cutoff_date = datetime.now() - timedelta(days=7)
+        log_entries = []
+        
+        for log_file in AUDIT_FOLDER.glob('audit_*.jsonl'):
+            try:
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        entry = json.loads(line)
+                        entry_date = datetime.fromisoformat(entry['timestamp'])
+                        if entry_date >= cutoff_date:
+                            log_entries.append(entry)
+            except Exception:
+                continue
+        
+        summary['total_transactions'] = len(log_entries)
+        
+        # Count by action type
+        action_counts = {}
+        status_counts = {}
+        
+        for entry in log_entries:
+            action_type = entry.get('action_type', 'unknown')
+            status = entry.get('status', 'unknown')
+            
+            # Count action types
+            action_counts[action_type] = action_counts.get(action_type, 0) + 1
+            
+            # Count statuses
+            status_counts[status] = status_counts.get(status, 0) + 1
+            
+            # Specific counts
+            if 'invoice' in action_type.lower():
+                summary['invoices_created'] += 1
+            elif 'payment' in action_type.lower():
+                summary['payments_recorded'] += 1
+            elif 'email' in action_type.lower():
+                summary['emails_sent'] += 1
+            elif 'social' in action_type.lower() or 'post' in action_type.lower():
+                summary['social_posts'] += 1
+            elif entry.get('error'):
+                summary['errors'] += 1
+        
+        # Calculate success rate
+        if summary['total_transactions'] > 0:
+            success_count = status_counts.get('success', 0) + status_counts.get('approved', 0)
+            summary['success_rate'] = (success_count / summary['total_transactions']) * 100
+        
+        # Top actions
+        sorted_actions = sorted(action_counts.items(), key=lambda x: x[1], reverse=True)
+        summary['top_actions'] = sorted_actions[:5]
+        
+    except Exception as e:
+        print(f"⚠️  Error generating accounting audit: {e}")
+    
+    return summary
+
+
+def generate_social_media_summary() -> dict:
+    """Generate social media summary from generated summaries."""
+    summary = {
+        'total_posts': 0,
+        'total_hashtags': 0,
+        'platforms': {},
+        'top_hashtags': []
+    }
+    
+    try:
+        if not SOCIAL_SUMMARIES_FOLDER.exists():
+            return summary
+        
+        # Read latest summary files
+        for summary_file in SOCIAL_SUMMARIES_FOLDER.glob('social_summary_*_*.json'):
+            try:
+                with open(summary_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    
+                    platform = data.get('platform', 'unknown')
+                    stats = data.get('statistics', {})
+                    
+                    summary['total_posts'] += stats.get('total_posts', 0)
+                    summary['total_hashtags'] += stats.get('total_hashtags', 0)
+                    summary['platforms'][platform] = stats.get('total_posts', 0)
+                    
+                    # Collect hashtags
+                    for tag_info in data.get('top_hashtags', []):
+                        summary['top_hashtags'].append({
+                            'tag': tag_info.get('tag', ''),
+                            'count': tag_info.get('count', 0)
+                        })
+            except Exception:
+                continue
+        
+        # Deduplicate and sort hashtags
+        seen_tags = {}
+        for tag in summary['top_hashtags']:
+            tag_name = tag['tag']
+            if tag_name not in seen_tags:
+                seen_tags[tag_name] = tag['count']
+            else:
+                seen_tags[tag_name] += tag['count']
+        
+        summary['top_hashtags'] = sorted(
+            [{'tag': k, 'count': v} for k, v in seen_tags.items()],
+            key=lambda x: x['count'],
+            reverse=True
+        )[:10]
+        
+    except Exception as e:
+        print(f"⚠️  Error generating social media summary: {e}")
+    
+    return summary
 
 
 def generate_ceo_briefing(dashboard_data, business_goals, completed_tasks):

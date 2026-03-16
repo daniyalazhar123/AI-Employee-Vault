@@ -27,6 +27,13 @@
 - ✅ 7 reply drafts pending approval (EMAIL files)
 - ✅ Clean old files task: No files older than 7 days found; No EMAIL_ files to process
 
+### Odoo Leads
+| Lead ID | Partner | Company | Email | Priority | Stage | Status |
+|---------|---------|---------|-------|----------|-------|--------|
+| TEST001 | Demo Customer | Demo Company Ltd. | demo.customer@example.com | 3/5 | New | Pending |
+
+**1 test lead processed.** Odoo Lead Watcher script created and ready for production use.
+
 ### Email Summary - Processed from Needs_Action
 
 | From                | Subject                                             | Date         | Summary                                                                                      |
@@ -46,14 +53,20 @@
 
 ---
 
+## CEO Briefings
+
+- [CEO_Briefing_2026-03-16](CEO_Briefings/CEO_Briefing_2026-03-16.md) - Latest weekly report
+
+---
+
 ## Task Summary
 
 | Folder                 | Count   |
 | ---------------------- | ------- |
-| Needs_Action (Pending) | 343     |
-| Approved               | 0       |
-| Done                   | 19      |
-| **Total**              | **362** |
+| Needs_Action (Pending) | 394     |
+| Pending_Approval       | 396     |
+| Done                   | 21      |
+| **Total**              | **811** |
 
 ---
-*Last updated: March 15, 2026 - Task summary added*
+*Last updated: March 16, 2026 - CEO Briefing added, task counts refreshed*

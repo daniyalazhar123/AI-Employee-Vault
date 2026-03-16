@@ -1,0 +1,10 @@
+{
+  "id": "TEST_001",
+  "type": "email",
+  "error": "Connection timeout",
+  "severity": "medium",
+  "retry_count": 3,
+  "added_at": "2026-03-16T12:49:29.457120",
+  "status": "pending",
+  "original_data": {}
+}

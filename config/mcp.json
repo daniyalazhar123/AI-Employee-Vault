@@ -1,0 +1,39 @@
+{
+  "mcpServers": {
+    "email": {
+      "command": "node",
+      "args": ["C:/Users/CC/Documents/Obsidian Vault/mcp-email/index.js"],
+      "env": {
+        "GMAIL_CREDENTIALS": "C:/Users/CC/Documents/Obsidian Vault/credentials.json",
+        "GMAIL_TOKEN": "C:/Users/CC/Documents/Obsidian Vault/mcp-email/token.json"
+      }
+    },
+    "browser": {
+      "command": "node",
+      "args": ["C:/Users/CC/Documents/Obsidian Vault/mcp-browser/index.js"],
+      "env": {
+        "HEADLESS": "true",
+        "BROWSER_TIMEOUT": "30000"
+      }
+    },
+    "odoo": {
+      "command": "node",
+      "args": ["C:/Users/CC/Documents/Obsidian Vault/mcp-odoo/index.js"],
+      "env": {
+        "ODOO_URL": "http://localhost:8069",
+        "ODOO_DB": "odoo",
+        "ODOO_USERNAME": "admin",
+        "ODOO_PASSWORD": "admin"
+      }
+    },
+    "social": {
+      "command": "node",
+      "args": ["C:/Users/CC/Documents/Obsidian Vault/mcp-social/index.js"],
+      "env": {
+        "HEADLESS": "true",
+        "BROWSER_TIMEOUT": "30000",
+        "SCREENSHOTS_FOLDER": "C:/Users/CC/Documents/Obsidian Vault/Social_Drafts/Screenshots"
+      }
+    }
+  }
+}
