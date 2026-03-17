@@ -276,6 +276,65 @@ class BaseWatcher:
         self.log_info(f"Uptime: {self.get_uptime()}")
         self.log_info("=" * width)
 
+    def trigger_qwen(self, prompt: str, timeout: int = 120) -> bool:
+        """
+        Trigger Qwen CLI with a prompt.
+        
+        This is a common method for all watchers to trigger Qwen.
+        Handles missing Qwen CLI gracefully.
+        
+        Args:
+            prompt: Prompt to send to Qwen
+            timeout: Timeout in seconds (default: 120)
+            
+        Returns:
+            True if Qwen executed successfully, False otherwise
+        """
+        import subprocess
+        
+        try:
+            # First check if qwen command exists
+            try:
+                subprocess.run(
+                    ['qwen', '--version'],
+                    capture_output=True,
+                    timeout=5,
+                    check=True
+                )
+            except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+                self.log_warning(
+                    "Qwen CLI not found in PATH. Action files created for manual processing. "
+                    "Install Qwen CLI with: npm install -g @anthropic/qwen"
+                )
+                return False
+
+            # Run Qwen with the prompt
+            result = subprocess.run(
+                ['qwen', '-y', prompt],
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='replace',
+                cwd=str(self.vault_path),
+                timeout=timeout
+            )
+
+            self.log_info("Qwen processing completed")
+
+            if result.stdout:
+                self.log_info(f"Qwen output: {result.stdout.strip()[:200]}...")
+            if result.stderr:
+                self.log_warning(f"Qwen stderr: {result.stderr.strip()[:200]}...")
+
+            return result.returncode == 0
+
+        except subprocess.TimeoutExpired:
+            self.log_warning(f"Qwen timeout ({timeout}s). Action file remains for manual processing.")
+            return False
+        except Exception as e:
+            self.log_error(f"Failed to trigger Qwen: {e}", exc=e)
+            return False
+
 
 class WatcherError(Exception):
     """Base exception for watcher errors."""

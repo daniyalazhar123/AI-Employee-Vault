@@ -111,53 +111,16 @@ add 3-5 relevant hashtags, and save the polished post in Social_Drafts/Polished.
             return None
     
     def trigger_qwen(self, action_file: Path, original_file: Path) -> bool:
-        """
-        Trigger Qwen CLI to polish social post.
+        """Trigger Qwen CLI to polish social post."""
+        polished_name = f"POLISHED_{original_file.stem}.md"
         
-        Args:
-            action_file: Path to action file
-            original_file: Path to original draft
+        prompt = (
+            f"Read the social draft action file: {action_file.name} in Needs_Action folder. "
+            f"Turn it into a professional version with 3-5 hashtags. "
+            f"Save the polished post in Social_Drafts/Polished folder as {polished_name}"
+        )
         
-        Returns:
-            True if successful
-        """
-        try:
-            polished_name = f"POLISHED_{original_file.stem}.md"
-            
-            prompt = (
-                f"Read the social draft action file: {action_file.name} in Needs_Action folder. "
-                f"Turn it into a professional version with 3-5 hashtags. "
-                f"Save the polished post in Social_Drafts/Polished folder as {polished_name}"
-            )
-            
-            result = subprocess.run(
-                ['qwen', '-y', prompt],
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                errors='replace',
-                cwd=str(self.vault_path),
-                timeout=120
-            )
-            
-            self.log_info("Qwen triggered for social post")
-            
-            if result.stdout:
-                self.log_info(f"Output: {result.stdout.strip()[:200]}")
-            if result.stderr:
-                self.log_warning(f"Errors: {result.stderr.strip()[:200]}")
-            
-            return result.returncode == 0
-            
-        except subprocess.TimeoutExpired:
-            self.log_warning("Qwen timeout")
-            return False
-        except FileNotFoundError:
-            self.log_error("Qwen CLI not found")
-            return False
-        except Exception as e:
-            self.log_error(f"Qwen error: {e}", exc=e)
-            return False
+        return self.trigger_qwen(prompt)
     
     def process_draft(self, file_path: Path):
         """

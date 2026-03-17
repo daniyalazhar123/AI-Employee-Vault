@@ -132,49 +132,13 @@ Read this file, summarize content, make it professional if needed, and update Da
             return None
     
     def trigger_qwen(self, action_file: Path) -> bool:
-        """
-        Trigger Qwen CLI to process file.
+        """Trigger Qwen CLI to process file."""
+        prompt = (
+            f"Process Needs_Action folder and handle the latest OFFICE file: {action_file.name}. "
+            f"Read the file, summarize content, and update Dashboard.md if relevant."
+        )
         
-        Args:
-            action_file: Path to action file
-        
-        Returns:
-            True if successful
-        """
-        try:
-            prompt = (
-                f"Process Needs_Action folder and handle the latest OFFICE file: {action_file.name}. "
-                f"Read the file, summarize content, and update Dashboard.md if relevant."
-            )
-            
-            result = subprocess.run(
-                ['qwen', '-y', prompt],
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                errors='replace',
-                cwd=str(self.vault_path),
-                timeout=120
-            )
-            
-            self.log_info("Qwen triggered for office file")
-            
-            if result.stdout:
-                self.log_info(f"Output: {result.stdout.strip()[:200]}")
-            if result.stderr:
-                self.log_warning(f"Errors: {result.stderr.strip()[:200]}")
-            
-            return result.returncode == 0
-            
-        except subprocess.TimeoutExpired:
-            self.log_warning("Qwen timeout")
-            return False
-        except FileNotFoundError:
-            self.log_error("Qwen CLI not found")
-            return False
-        except Exception as e:
-            self.log_error(f"Qwen error: {e}", exc=e)
-            return False
+        return self.trigger_qwen(prompt)
     
     def process_new_file(self, file_path: Path):
         """

@@ -321,41 +321,13 @@ status: pending
     
     def trigger_qwen(self, action_file: Path) -> bool:
         """Trigger Qwen CLI to process message."""
-        try:
-            prompt = (
-                f"Read the WhatsApp message action file: {action_file.name} in Needs_Action folder. "
-                f"Draft a professional response following Company_Handbook rules. "
-                f"Save the reply draft in Pending_Approval folder as REPLY_{action_file.stem}.md"
-            )
-            
-            result = subprocess.run(
-                ['qwen', '-y', prompt],
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                errors='replace',
-                cwd=str(self.vault_path),
-                timeout=120
-            )
-            
-            self.log_info("Qwen processing triggered")
-            
-            if result.stdout:
-                self.log_info(f"Output: {result.stdout.strip()[:200]}")
-            if result.stderr:
-                self.log_warning(f"Errors: {result.stderr.strip()[:200]}")
-            
-            return result.returncode == 0
-            
-        except subprocess.TimeoutExpired:
-            self.log_warning("Qwen timeout")
-            return False
-        except FileNotFoundError:
-            self.log_error("Qwen CLI not found")
-            return False
-        except Exception as e:
-            self.log_error(f"Qwen error: {e}", exc=e)
-            return False
+        prompt = (
+            f"Read the WhatsApp message action file: {action_file.name} in Needs_Action folder. "
+            f"Draft a professional response following Company_Handbook rules. "
+            f"Save the reply draft in Pending_Approval folder as REPLY_{action_file.stem}.md"
+        )
+        
+        return self.trigger_qwen(prompt)
     
     def run(self):
         """Main watcher loop."""

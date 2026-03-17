@@ -325,45 +325,17 @@ Sales Team
     
     def trigger_qwen(self, action_file: Path) -> bool:
         """Trigger Qwen CLI to process lead."""
-        try:
-            prompt = (
-                f"Read the Odoo lead file: {action_file.name} in Needs_Action folder.\n\n"
-                f"Tasks:\n"
-                f"1. Summarize the lead details and qualification status\n"
-                f"2. Draft a personalized follow-up task or reply\n"
-                f"3. Save any additional drafts in Pending_Approval folder\n"
-                f"4. Update Dashboard.md with this lead summary\n\n"
-                f"Process this lead completely."
-            )
-            
-            result = subprocess.run(
-                ['qwen', '-y', prompt],
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                errors='replace',
-                cwd=str(self.vault_path),
-                timeout=180
-            )
-            
-            self.log_info("Qwen processing triggered for lead")
-            
-            if result.stdout:
-                self.log_info(f"Output: {result.stdout.strip()[:200]}")
-            if result.stderr:
-                self.log_warning(f"Errors: {result.stderr.strip()[:200]}")
-            
-            return result.returncode == 0
-            
-        except subprocess.TimeoutExpired:
-            self.log_warning("Qwen timeout")
-            return False
-        except FileNotFoundError:
-            self.log_error("Qwen CLI not found")
-            return False
-        except Exception as e:
-            self.log_error(f"Qwen error: {e}", exc=e)
-            return False
+        prompt = (
+            f"Read the Odoo lead file: {action_file.name} in Needs_Action folder.\n\n"
+            f"Tasks:\n"
+            f"1. Summarize the lead details and qualification status\n"
+            f"2. Draft a personalized follow-up task or reply\n"
+            f"3. Save any additional drafts in Pending_Approval folder\n"
+            f"4. Update Dashboard.md with this lead summary\n\n"
+            f"Process this lead completely."
+        )
+        
+        return self.trigger_qwen(prompt, timeout=180)
     
     def update_dashboard(self, lead_count: int):
         """Update Dashboard.md with lead summary."""
