@@ -1,0 +1,95 @@
+{
+  "platform": "instagram",
+  "period_days": 7,
+  "generated_at": "2026-03-18T03:12:43.126007",
+  "statistics": {
+    "total_posts": 2,
+    "total_hashtags": 40,
+    "total_mentions": 0,
+    "avg_word_count": 223.0,
+    "avg_engagement_score": 40.0
+  },
+  "status_breakdown": {
+    "approved": 2
+  },
+  "top_hashtags": [
+    {
+      "tag": "#BusinessGrowth",
+      "count": 2
+    },
+    {
+      "tag": "#Grateful",
+      "count": 2
+    },
+    {
+      "tag": "#Entrepreneurship",
+      "count": 2
+    },
+    {
+      "tag": "#BusinessTips",
+      "count": 2
+    },
+    {
+      "tag": "#Entrepreneur",
+      "count": 2
+    }
+  ],
+  "recent_posts": [
+    {
+      "file": "instagram_post_2026-03-15.md",
+      "platform": "Instagram",
+      "status": "approved",
+      "created": "2026-03-15 03:15:49",
+      "hashtags": [
+        "#BusinessGrowth",
+        "#Grateful",
+        "#Entrepreneurship",
+        "#BusinessTips",
+        "#Entrepreneur",
+        "#SuccessStory",
+        "#Inspiration",
+        "#Success",
+        "#Mindset",
+        "#BusinessOwner",
+        "#Motivation",
+        "#Milestone",
+        "#Winning",
+        "#Goals",
+        "#Achievement",
+        "#BusinessLife",
+        "#Progress",
+        "#Growth",
+        "#Leadership",
+        "#Hustle"
+      ]
+    },
+    {
+      "file": "instagram_post_2026-03-18.md",
+      "platform": "Instagram",
+      "status": "approved",
+      "created": "2026-03-18 03:12:20",
+      "hashtags": [
+        "#BusinessGrowth",
+        "#Grateful",
+        "#Entrepreneurship",
+        "#BusinessTips",
+        "#Entrepreneur",
+        "#SuccessStory",
+        "#Inspiration",
+        "#Success",
+        "#Mindset",
+        "#BusinessOwner",
+        "#Motivation",
+        "#Milestone",
+        "#Winning",
+        "#Goals",
+        "#Achievement",
+        "#BusinessLife",
+        "#Progress",
+        "#Growth",
+        "#Leadership",
+        "#Hustle"
+      ]
+    }
+  ]
+}

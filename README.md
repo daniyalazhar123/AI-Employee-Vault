@@ -2,7 +2,13 @@
 
 **Your 24/7 Digital Employee for Business & Personal Automation**
 
+![Qwen CLI](https://img.shields.io/badge/Qwen_CLI-v0.12.6-blue)
+![Status](https://img.shields.io/badge/Status-Production_Ready-green)
+![Tier](https://img.shields.io/badge/Tier-Gold_Complete-yellow)
+
 *Gold Tier Complete - Personal AI Employee Hackathon 0*
+
+**🤖 Primary Engine: Qwen CLI v0.12.6 | Alternative: Claude Code**
 
 ---
 
@@ -166,6 +172,33 @@ System generates comprehensive report:
 
 ### Step-by-Step Installation
 
+#### Step 0: Install Qwen CLI (Primary Engine)
+
+```bash
+# Install Qwen CLI globally (free alternative to Claude Code)
+npm install -g @anthropic/qwen
+
+# Verify installation
+qwen --version
+# Expected: 0.12.6
+
+# Authenticate with Qwen (first time only)
+qwen --auth
+
+# Start Qwen CLI with vault directory
+qwen --cwd "D:\Desktop4\Obsidian Vault"
+```
+
+**What this installs:**
+- `qwen` - Primary reasoning engine for AI Employee
+- Model switching via `/model` command
+- Tool calling for MCP server integration
+- Personalized insights via `/insight` command
+
+**Note:** Qwen CLI is free - no subscription required.
+
+---
+
 #### Step 1: Clone or Download
 
 ```bash
@@ -174,7 +207,7 @@ git clone <repository-url>
 cd AI-Employee-Vault
 
 # Or unzip downloaded folder
-cd "C:\Users\CC\Documents\Obsidian Vault"
+cd "D:\Desktop4\Obsidian Vault"
 ```
 
 ---
@@ -378,6 +411,56 @@ Options:
 3. Start 24/7 monitoring
 4. Process specific platform
 5. Exit
+```
+
+---
+
+## Qwen CLI Quick Reference
+
+### Common Commands
+
+| Command | Purpose |
+|---------|---------|
+| `qwen` | Start Qwen CLI |
+| `qwen --cwd "D:\Desktop4\Obsidian Vault"` | Start with vault directory |
+| `qwen --auth` | Authenticate (first time) |
+| `qwen --version` | Check version |
+| `/auth` | Show auth status |
+| `/model` | Switch models |
+| `/insight` | Generate insights |
+| `/help` | Show all commands |
+| `/clear` | Clear context |
+| `/exit` | Exit Qwen CLI |
+
+### Processing Actions
+
+```bash
+# Process all pending actions
+qwen -y "Process all files in Needs_Action/ folder"
+
+# Check pending approvals
+qwen -y "Show me all pending approvals in Pending_Approval/"
+
+# Generate weekly summary
+qwen -y "Generate weekly business summary from audit logs"
+
+# Check system health
+qwen -y "Run health check on all watchers and MCP servers"
+```
+
+### Tool Calling with MCP
+
+Qwen CLI can call MCP servers directly:
+
+```bash
+# Send email via MCP
+qwen -y "Use mcp-email to send email to test@example.com with subject 'Hello'"
+
+# Create invoice via MCP
+qwen -y "Use mcp-odoo to create invoice for partner 123"
+
+# Post to LinkedIn via MCP
+qwen -y "Use mcp-social to post LinkedIn update about new product"
 ```
 
 ---

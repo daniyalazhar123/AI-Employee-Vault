@@ -1,0 +1,188 @@
+version: '3.8'
+
+# ============================================
+# 💿 PLATINUM TIER - ODOO COMMUNITY EDITION
+# Docker Compose Setup
+# ============================================
+# Personal AI Employee Hackathon 0
+# Created: March 21, 2026
+#
+# Usage:
+#   docker-compose up -d           # Start Odoo
+#   docker-compose down            # Stop Odoo
+#   docker-compose logs -f         # View logs
+#   docker-compose ps              # Check status
+#
+# Access:
+#   Web: http://localhost:8069
+#   Database: localhost:5432
+#
+# Default Credentials:
+#   Master Password: admin_master_password_change_me
+#   Admin Email: admin@example.com
+#   Admin Password: admin_password_change_me
+# ============================================
+
+services:
+  # --------------------------------------------
+  # Odoo Community Edition
+  # --------------------------------------------
+  odoo:
+    image: odoo:17.0-community
+    container_name: ai-employee-odoo
+    restart: unless-stopped
+    ports:
+      - "8069:8069"  # Odoo Web Interface
+    
+    depends_on:
+      - db
+    
+    environment:
+      # Database Configuration
+      - HOST=db
+      - PORT=5432
+      - USER=odoo
+      - PASSWORD=${ODOO_DB_PASSWORD:-odoo_secure_password_123}
+      
+      # Odoo Administration
+      - ADMIN_PASSWORD=${ODOO_ADMIN_PASSWORD:-admin_master_password_change_me}
+      
+      # Server Mode (for Platinum Tier)
+      - SERVER_MODE=${ODOO_SERVER_MODE:-production}
+      
+      # Timezone
+      - TZ=UTC
+    
+    volumes:
+      # Odoo Data (persistent)
+      - odoo-data:/var/lib/odoo
+      
+      # Custom Addons (optional)
+      - ./odoo-custom-addons:/mnt/extra-addons
+      
+      # Configuration
+      - ./odoo.config:/etc/odoo/odoo.conf:ro
+      
+      # Logs
+      - ./logs:/var/log/odoo
+    
+    networks:
+      - odoo-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    labels:
+      - "com.ai-employee.tier=platinum"
+      - "com.ai-employee.component=odoo-erp"
+
+  # --------------------------------------------
+  # PostgreSQL Database
+  # --------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: ai-employee-odoo-db
+    restart: unless-stopped
+    
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=${ODOO_DB_PASSWORD:-odoo_secure_password_123}
+      - POSTGRES_DB=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    
+    volumes:
+      # Database Data (persistent)
+      - db-data:/var/lib/postgresql/data/pgdata
+      
+      # Backup scripts
+      - ./backups:/backups
+    
+    networks:
+      - odoo-network
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+    labels:
+      - "com.ai-employee.tier=platinum"
+      - "com.ai-employee.component=odoo-database"
+
+  # --------------------------------------------
+  # PgAdmin (Database Admin - Optional)
+  # --------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ai-employee-odoo-pgadmin
+    restart: unless-stopped
+    
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@example.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-pgadmin_password_change_me}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+    
+    ports:
+      - "8080:80"
+    
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    
+    networks:
+      - odoo-network
+    
+    depends_on:
+      - db
+    
+    labels:
+      - "com.ai-employee.tier=platinum"
+      - "com.ai-employee.component=odoo-pgadmin"
+
+# --------------------------------------------
+# Volumes (Persistent Data)
+# --------------------------------------------
+volumes:
+  odoo-data:
+    driver: local
+    name: ai-employee-odoo-data
+  
+  db-data:
+    driver: local
+    name: ai-employee-odoo-db-data
+  
+  pgadmin-data:
+    driver: local
+    name: ai-employee-odoo-pgadmin-data
+
+# --------------------------------------------
+# Networks
+# --------------------------------------------
+networks:
+  odoo-network:
+    driver: bridge
+    name: ai-employee-odoo-network
+
+# ============================================
+# PLATINUM TIER - ODOO INTEGRATION
+# ============================================
+# This Odoo setup supports:
+# - Gold Tier: Odoo MCP integration
+# - Platinum Tier: Cloud deployment with HTTPS
+#
+# Next Steps:
+# 1. Copy example.env to .env
+# 2. Edit .env with your credentials
+# 3. Run: docker-compose up -d
+# 4. Access: http://localhost:8069
+# 5. Install required modules:
+#    - Invoicing
+#    - CRM
+#    - Sales
+#    - Accounting (if available)
+# ============================================

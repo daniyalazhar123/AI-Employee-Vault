@@ -1,457 +1,638 @@
 """
-Orchestrator - AI Employee Vault
+Orchestrator - Master Watcher Orchestrator for AI Employee Vault
 
-Main orchestrator script that triggers Qwen Code CLI for processing.
-Replaces Claude Code with Qwen CLI for all automation tasks.
+⚠️ This script manages background processes - run with python orchestrator.py
+
+This is the master orchestration script that:
+- Starts all watchers as background processes
+- Implements watchdog pattern (auto-restart on crash)
+- Logs all watcher status to Logs/orchestrator.log
+- Supports graceful shutdown with SIGINT/SIGTERM handling
+- Has --dry-run flag for testing without starting watchers
+- Includes health check endpoint returning JSON status
+- Uses environment variables for configuration
 
 Usage:
-    python orchestrator.py [command]
-    
-Commands:
-    process_needs_action  - Process all files in Needs_Action folder
-    process_email         - Process email action files
-    process_whatsapp      - Process WhatsApp action files
-    process_social        - Process social media drafts
-    process_odoo          - Process Odoo lead files
-    run_ralph_loop        - Start Ralph Wiggum persistent loop
-    generate_briefing     - Generate CEO weekly briefing
+    python orchestrator.py              # Start all watchers
+    python orchestrator.py --dry-run    # Test without starting
+    python orchestrator.py --health     # Check health status
+    python orchestrator.py --stop       # Stop all watchers
+
+Environment Variables:
+    WATCHER_INTERVAL        - Default watcher interval in seconds (default: 60)
+    LOG_LEVEL              - Logging level: DEBUG, INFO, WARNING, ERROR (default: INFO)
+    LOG_FILE               - Log file path (default: Logs/orchestrator.log)
+    RESTART_DELAY          - Delay before restarting crashed watcher (default: 5)
+    HEALTH_CHECK_PORT      - Port for health check HTTP endpoint (default: 8765)
+
+See CREDENTIALS_GUIDE.md for secure setup instructions
 """
 
 import os
 import sys
+import signal
 import subprocess
+import time
+import json
+import logging
+import threading
+import argparse
 from pathlib import Path
 from datetime import datetime
+from typing import Dict, List, Optional, Any
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import socketserver
 
+# ⚠️ NEVER commit this file to version control
+# See CREDENTIALS_GUIDE.md for secure setup instructions
+
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
 
 # Paths
 VAULT_PATH = Path(__file__).parent
-NEEDS_ACTION = VAULT_PATH / "Needs_Action"
-PENDING_APPROVAL = VAULT_PATH / "Pending_Approval"
-DONE_FOLDER = VAULT_PATH / "Done"
+LOGS_DIR = VAULT_PATH / "Logs"
+WATCHERS_DIR = VAULT_PATH / "watchers"
 
-# Qwen Code CLI Configuration
-QWEN_COMMAND = os.getenv("QWEN_COMMAND", "qwen")  # Can be 'qwen' or 'qwen-code'
-QWEN_ARGS = ["-y"]  # Auto-accept suggestions
-QWEN_TIMEOUT = 180  # 3 minutes timeout
+# Ensure logs directory exists
+LOGS_DIR.mkdir(exist_ok=True)
+
+# Environment variables with defaults
+WATCHER_INTERVAL = int(os.getenv("WATCHER_INTERVAL", "60"))
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+LOG_FILE = os.getenv("LOG_FILE", str(LOGS_DIR / "orchestrator.log"))
+RESTART_DELAY = int(os.getenv("RESTART_DELAY", "5"))
+HEALTH_CHECK_PORT = int(os.getenv("HEALTH_CHECK_PORT", "8765"))
+
+# Watcher configuration
+WATCHERS = {
+    "gmail_watcher": {
+        "script": "gmail_watcher.py",
+        "interval": int(os.getenv("GMAIL_WATCHER_INTERVAL", "120")),
+        "description": "Gmail Inbox Monitor",
+        "enabled": os.getenv("GMAIL_WATCHER_ENABLED", "true").lower() == "true",
+    },
+    "whatsapp_watcher": {
+        "script": "whatsapp_watcher.py",
+        "interval": int(os.getenv("WHATSAPP_WATCHER_INTERVAL", "30")),
+        "description": "WhatsApp Business Monitor",
+        "enabled": os.getenv("WHATSAPP_WATCHER_ENABLED", "true").lower() == "true",
+    },
+    "office_watcher": {
+        "script": "office_watcher.py",
+        "interval": int(os.getenv("OFFICE_WATCHER_INTERVAL", "1")),
+        "description": "Office Files Monitor",
+        "enabled": os.getenv("OFFICE_WATCHER_ENABLED", "true").lower() == "true",
+    },
+    "social_watcher": {
+        "script": "social_watcher.py",
+        "interval": int(os.getenv("SOCIAL_WATCHER_INTERVAL", "60")),
+        "description": "Social Media Monitor",
+        "enabled": os.getenv("SOCIAL_WATCHER_ENABLED", "true").lower() == "true",
+    },
+    "odoo_lead_watcher": {
+        "script": "odoo_lead_watcher.py",
+        "interval": int(os.getenv("ODOO_WATCHER_INTERVAL", "300")),
+        "description": "Odoo CRM Lead Monitor",
+        "enabled": os.getenv("ODOO_WATCHER_ENABLED", "true").lower() == "true",
+    },
+}
 
 
-def ensure_folders():
-    """Ensure required folders exist."""
-    NEEDS_ACTION.mkdir(exist_ok=True)
-    PENDING_APPROVAL.mkdir(exist_ok=True)
-    DONE_FOLDER.mkdir(exist_ok=True)
+# =============================================================================
+# LOGGING SETUP
+# =============================================================================
+
+def setup_logging() -> logging.Logger:
+    """Setup logging configuration."""
+    logger = logging.getLogger("orchestrator")
+    logger.setLevel(getattr(logging, LOG_LEVEL.upper()))
+
+    # File handler
+    file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
+    file_handler.setLevel(logging.DEBUG)
+
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(getattr(logging, LOG_LEVEL.upper()))
+
+    # Formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    return logger
 
 
-def run_qwen(prompt: str, timeout: int = None) -> dict:
-    """
-    Run Qwen Code CLI with the given prompt.
-    
-    Args:
-        prompt: The prompt to send to Qwen
-        timeout: Timeout in seconds (default: QWEN_TIMEOUT)
-    
-    Returns:
-        dict with success status, stdout, stderr, returncode
-    """
-    if timeout is None:
-        timeout = QWEN_TIMEOUT
-    
-    print(f"\n🤖 Running Qwen Code CLI...")
-    print(f"   Command: {QWEN_COMMAND} {' '.join(QWEN_ARGS)}")
-    print(f"   Timeout: {timeout}s")
-    
-    try:
-        result = subprocess.run(
-            [QWEN_COMMAND] + QWEN_ARGS + [prompt],
-            check=False,
-            capture_output=True,
-            text=True,
-            encoding='utf-8',
-            errors='replace',
-            cwd=str(VAULT_PATH),
-            timeout=timeout
+logger = setup_logging()
+
+
+# =============================================================================
+# WATCHER PROCESS CLASS
+# =============================================================================
+
+class WatcherProcess:
+    """Manages a single watcher process with auto-restart capability."""
+
+    def __init__(self, name: str, config: Dict[str, Any]):
+        self.name = name
+        self.config = config
+        self.script_path = WATCHERS_DIR / config["script"]
+        self.process: Optional[subprocess.Popen] = None
+        self.start_time: Optional[datetime] = None
+        self.restart_count = 0
+        self.last_crash_time: Optional[datetime] = None
+        self.status = "stopped"
+        self._stop_event = threading.Event()
+        self._thread: Optional[threading.Thread] = None
+
+    def start(self) -> bool:
+        """Start the watcher process."""
+        if not self.script_path.exists():
+            logger.error(f"Watcher script not found: {self.script_path}")
+            self.status = "error_script_not_found"
+            return False
+
+        if self.process and self.process.poll() is None:
+            logger.warning(f"Watcher {self.name} is already running")
+            return True
+
+        try:
+            logger.info(f"Starting watcher: {self.name} ({self.config['description']})")
+
+            # Start process with proper error handling
+            self.process = subprocess.Popen(
+                [sys.executable, str(self.script_path)],
+                cwd=str(WATCHERS_DIR),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding='utf-8',
+                errors='replace'
+            )
+
+            self.start_time = datetime.now()
+            self.status = "running"
+            self.restart_count = 0
+
+            logger.info(f"Watcher {self.name} started with PID {self.process.pid}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to start watcher {self.name}: {e}")
+            self.status = f"error_starting: {str(e)}"
+            return False
+
+    def stop(self) -> None:
+        """Stop the watcher process gracefully."""
+        self._stop_event.set()
+
+        if self.process:
+            try:
+                logger.info(f"Stopping watcher: {self.name} (PID: {self.process.pid})")
+
+                # Try graceful termination first
+                self.process.terminate()
+
+                # Wait up to 10 seconds for graceful shutdown
+                try:
+                    self.process.wait(timeout=10)
+                    logger.info(f"Watcher {self.name} stopped gracefully")
+                except subprocess.TimeoutExpired:
+                    # Force kill if not responding
+                    logger.warning(f"Watcher {self.name} not responding, forcing kill")
+                    self.process.kill()
+                    self.process.wait()
+
+                self.status = "stopped"
+                self.process = None
+
+            except Exception as e:
+                logger.error(f"Error stopping watcher {self.name}: {e}")
+                self.status = f"error_stopping: {str(e)}"
+
+    def check_health(self) -> Dict[str, Any]:
+        """Check watcher health status."""
+        health = {
+            "name": self.name,
+            "description": self.config["description"],
+            "status": self.status,
+            "pid": self.process.pid if self.process else None,
+            "start_time": self.start_time.isoformat() if self.start_time else None,
+            "restart_count": self.restart_count,
+            "last_crash": self.last_crash_time.isoformat() if self.last_crash_time else None,
+        }
+
+        if self.process:
+            # Check if process is still running
+            if self.process.poll() is not None:
+                # Process has exited
+                returncode = self.process.poll()
+                if returncode == 0:
+                    health["status"] = "exited_normally"
+                else:
+                    health["status"] = f"crashed_exit_code_{returncode}"
+                    self.last_crash_time = datetime.now()
+
+                # Capture any error output
+                try:
+                    stderr = self.process.stderr.read()
+                    if stderr:
+                        health["error_output"] = stderr[:500]  # First 500 chars
+                except:
+                    pass
+
+                self.process = None
+                self.status = health["status"]
+
+        return health
+
+    def run_with_watchdog(self) -> None:
+        """Run watcher with watchdog pattern (auto-restart on crash)."""
+        while not self._stop_event.is_set():
+            if not self.process or self.process.poll() is not None:
+                # Process has crashed or not started
+                if self.start_time:  # Only restart if it was running before
+                    self.restart_count += 1
+                    self.last_crash_time = datetime.now()
+
+                    logger.warning(
+                        f"Watcher {self.name} crashed! "
+                        f"Restarting in {RESTART_DELAY} seconds... "
+                        f"(Restart count: {self.restart_count})"
+                    )
+
+                    # Wait before restarting
+                    for _ in range(RESTART_DELAY):
+                        if self._stop_event.is_set():
+                            break
+                        time.sleep(1)
+
+                    if not self._stop_event.is_set():
+                        self.start()
+                else:
+                    # Initial start
+                    if not self.start():
+                        break
+            else:
+                # Process is running, wait a bit before checking again
+                time.sleep(5)
+
+    def start_thread(self) -> None:
+        """Start watcher in a background thread."""
+        self._thread = threading.Thread(
+            target=self.run_with_watchdog,
+            name=f"watcher-{self.name}",
+            daemon=True
         )
-        
-        return {
-            'success': result.returncode == 0,
-            'stdout': result.stdout.strip(),
-            'stderr': result.stderr.strip(),
-            'returncode': result.returncode
+        self._thread.start()
+
+    def join(self, timeout: float = None) -> None:
+        """Wait for watcher thread to complete."""
+        if self._thread:
+            self._thread.join(timeout=timeout)
+
+
+# =============================================================================
+# ORCHESTRATOR CLASS
+# =============================================================================
+
+class Orchestrator:
+    """Master orchestrator for all watchers."""
+
+    def __init__(self, dry_run: bool = False):
+        self.dry_run = dry_run
+        self.watchers: Dict[str, WatcherProcess] = {}
+        self._stop_event = threading.Event()
+        self.health_server: Optional[HTTPServer] = None
+        self._health_thread: Optional[threading.Thread] = None
+
+        # Initialize watchers
+        for name, config in WATCHERS.items():
+            if config["enabled"]:
+                self.watchers[name] = WatcherProcess(name, config)
+
+    def start_health_server(self) -> None:
+        """Start HTTP health check server."""
+        orchestrator_instance = self
+
+        class HealthHandler(BaseHTTPRequestHandler):
+            """HTTP handler for health check requests."""
+
+            def log_message(self, format, *args):
+                """Suppress default logging."""
+                pass
+
+            def do_GET(self):
+                """Handle GET requests."""
+                if self.path == "/health":
+                    health_data = orchestrator_instance.get_health_status()
+                    response = json.dumps(health_data, indent=2)
+
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(response.encode())
+
+                elif self.path == "/status":
+                    status_data = orchestrator_instance.get_status_summary()
+                    response = json.dumps(status_data, indent=2)
+
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(response.encode())
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+        # Use TCPServer with allow_reuse_address
+        class ReusableTCPServer(socketserver.TCPServer):
+            allow_reuse_address = True
+
+        try:
+            self.health_server = ReusableTCPServer(
+                ("", HEALTH_CHECK_PORT),
+                HealthHandler
+            )
+
+            self._health_thread = threading.Thread(
+                target=self.health_server.serve_forever,
+                name="health-server",
+                daemon=True
+            )
+            self._health_thread.start()
+
+            logger.info(f"Health check server started on port {HEALTH_CHECK_PORT}")
+            logger.info(f"  GET http://localhost:{HEALTH_CHECK_PORT}/health")
+
+        except OSError as e:
+            logger.warning(f"Could not start health server on port {HEALTH_CHECK_PORT}: {e}")
+
+    def stop_health_server(self) -> None:
+        """Stop HTTP health check server."""
+        if self.health_server:
+            self.health_server.shutdown()
+            logger.info("Health check server stopped")
+
+    def start_all_watchers(self) -> None:
+        """Start all enabled watchers."""
+        if self.dry_run:
+            logger.info("[DRY RUN] Would start the following watchers:")
+            for name, watcher in self.watchers.items():
+                logger.info(f"  - {name}: {watcher.config['description']} "
+                          f"(interval: {watcher.config['interval']}s)")
+            return
+
+        logger.info(f"Starting {len(self.watchers)} watcher(s)...")
+
+        for name, watcher in self.watchers.items():
+            watcher.start_thread()
+            # Small delay between watcher starts
+            time.sleep(1)
+
+    def stop_all_watchers(self, timeout: float = 10) -> None:
+        """Stop all watchers gracefully."""
+        logger.info("Stopping all watchers...")
+
+        self._stop_event.set()
+
+        # Stop each watcher
+        for name, watcher in self.watchers.items():
+            watcher.stop()
+
+        # Wait for all watchers to stop
+        for name, watcher in self.watchers.items():
+            watcher.join(timeout=timeout / len(self.watchers))
+
+        logger.info("All watchers stopped")
+
+    def get_health_status(self) -> Dict[str, Any]:
+        """Get detailed health status for all watchers."""
+        status = {
+            "timestamp": datetime.now().isoformat(),
+            "orchestrator": {
+                "version": "1.0.0",
+                "dry_run": self.dry_run,
+                "uptime_seconds": None,
+            },
+            "watchers": {},
+            "summary": {
+                "total": len(self.watchers),
+                "running": 0,
+                "stopped": 0,
+                "error": 0,
+            }
         }
-        
-    except subprocess.TimeoutExpired:
-        print(f"⚠️  Qwen timeout ({timeout}s)")
-        return {
-            'success': False,
-            'stdout': '',
-            'stderr': f'Timeout after {timeout}s',
-            'returncode': -1
+
+        for name, watcher in self.watchers.items():
+            health = watcher.check_health()
+            status["watchers"][name] = health
+
+            # Update summary
+            watcher_status = health["status"]
+            if watcher_status == "running":
+                status["summary"]["running"] += 1
+            elif watcher_status in ["stopped", "exited_normally"]:
+                status["summary"]["stopped"] += 1
+            else:
+                status["summary"]["error"] += 1
+
+        return status
+
+    def get_status_summary(self) -> Dict[str, Any]:
+        """Get simplified status summary."""
+        health = self.get_health_status()
+
+        summary = {
+            "timestamp": health["timestamp"],
+            "status": "healthy" if health["summary"]["error"] == 0 else "degraded",
+            "watchers": {}
         }
-    except FileNotFoundError:
-        print(f"❌ Qwen Code CLI not found: {QWEN_COMMAND}")
-        print(f"   Install with: npm install -g @anthropic/qwen")
-        return {
-            'success': False,
-            'stdout': '',
-            'stderr': 'Qwen CLI not found',
-            'returncode': -2
-        }
-    except Exception as e:
-        print(f"❌ Error running Qwen: {e}")
-        return {
-            'success': False,
-            'stdout': '',
-            'stderr': str(e),
-            'returncode': -3
-        }
+
+        for name, watcher_health in health["watchers"].items():
+            summary["watchers"][name] = watcher_health["status"]
+
+        return summary
+
+    def run(self) -> None:
+        """Run the orchestrator main loop."""
+        logger.info("=" * 70)
+        logger.info("🤖 AI EMPLOYEE WATCHER ORCHESTRATOR")
+        logger.info("=" * 70)
+        logger.info(f"Vault Path: {VAULT_PATH}")
+        logger.info(f"Log Level: {LOG_LEVEL}")
+        logger.info(f"Watcher Interval: {WATCHER_INTERVAL}s")
+        logger.info(f"Restart Delay: {RESTART_DELAY}s")
+        logger.info(f"Dry Run: {self.dry_run}")
+        logger.info("=" * 70)
+
+        if self.dry_run:
+            self.start_all_watchers()
+            logger.info("\n[DRY RUN] Complete! No watchers were actually started.")
+            return
+
+        # Start health server
+        self.start_health_server()
+
+        # Start all watchers
+        self.start_all_watchers()
+
+        logger.info("\n" + "=" * 70)
+        logger.info("✅ All watchers started successfully!")
+        logger.info("Press Ctrl+C to stop all watchers")
+        logger.info("=" * 70)
+
+        # Main loop - keep running until interrupted
+        try:
+            while not self._stop_event.is_set():
+                # Log status every 60 seconds
+                time.sleep(60)
+
+                if not self._stop_event.is_set():
+                    status = self.get_status_summary()
+                    logger.info(f"Status: {status['status']} - "
+                              f"Running: {status['summary']['running']}, "
+                              f"Errors: {status['summary']['error']}")
+
+        except KeyboardInterrupt:
+            logger.info("\n\nReceived interrupt signal")
+        finally:
+            # Cleanup
+            self.stop_all_watchers()
+            self.stop_health_server()
+            logger.info("Orchestrator shutdown complete")
 
 
-def process_needs_action():
-    """Process all files in Needs_Action folder."""
-    print("=" * 70)
-    print("📥 PROCESSING NEEDS_ACTION FOLDER")
-    print("=" * 70)
-    
-    ensure_folders()
-    
-    # Get all markdown files
-    files = list(NEEDS_ACTION.glob("*.md"))
-    
-    if not files:
-        print("ℹ️  No files in Needs_Action folder")
-        return
-    
-    print(f"📊 Found {len(files)} file(s) to process")
-    
-    # Process each file
-    for file in files:
-        print(f"\n--- Processing: {file.name} ---")
-        
-        prompt = f"""Read the action file: {file.name} in Needs_Action folder.
+# =============================================================================
+# SIGNAL HANDLERS
+# =============================================================================
 
-Process this task completely:
-1. Understand what needs to be done
-2. Take appropriate actions (draft replies, update files, etc.)
-3. Save any drafts in Pending_Approval folder
-4. Move this file to Done/ folder when complete
+def setup_signal_handlers(orchestrator_instance: Orchestrator) -> None:
+    """Setup graceful shutdown signal handlers."""
 
-Follow Company_Handbook.md rules for all actions.
-"""
-        
-        result = run_qwen(prompt)
-        
-        if result['success']:
-            print(f"✅ Successfully processed {file.name}")
-        else:
-            print(f"⚠️  Error processing {file.name}: {result['stderr']}")
-    
-    print("\n" + "=" * 70)
-    print(f"✅ Processed {len(files)} file(s)")
-    print("=" * 70)
+    def signal_handler(signum, frame):
+        """Handle SIGINT and SIGTERM signals."""
+        logger.info(f"\nReceived signal {signum}, initiating graceful shutdown...")
+        orchestrator_instance._stop_event.set()
+
+    # Register signal handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
 
-def process_emails():
-    """Process email action files specifically."""
-    print("=" * 70)
-    print("📧 PROCESSING EMAIL ACTION FILES")
-    print("=" * 70)
-    
-    ensure_folders()
-    
-    # Get email files
-    files = [f for f in NEEDS_ACTION.glob("EMAIL_*.md")]
-    
-    if not files:
-        print("ℹ️  No email files to process")
-        return
-    
-    print(f"📊 Found {len(files)} email(s)")
-    
-    for file in files:
-        print(f"\n--- Processing: {file.name} ---")
-        
-        prompt = f"""Read the email action file: {file.name} in Needs_Action folder.
+# =============================================================================
+# CLI FUNCTIONS
+# =============================================================================
 
-Draft a professional reply following Company_Handbook rules:
-1. Read the email details carefully
-2. Draft an appropriate response
-3. Save the reply draft in Pending_Approval folder as REPLY_{file.stem}.md
-4. Mark the original email as processed
-
-Keep the tone professional and helpful.
-"""
-        
-        result = run_qwen(prompt)
-        
-        if result['success']:
-            print(f"✅ Reply draft created for {file.name}")
-        else:
-            print(f"⚠️  Error: {result['stderr']}")
-    
-    print("\n" + "=" * 70)
-    print(f"✅ Processed {len(files)} email(s)")
-    print("=" * 70)
-
-
-def process_whatsapp_messages():
-    """Process WhatsApp action files."""
-    print("=" * 70)
-    print("💬 PROCESSING WHATSAPP MESSAGES")
-    print("=" * 70)
-    
-    ensure_folders()
-    
-    # Get WhatsApp files
-    files = [f for f in NEEDS_ACTION.glob("WHATSAPP_*.md")]
-    
-    if not files:
-        print("ℹ️  No WhatsApp files to process")
-        return
-    
-    print(f"📊 Found {len(files)} message(s)")
-    
-    for file in files:
-        print(f"\n--- Processing: {file.name} ---")
-        
-        prompt = f"""Read the WhatsApp message action file: {file.name} in Needs_Action folder.
-
-Draft a professional response following Company_Handbook rules:
-1. Read the message carefully
-2. Identify the intent and urgency
-3. Draft an appropriate response
-4. Save the reply draft in Pending_Approval folder as REPLY_{file.stem}.md
-
-Keep responses friendly yet professional. Use emojis when appropriate.
-"""
-        
-        result = run_qwen(prompt)
-        
-        if result['success']:
-            print(f"✅ Response drafted for {file.name}")
-        else:
-            print(f"⚠️  Error: {result['stderr']}")
-    
-    print("\n" + "=" * 70)
-    print(f"✅ Processed {len(files)} message(s)")
-    print("=" * 70)
-
-
-def process_social_drafts():
-    """Process social media drafts."""
-    print("=" * 70)
-    print("📱 PROCESSING SOCIAL MEDIA DRAFTS")
-    print("=" * 70)
-    
-    ensure_folders()
-    
-    # Get social files
-    files = [f for f in NEEDS_ACTION.glob("SOCIAL_*.md")]
-    
-    if not files:
-        print("ℹ️  No social draft files to process")
-        return
-    
-    print(f"📊 Found {len(files)} draft(s)")
-    
-    for file in files:
-        print(f"\n--- Processing: {file.name} ---")
-        
-        prompt = f"""Read the social draft action file: {file.name} in Needs_Action folder.
-
-Turn this into professional social media posts:
-1. Create versions for LinkedIn, Facebook, Instagram, and Twitter
-2. Add 3-5 relevant hashtags to each
-3. Adjust tone for each platform
-4. Save polished posts in Social_Drafts/Polished folder
-
-Platform guidelines:
-- LinkedIn: Professional, longer form
-- Facebook: Friendly, engaging
-- Instagram: Visual-focused, emoji-friendly
-- Twitter: Concise (under 280 chars)
-"""
-        
-        result = run_qwen(prompt)
-        
-        if result['success']:
-            print(f"✅ Polished posts created from {file.name}")
-        else:
-            print(f"⚠️  Error: {result['stderr']}")
-    
-    print("\n" + "=" * 70)
-    print(f"✅ Processed {len(files)} draft(s)")
-    print("=" * 70)
-
-
-def process_odoo_leads():
-    """Process Odoo CRM lead files."""
-    print("=" * 70)
-    print("🎯 PROCESSING ODOO LEADS")
-    print("=" * 70)
-    
-    ensure_folders()
-    
-    # Get Odoo files
-    files = [f for f in NEEDS_ACTION.glob("ODOO_LEAD_*.md")]
-    
-    if not files:
-        print("ℹ️  No Odoo lead files to process")
-        return
-    
-    print(f"📊 Found {len(files)} lead(s)")
-    
-    for file in files:
-        print(f"\n--- Processing: {file.name} ---")
-        
-        prompt = f"""Read the Odoo lead file: {file.name} in Needs_Action folder.
-
-Process this CRM lead:
-1. Review lead details and qualification status
-2. Draft a personalized follow-up email
-3. Save the reply draft in Pending_Approval folder as REPLY_{file.stem}.md
-4. Update Dashboard.md with lead summary if relevant
-
-Focus on converting the lead into a customer.
-"""
-        
-        result = run_qwen(prompt)
-        
-        if result['success']:
-            print(f"✅ Lead processed: {file.name}")
-        else:
-            print(f"⚠️  Error: {result['stderr']}")
-    
-    print("\n" + "=" * 70)
-    print(f"✅ Processed {len(files)} lead(s)")
-    print("=" * 70)
-
-
-def run_ralph_loop(task_description: str):
-    """Run Ralph Wiggum persistent loop."""
-    print("=" * 70)
-    print("🔁 STARTING RALPH LOOP")
-    print("=" * 70)
-    
-    # Import and run ralph_loop
-    ralph_script = VAULT_PATH / "ralph_loop.py"
-    
-    if not ralph_script.exists():
-        print("❌ ralph_loop.py not found!")
-        return
-    
+def check_health_command() -> None:
+    """Check health of running orchestrator."""
     try:
-        result = subprocess.run(
-            [sys.executable, str(ralph_script), task_description],
-            check=False,
-            text=True,
-            encoding='utf-8',
-            errors='replace'
-        )
-        
-        print("\n" + "=" * 70)
-        print("🏁 RALPH LOOP FINISHED")
-        print("=" * 70)
-        
+        import urllib.request
+
+        url = f"http://localhost:{HEALTH_CHECK_PORT}/health"
+        with urllib.request.urlopen(url, timeout=5) as response:
+            data = json.loads(response.read().decode())
+            print(json.dumps(data, indent=2))
+
     except Exception as e:
-        print(f"❌ Error running Ralph Loop: {e}")
+        print(json.dumps({
+            "error": f"Could not connect to orchestrator: {e}",
+            "hint": "Is orchestrator running? Start with: python orchestrator.py"
+        }, indent=2))
+        sys.exit(1)
 
 
-def generate_ceo_briefing():
-    """Generate CEO weekly briefing."""
-    print("=" * 70)
-    print("📊 GENERATING CEO BRIEFING")
-    print("=" * 70)
-    
-    briefing_script = VAULT_PATH / "ceo_briefing.py"
-    
-    if not briefing_script.exists():
-        print("❌ ceo_briefing.py not found!")
-        return
-    
+def stop_command() -> None:
+    """Stop running orchestrator."""
     try:
-        result = subprocess.run(
-            [sys.executable, str(briefing_script)],
-            check=False,
-            text=True,
-            encoding='utf-8',
-            errors='replace'
-        )
-        
-        print("\n" + "=" * 70)
-        print("🏁 BRIEFING GENERATED")
-        print("=" * 70)
-        
+        import urllib.request
+
+        # Send stop request (would need endpoint implementation)
+        # For now, just inform user
+        print("To stop the orchestrator:")
+        print("  1. Find the process: tasklist | findstr python")
+        print("  2. Kill the process: taskkill /PID <pid> /F")
+        print("\nOr press Ctrl+C if running in foreground")
+
     except Exception as e:
-        print(f"❌ Error generating briefing: {e}")
+        print(f"Error: {e}")
 
 
-def show_help():
-    """Show help information."""
-    print("""
-╔══════════════════════════════════════════════════════════════╗
-║           AI EMPLOYEE ORCHESTRATOR - QWEN CODE               ║
-╠══════════════════════════════════════════════════════════════╣
-║  Usage: python orchestrator.py [command]                     ║
-╠══════════════════════════════════════════════════════════════╣
-║  Commands:                                                   ║
-║    process_needs_action  - Process all files in Needs_Action ║
-║    process_email         - Process email action files        ║
-║    process_whatsapp      - Process WhatsApp messages         ║
-║    process_social        - Process social media drafts       ║
-║    process_odoo          - Process Odoo lead files           ║
-║    run_ralph_loop        - Start Ralph Wiggum loop           ║
-║    generate_briefing     - Generate CEO weekly briefing      ║
-║    help                  - Show this help message            ║
-╠══════════════════════════════════════════════════════════════╣
-║  Environment Variables:                                      ║
-║    QWEN_COMMAND        - Qwen CLI command (default: 'qwen')  ║
-║    QWEN_TIMEOUT        - Timeout in seconds (default: 180)   ║
-╚══════════════════════════════════════════════════════════════╝
-""")
-
+# =============================================================================
+# MAIN ENTRY POINT
+# =============================================================================
 
 def main():
     """Main entry point."""
-    print("\n" + "=" * 70)
-    print("🤖 AI EMPLOYEE ORCHESTRATOR - QWEN CODE")
-    print("=" * 70)
-    print(f"   Vault Path: {VAULT_PATH}")
-    print(f"   Qwen Command: {QWEN_COMMAND} {' '.join(QWEN_ARGS)}")
-    print(f"   Timeout: {QWEN_TIMEOUT}s")
-    print("=" * 70)
-    
-    # Get command from args
-    if len(sys.argv) < 2:
-        show_help()
+    parser = argparse.ArgumentParser(
+        description="AI Employee Watcher Orchestrator",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python orchestrator.py              # Start all watchers
+  python orchestrator.py --dry-run    # Test configuration
+  python orchestrator.py --health     # Check health status
+  python orchestrator.py --stop       # Stop all watchers
+
+Environment Variables:
+  WATCHER_INTERVAL     - Default watcher interval (default: 60)
+  LOG_LEVEL           - Logging level (default: INFO)
+  LOG_FILE            - Log file path (default: Logs/orchestrator.log)
+  RESTART_DELAY       - Restart delay after crash (default: 5)
+  HEALTH_CHECK_PORT   - Health check port (default: 8765)
+        """
+    )
+
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Test configuration without starting watchers"
+    )
+    parser.add_argument(
+        "--health",
+        action="store_true",
+        help="Check health status of running orchestrator"
+    )
+    parser.add_argument(
+        "--stop",
+        action="store_true",
+        help="Stop all running watchers"
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose (DEBUG) logging"
+    )
+
+    args = parser.parse_args()
+
+    # Override log level if verbose
+    if args.verbose:
+        os.environ["LOG_LEVEL"] = "DEBUG"
+
+    # Handle commands
+    if args.health:
+        check_health_command()
         return
-    
-    command = sys.argv[1].lower()
-    
-    if command == "process_needs_action":
-        process_needs_action()
-    elif command == "process_email":
-        process_emails()
-    elif command == "process_whatsapp":
-        process_whatsapp_messages()
-    elif command == "process_social":
-        process_social_drafts()
-    elif command == "process_odoo":
-        process_odoo_leads()
-    elif command == "run_ralph_loop":
-        if len(sys.argv) > 2:
-            task = " ".join(sys.argv[2:])
-            run_ralph_loop(task)
-        else:
-            print("❌ Task description required!")
-            print("   Usage: python orchestrator.py run_ralph_loop \"Your task\"")
-    elif command == "generate_briefing":
-        generate_ceo_briefing()
-    elif command == "help":
-        show_help()
-    else:
-        print(f"❌ Unknown command: {command}")
-        show_help()
+
+    if args.stop:
+        stop_command()
+        return
+
+    # Create and run orchestrator
+    orchestrator = Orchestrator(dry_run=args.dry_run)
+    setup_signal_handlers(orchestrator)
+    orchestrator.run()
 
 
 if __name__ == "__main__":

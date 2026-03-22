@@ -1,0 +1,75 @@
+{
+  "platform": "facebook",
+  "period_days": 7,
+  "generated_at": "2026-03-18T03:12:43.039155",
+  "statistics": {
+    "total_posts": 2,
+    "total_hashtags": 20,
+    "total_mentions": 0,
+    "avg_word_count": 157.0,
+    "avg_engagement_score": 20.0
+  },
+  "status_breakdown": {
+    "approved": 2
+  },
+  "top_hashtags": [
+    {
+      "tag": "#BusinessUpdate",
+      "count": 2
+    },
+    {
+      "tag": "#Achievement",
+      "count": 2
+    },
+    {
+      "tag": "#BusinessGrowth",
+      "count": 2
+    },
+    {
+      "tag": "#Grateful",
+      "count": 2
+    },
+    {
+      "tag": "#Growth",
+      "count": 2
+    }
+  ],
+  "recent_posts": [
+    {
+      "file": "facebook_post_2026-03-15.md",
+      "platform": "Facebook",
+      "status": "approved",
+      "created": "2026-03-15 03:15:49",
+      "hashtags": [
+        "#BusinessUpdate",
+        "#Achievement",
+        "#BusinessGrowth",
+        "#Grateful",
+        "#Growth",
+        "#Success",
+        "#Milestone",
+        "#Entrepreneurship",
+        "#ClientSuccess",
+        "#Professional"
+      ]
+    },
+    {
+      "file": "facebook_post_2026-03-18.md",
+      "platform": "Facebook",
+      "status": "approved",
+      "created": "2026-03-18 03:12:20",
+      "hashtags": [
+        "#BusinessUpdate",
+        "#Achievement",
+        "#BusinessGrowth",
+        "#Grateful",
+        "#Growth",
+        "#Success",
+        "#Milestone",
+        "#Entrepreneurship",
+        "#ClientSuccess",
+        "#Professional"
+      ]
+    }
+  ]
+}

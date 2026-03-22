@@ -1,0 +1,68 @@
+{
+  "platform": "linkedin",
+  "period_days": 7,
+  "generated_at": "2026-03-18T03:12:43.012996",
+  "statistics": {
+    "total_posts": 2,
+    "total_hashtags": 12,
+    "total_mentions": 0,
+    "avg_word_count": 118.0,
+    "avg_engagement_score": 12.0
+  },
+  "status_breakdown": {
+    "draft": 1,
+    "approved": 1
+  },
+  "top_hashtags": [
+    {
+      "tag": "#Sales",
+      "count": 2
+    },
+    {
+      "tag": "#BusinessGrowth",
+      "count": 2
+    },
+    {
+      "tag": "#Progress",
+      "count": 2
+    },
+    {
+      "tag": "#Milestone",
+      "count": 2
+    },
+    {
+      "tag": "#Entrepreneurship",
+      "count": 2
+    }
+  ],
+  "recent_posts": [
+    {
+      "file": "linkedin_post_2026-03-15.md",
+      "platform": "Unknown",
+      "status": "draft",
+      "created": "2026-03-15 01:08:02",
+      "hashtags": [
+        "#Sales",
+        "#BusinessGrowth",
+        "#Progress",
+        "#Milestone",
+        "#Entrepreneurship",
+        "#ClientSuccess"
+      ]
+    },
+    {
+      "file": "linkedin_post_2026-03-18.md",
+      "platform": "Unknown",
+      "status": "approved",
+      "created": "2026-03-18 03:11:51",
+      "hashtags": [
+        "#Sales",
+        "#BusinessGrowth",
+        "#Progress",
+        "#Milestone",
+        "#Entrepreneurship",
+        "#ClientSuccess"
+      ]
+    }
+  ]
+}

@@ -8,6 +8,7 @@ config/token.pickle
 config/.env
 .env
 .env.local
+.env.cloud
 .env.*.local
 
 # 📁 Session Data (Browser/Auth Sessions)
@@ -20,9 +21,12 @@ whatsapp_session/
 data/processed_*.txt
 data/tracker_*.txt
 
-# 📝 Logs (Optional - Keep if you want history)
-# Logs/*.log
-# Logs/*.txt
+# 📝 Logs (ALL LOGS - Security for Platinum)
+Logs/*.log
+Logs/*.txt
+Logs/*.jsonl
+Logs/Audit/
+Dead_Letter_Queue/
 
 # 🐍 Python
 __pycache__/
@@ -84,3 +88,26 @@ mcp-email/token.json
 mcp-email/token.pickle
 whatsapp_session/
 credentials.json
+
+# 💿 PLATINUM TIER - Cloud/Local Separation
+# NEVER SYNC THESE TO CLOUD
+.env.cloud
+.env.local
+*.env
+credentials.json
+token.json
+*.session
+*.pickle
+node_modules/
+__pycache__/
+*.pyc
+Logs/
+Dead_Letter_Queue/
+In_Progress/
+Updates/
+Signals/
+*.pem
+*.key
+*.crt
+secrets/
+config/secrets.json
