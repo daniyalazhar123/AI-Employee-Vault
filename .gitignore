@@ -2,14 +2,16 @@
 # AI Employee Vault - .gitignore
 # ============================================
 
-# 🔐 Sensitive Credentials & Auth
-config/credentials.json
-config/token.pickle
-config/.env
+# 🔐 Sensitive Credentials & Auth (NEVER COMMIT)
 .env
 .env.local
 .env.cloud
 .env.*.local
+.env.*.template
+.env.example
+config/credentials.json
+config/token.pickle
+config/.env
 
 # 📁 Session Data (Browser/Auth Sessions)
 sessions/

@@ -1,8 +1,23 @@
 # 🥈 SILVER TIER - AI EMPLOYEE HACKATHON
 
-**Personal AI Employee Hackathon 0**  
-**Functional Assistant Tier**  
+**Personal AI Employee Hackathon 0**
+**Functional Assistant Tier**
 **Estimated Time:** 20-30 hours
+
+---
+
+## 🔐 SECURITY NOTICE
+
+**⚠️ NO CREDENTIALS IN THIS REPOSITORY!**
+
+This repository does NOT contain:
+- `.env` files
+- `credentials.json`
+- `token.json`
+- WhatsApp sessions
+- Any API keys
+
+**Setup Required:** See `.env.example` for credential templates.
 
 ---
 

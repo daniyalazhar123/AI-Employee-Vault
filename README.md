@@ -5,10 +5,27 @@
 ![Qwen CLI](https://img.shields.io/badge/Qwen_CLI-v0.12.6-blue)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-green)
 ![Tier](https://img.shields.io/badge/Tier-Gold_Complete-yellow)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
 *Gold Tier Complete - Personal AI Employee Hackathon 0*
 
 **🤖 Primary Engine: Qwen CLI v0.12.6 | Alternative: Claude Code**
+
+---
+
+## 📢 IMPORTANT - SECURITY NOTICE
+
+**⚠️ THIS REPOSITORY DOES NOT CONTAIN CREDENTIALS!**
+
+For security reasons, the following files are **NOT** included in this repository:
+- `.env` files (environment variables)
+- `credentials.json` (OAuth credentials)
+- `token.json` (API tokens)
+- `whatsapp_session/` (WhatsApp sessions)
+- `Logs/` (audit logs)
+- Any `*.session`, `*.pickle`, `*.pem`, `*.key` files
+
+**You MUST create your own `.env` file with your credentials.** See `.env.example` for template.
 
 ---
 
@@ -17,6 +34,13 @@
 I built a digital employee that works 24/7 managing my Gmail, WhatsApp, social media, CRM, and accounting. It runs locally, keeps data private, and handles routine tasks while I focus on important work.
 
 **The result:** 80% time savings on communication and administrative tasks.
+
+**📊 Current Status:**
+- ✅ **Gold Tier: 100% Complete**
+- ⚪ **Platinum Tier: Roadmap Ready**
+- 📁 **156+ Files**
+- 🐍 **38 Python Scripts**
+- 📝 **100+ Documentation Files**
 
 ---
 

@@ -1,8 +1,29 @@
 # 🥇 GOLD TIER - AI EMPLOYEE HACKATHON
 
-**Personal AI Employee Hackathon 0**  
-**Autonomous Employee Tier**  
+**Personal AI Employee Hackathon 0**
+**Autonomous Employee Tier**
 **Estimated Time:** 40+ hours
+
+---
+
+## 🔐 SECURITY NOTICE
+
+**⚠️ NO CREDENTIALS IN THIS REPOSITORY!**
+
+This repository does NOT contain:
+- `.env` files (environment variables)
+- `credentials.json` (OAuth credentials)
+- `token.json` (API tokens)
+- `whatsapp_session/` (WhatsApp sessions)
+- `Logs/` (audit logs)
+- Any `*.session`, `*.pickle`, `*.pem`, `*.key` files
+
+**✅ Gold Tier Status: 100% COMPLETE**
+
+**Setup Required:**
+1. Copy `.env.example` to `.env.local`
+2. Add your credentials (see `CREDENTIALS_GUIDE.md`)
+3. Run `python orchestrator.py --dry-run` to test
 
 ---
 

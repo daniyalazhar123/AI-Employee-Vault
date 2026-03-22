@@ -1,8 +1,39 @@
 # 💿 PLATINUM TIER - AI EMPLOYEE HACKATHON
 
-**Personal AI Employee Hackathon 0**  
-**Always-On Cloud + Local Executive**  
+**Personal AI Employee Hackathon 0**
+**Always-On Cloud + Local Executive**
 **Estimated Time:** 60+ hours
+
+---
+
+## 🔐 CRITICAL SECURITY NOTICE
+
+**⚠️ CREDENTIAL SEPARATION IS MANDATORY!**
+
+### What's NOT in This Repository:
+- `.env` files (NEVER commit!)
+- `credentials.json`
+- `token.json`
+- `whatsapp_session/`
+- `Logs/`
+- Any API keys, secrets, passwords
+
+### Platinum Security Architecture:
+```
+☁️ CLOUD VM (.env.cloud - DRAFT ONLY)
+   ❌ NO WhatsApp credentials
+   ❌ NO Banking credentials
+   ❌ NO Final send permissions
+
+💻 LOCAL MACHINE (.env.local - EXECUTE)
+   ✅ WhatsApp credentials (local only)
+   ✅ Banking credentials (local only)
+   ✅ Final send permissions
+```
+
+**⚪ Platinum Tier Status: ROADMAP READY (0% Complete)**
+
+**Setup Required:** See `PLATINUM_TIER_ROADMAP.md` for complete guide.
 
 ---
 

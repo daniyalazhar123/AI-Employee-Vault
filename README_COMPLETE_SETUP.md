@@ -1,9 +1,26 @@
 # 🚀 AI EMPLOYEE 24/7 - COMPLETE SETUP GUIDE
 
-**Bhai Sab Kuch Ready Hai!**  
-**Date:** March 21, 2026  
-**Brain:** Qwen CLI  
+**Bhai Sab Kuch Ready Hai!**
+**Date:** March 22, 2026
+**Brain:** Qwen CLI
 **Status:** 100% COMPLETE
+
+---
+
+## 🔐 SECURITY NOTICE
+
+**⚠️ NO CREDENTIALS IN REPOSITORY!**
+
+This repository does NOT contain:
+- `.env` files (you must create your own)
+- `credentials.json`
+- `token.json`
+- Any API keys or secrets
+
+**Setup Required:**
+1. Copy `.env.example` to `.env.local`
+2. Add your credentials (see `CREDENTIALS_GUIDE.md`)
+3. Run tests
 
 ---
 

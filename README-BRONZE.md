@@ -1,8 +1,22 @@
 # 🥉 BRONZE TIER - AI EMPLOYEE HACKATHON
 
-**Personal AI Employee Hackathon 0**  
-**Foundation Tier - Minimum Viable Deliverable**  
+**Personal AI Employee Hackathon 0**
+**Foundation Tier - Minimum Viable Deliverable**
 **Estimated Time:** 8-12 hours
+
+---
+
+## 🔐 SECURITY NOTICE
+
+**⚠️ NO CREDENTIALS IN THIS REPOSITORY!**
+
+This repository does NOT contain:
+- `.env` files
+- `credentials.json`
+- `token.json`
+- Any API keys or secrets
+
+**Setup Required:** Copy `.env.example` to `.env.local` and add your credentials.
 
 ---
 
