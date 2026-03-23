@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "README-PLATINUM.md",
+                "file": "README_UPDATED_FINAL.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README-PLATINUM"
+              "title": "README_UPDATED_FINAL"
             }
           }
         ],
@@ -200,6 +200,9 @@
   },
   "active": "7d49ea9d6c37d228",
   "lastOpenFiles": [
+    "cloud/deploy_cloud.py",
+    "README.md",
+    "README-PLATINUM.md",
     "mcp_social.py",
     "mcp_browser.py",
     "cloud/deploy.py",
@@ -210,7 +213,6 @@
     "dashboard/api.py",
     "dashboard",
     "mcp_odoo.py",
-    "mcp_email.py",
     "PLATINUM_TIER_STATUS_TRACKING.md",
     "PLATINUM_TIER_COMPLETE_GUIDE.md",
     "PLATINUM_TIER_FINAL_VERIFICATION.md",
@@ -226,7 +228,6 @@
     "README_COMPLETE_SETUP.md",
     "COMPLETE_ACTIVATION_GUIDE.md",
     "odoo/README.md",
-    "README.md",
     "Social_Summaries/social_summary_linkedin_2026-03-17_7days.md",
     "MCP_SERVERS_LINKEDIN_POSTING.md",
     "ODOO_MCP_HACKATHON_COMPLIANCE.md",
@@ -235,7 +236,6 @@
     "COMPLETE_TESTING_COMMANDS.md",
     "GOLD_TIER_100_COMPLETE_FINAL.md",
     "ODOO_INSTALLATION_STATUS.md",
-    "ODOO_INSTALL_GUIDE.md",
     "mcp-social/node_modules/playwright-core/lib/vite/recorder/playwright-logo.svg",
     "mcp-social/node_modules/playwright-core/lib/vite/traceViewer/playwright-logo.svg",
     "mcp-social/node_modules/playwright-core/lib/server/chromium/appIcon.png",

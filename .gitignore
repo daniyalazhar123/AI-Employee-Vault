@@ -187,3 +187,4 @@ odoo/example.env
 *.env
 *.env >> .gitignore.env.example
 *.env
+-e "\n# Dashboard\ndashboard/__pycache__/\ndashboard/.env\ndashboard/frontend/.next/\ncloud_deploy.log\ncloud_deploy.env"  
