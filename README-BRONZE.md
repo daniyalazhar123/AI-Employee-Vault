@@ -307,7 +307,7 @@ python watchers\base_watcher.py
 qwen --version
 
 # Reinstall if needed
-npm install -g @anthropic/claude-code
+npm install -g @anthropic/qwen
 
 # Test basic command
 qwen -y "Hello"
