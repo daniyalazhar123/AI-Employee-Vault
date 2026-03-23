@@ -15,20 +15,20 @@ cd "C:\Users\CC\Documents\Obsidian Vault"
 
 # Email MCP
 cd mcp-email
-npm install
+pip install -r requirements.txt
 
 # Browser MCP
 cd ../mcp-browser
-npm install
+pip install -r requirements.txt
 npx playwright install chromium
 
 # Odoo MCP
 cd ../mcp-odoo
-npm install
+pip install -r requirements.txt
 
 # Social MCP
 cd ../mcp-social
-npm install
+pip install -r requirements.txt
 npx playwright install chromium
 ```
 
@@ -41,9 +41,9 @@ cd "C:\Users\CC\Documents\Obsidian Vault"
 echo "Installing all MCP servers..."
 
 python mcp_email.py --action list && cd ..
-cd mcp-browser && npm install && npx playwright install chromium && cd ..
-cd mcp-odoo && npm install && cd ..
-cd mcp-social && npm install && npx playwright install chromium && cd ..
+cd mcp-browser && pip install -r requirements.txt && npx playwright install chromium && cd ..
+cd mcp-odoo && pip install -r requirements.txt && cd ..
+cd mcp-social && pip install -r requirements.txt && npx playwright install chromium && cd ..
 
 echo "✅ All MCP servers installed!"
 ```
@@ -111,7 +111,7 @@ python test_mcp.py
 1. **Install:**
    ```bash
    cd mcp-email
-   npm install
+   pip install -r requirements.txt
    ```
 
 2. **Get Gmail Credentials:**
@@ -137,7 +137,7 @@ python test_mcp.py
 1. **Install:**
    ```bash
    cd mcp-browser
-   npm install
+   pip install -r requirements.txt
    npx playwright install chromium
    ```
 
@@ -151,7 +151,7 @@ python test_mcp.py
 1. **Install:**
    ```bash
    cd mcp-odoo
-   npm install
+   pip install -r requirements.txt
    ```
 
 2. **Setup Odoo:**
@@ -181,7 +181,7 @@ python test_mcp.py
 1. **Install:**
    ```bash
    cd mcp-social
-   npm install
+   pip install -r requirements.txt
    npx playwright install chromium
    ```
 
@@ -246,7 +246,7 @@ python test_mcp.py
 
 **Error: "Module not found"**
 ```bash
-npm install
+pip install -r requirements.txt
 ```
 
 **Error: "Browser not found"**
