@@ -1,0 +1,427 @@
+# ============================================
+# 💿 PLATINUM TIER - KUBERNETES DEPLOYMENT
+# Personal AI Employee Hackathon 0
+# ============================================
+# Cloud Orchestrator Deployment for K8s
+# 
+# Usage:
+#   kubectl apply -f deployment.yaml
+#   kubectl get pods
+#   kubectl logs -f cloud-orchestrator
+# ============================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-orchestrator
+  labels:
+    app: cloud-orchestrator
+    tier: platinum
+    component: ai-employee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-orchestrator
+  template:
+    metadata:
+      labels:
+        app: cloud-orchestrator
+        tier: platinum
+        component: ai-employee
+    spec:
+      # Service account for K8s access (optional)
+      serviceAccountName: default
+      
+      # Container definition
+      containers:
+      - name: cloud-orchestrator
+        image: ai-employee-vault:latest
+        imagePullPolicy: IfNotPresent
+        
+        # Command to run
+        command: ["python3"]
+        args: ["cloud_orchestrator.py"]
+        
+        # Working directory
+        workingDir: /app
+        
+        # Environment variables
+        env:
+        # Vault path
+        - name: VAULT_PATH
+          value: "/app"
+        
+        # Check interval (30 seconds)
+        - name: CHECK_INTERVAL
+          value: "30"
+        
+        # Agent configuration
+        - name: AGENT_ID
+          value: "cloud"
+        
+        - name: AGENT_TYPE
+          value: "draft_only"
+        
+        # Odoo configuration (from ConfigMap)
+        - name: ODOO_URL
+          valueFrom:
+            configMapKeyRef:
+              name: ai-employee-config
+              key: ODOO_URL
+              optional: true
+        
+        - name: ODOO_DB
+          valueFrom:
+            configMapKeyRef:
+              name: ai-employee-config
+              key: ODOO_DB
+              optional: true
+        
+        # Gmail API (read-only for cloud)
+        - name: GMAIL_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: ai-employee-secrets
+              key: GMAIL_CLIENT_ID
+              optional: true
+        
+        # Logging
+        - name: LOG_LEVEL
+          value: "INFO"
+        
+        # Resource limits
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        
+        # Health check (liveness probe)
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 10
+          failureThreshold: 3
+        
+        # Readiness probe
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Volume mounts
+        volumeMounts:
+        # Vault storage (persistent)
+        - name: vault-storage
+          mountPath: /app
+          subPath: vault
+        
+        # Logs storage
+        - name: logs-storage
+          mountPath: /app/Logs
+        
+        # ConfigMap mount
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        
+        # Secret mount (sensitive data)
+        - name: secrets
+          mountPath: /app/secrets
+          readOnly: true
+        
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+        
+      # Volumes
+      volumes:
+      # Persistent vault storage
+      - name: vault-storage
+        persistentVolumeClaim:
+          claimName: ai-employee-vault-pvc
+      
+      # Logs storage (ephemeral)
+      - name: logs-storage
+        emptyDir: {}
+      
+      # ConfigMap volume
+      - name: config
+        configMap:
+          name: ai-employee-config
+          defaultMode: 0644
+      
+      # Secrets volume
+      - name: secrets
+        secret:
+          secretName: ai-employee-secrets
+          defaultMode: 0644
+      
+      # Node selector (optional - for specific node type)
+      nodeSelector: {}
+      
+      # Tolerations (optional - for tainted nodes)
+      tolerations: []
+      
+      # Affinity rules (optional)
+      affinity: {}
+      
+      # Restart policy
+      restartPolicy: Always
+      
+      # Termination grace period
+      terminationGracePeriodSeconds: 30
+
+---
+# ============================================
+# SERVICE - Cloud Orchestrator
+# ============================================
+# Exposes health check endpoint
+# ============================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-orchestrator-service
+  labels:
+    app: cloud-orchestrator
+    tier: platinum
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: health
+  selector:
+    app: cloud-orchestrator
+
+---
+# ============================================
+# CONFIGMAP - Configuration
+# ============================================
+# Non-sensitive configuration
+# ============================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-employee-config
+  labels:
+    app: ai-employee
+data:
+  # Odoo configuration
+  ODOO_URL: "http://odoo-service:8069"
+  ODOO_DB: "odoo_production"
+  
+  # Check intervals (seconds)
+  CHECK_INTERVAL: "30"
+  SYNC_INTERVAL: "300"
+  
+  # Logging
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  
+  # Feature flags
+  ENABLE_GMAIL: "true"
+  ENABLE_WHATSAPP: "false"
+  ENABLE_SOCIAL: "true"
+  ENABLE_ODOO: "true"
+
+---
+# ============================================
+# SECRET - Sensitive Data
+# ============================================
+# Create with: kubectl create secret generic ai-employee-secrets \\
+#   --from-literal=GMAIL_CLIENT_ID=xxx \\
+#   --from-literal=GMAIL_CLIENT_SECRET=xxx \\
+#   --from-literal=ODOO_API_KEY=xxx
+# ============================================
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ai-employee-secrets
+  labels:
+    app: ai-employee
+type: Opaque
+# Data should be created via kubectl create secret
+# DO NOT store actual secrets in this file!
+stringData:
+  # Placeholder - replace with actual secrets via kubectl
+  GMAIL_CLIENT_ID: "placeholder"
+  GMAIL_CLIENT_SECRET: "placeholder"
+  ODOO_API_KEY: "placeholder"
+
+---
+# ============================================
+# PERSISTENT VOLUME CLAIM - Vault Storage
+# ============================================
+# Persistent storage for vault data
+# ============================================
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ai-employee-vault-pvc
+  labels:
+    app: ai-employee
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# ============================================
+# HORIZONTAL POD AUTOSCALER (Optional)
+# ============================================
+# Auto-scale based on CPU/Memory
+# ============================================
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cloud-orchestrator-hpa
+  labels:
+    app: cloud-orchestrator
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cloud-orchestrator
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# ============================================
+# INGRESS (Optional - for external access)
+# ============================================
+# Expose health check endpoint externally
+# ============================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloud-orchestrator-ingress
+  labels:
+    app: cloud-orchestrator
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - ai-employee.example.com
+    secretName: ai-employee-tls
+  rules:
+  - host: ai-employee.example.com
+    http:
+      paths:
+      - path: /health
+        pathType: Exact
+        backend:
+          service:
+            name: cloud-orchestrator-service
+            port:
+              number: 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cloud-orchestrator-service
+            port:
+              number: 8080
+
+---
+# ============================================
+# MONITORING - ServiceMonitor (Prometheus)
+# ============================================
+# For Prometheus metrics collection
+# ============================================
+
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: cloud-orchestrator-monitor
+#   labels:
+#     app: cloud-orchestrator
+# spec:
+#   selector:
+#     matchLabels:
+#       app: cloud-orchestrator
+#   endpoints:
+#   - port: health
+#     interval: 30s
+#     path: /metrics
+
+---
+# ============================================
+# DEPLOYMENT INSTRUCTIONS
+# ============================================
+#
+# 1. Create namespace (optional)
+#    kubectl create namespace ai-employee
+#
+# 2. Create secrets
+#    kubectl create secret generic ai-employee-secrets \\
+#      --from-literal=GMAIL_CLIENT_ID=your_client_id \\
+#      --from-literal=GMAIL_CLIENT_SECRET=your_client_secret \\
+#      --from-literal=ODOO_API_KEY=your_api_key \\
+#      -n ai-employee
+#
+# 3. Apply deployment
+#    kubectl apply -f deployment.yaml -n ai-employee
+#
+# 4. Check status
+#    kubectl get pods -n ai-employee
+#    kubectl get deployments -n ai-employee
+#    kubectl get services -n ai-employee
+#
+# 5. View logs
+#    kubectl logs -f deployment/cloud-orchestrator -n ai-employee
+#
+# 6. Scale manually
+#    kubectl scale deployment cloud-orchestrator --replicas=2 -n ai-employee
+#
+# 7. Health check
+#    kubectl port-forward service/cloud-orchestrator-service 8080:8080 -n ai-employee
+#    curl http://localhost:8080/health
+#
+# 8. Delete deployment
+#    kubectl delete -f deployment.yaml -n ai-employee
+#
+# ============================================
