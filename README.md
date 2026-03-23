@@ -78,7 +78,7 @@ python ceo_briefing_enhanced.py
 python platinum_demo.py
 ```
 
-### **Start Dashboard (FastAPI)**
+### **Start Dashboard (FastAPI + Next.js 14)**
 ```bash
 # One-click start (Windows)
 cd dashboard
@@ -88,7 +88,12 @@ start.bat
 # Backend (FastAPI)
 python dashboard/api.py
 
-# Open browser: http://localhost:8000
+# Frontend (Next.js 14)
+cd dashboard
+npm install
+npm run dev
+
+# Open browser: http://localhost:3000
 ```
 
 ---
