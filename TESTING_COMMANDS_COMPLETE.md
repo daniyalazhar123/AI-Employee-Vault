@@ -194,27 +194,17 @@ dir Social_Drafts\twitter
 
 **Expected:** Drafts created in Social_Drafts/
 
-### **Requirement 4: MCP Servers**
+### **Requirement 4: MCP Servers (Pure Python)**
 
 ```bash
-# Test Email MCP
-cd mcp-email
-npm start
-
-# Test Browser MCP
-cd mcp-browser
-npm start
-
-# Test Odoo MCP
-cd mcp-odoo
-npm start
-
-# Test Social MCP
-cd mcp-social
-npm start
+# Test MCP Servers (Pure Python commands)
+python mcp_email.py --action list
+python mcp_browser.py --action navigate --url https://example.com
+python mcp_odoo.py --action get_leads
+python mcp_social.py --action linkedin --content "Test post"
 ```
 
-**Expected:** All MCP servers start without errors
+**Expected:** All MCP servers respond
 
 ### **Requirement 5: Human-in-the-Loop Approval**
 
@@ -292,12 +282,11 @@ type Briefings\*.md
 
 **Expected:** CEO Briefing with personal + business data
 
-### **Requirement 3: Odoo Accounting MCP**
+### **Requirement 3: Odoo Accounting MCP (Pure Python)**
 
 ```bash
 # Test Odoo MCP commands
-cd mcp-odoo
-npm start
+python mcp_odoo.py --action get_leads
 
 # Test invoice creation
 # (Requires Odoo running)
@@ -340,17 +329,17 @@ python social_summary_generator.py twitter 7
 
 **Expected:** Twitter drafts and summaries
 
-### **Requirement 6: Multiple MCP Servers**
+### **Requirement 6: Multiple MCP Servers (Pure Python)**
 
 ```bash
 # Test all 4 MCP servers
 python mcp_email.py --action list
-cd ..\mcp-browser && npm start
-cd ..\mcp-odoo && npm start
-cd ..\mcp-social && npm start
+python mcp_browser.py --action navigate --url https://example.com
+python mcp_odoo.py --action get_leads
+python mcp_social.py --action linkedin --content "Test"
 ```
 
-**Expected:** All 4 servers running
+**Expected:** All 4 servers responding
 
 ### **Requirement 7: Weekly Business Audit**
 
@@ -523,7 +512,7 @@ git ls-files | findstr ".env credentials token"
 
 **Expected:** Security checks pass
 
-### **Requirement 5: Odoo on Cloud VM**
+### **Requirement 5: Odoo on Cloud VM (Pure Python)**
 
 ```bash
 # Test Odoo deployment (on VM)
@@ -533,8 +522,7 @@ git ls-files | findstr ".env credentials token"
 # Access: http://your-vm-ip:8069
 
 # Test Odoo MCP cloud mode
-cd mcp-odoo
-npm start
+python mcp_odoo.py --action get_leads
 ```
 
 **Expected:** Odoo accessible
@@ -658,12 +646,18 @@ python social_summary_generator.py all 7
 dir Social_Summaries
 ```
 
-### **Test Odoo Integration**
+### **Test Odoo Integration (Pure Python)**
 
 ```bash
 # 1. Test Odoo MCP
-cd mcp-odoo
-npm start
+python mcp_odoo.py --action get_leads
+
+# 2. Test Odoo lead watcher
+python odoo_lead_watcher.py
+
+# 3. Check Odoo leads processed
+type Needs_Action\ODOO_*.md
+```
 
 # 2. Test Odoo lead watcher
 python odoo_lead_watcher.py
@@ -688,17 +682,20 @@ pip install -r requirements.txt
 python --version  # Should be 3.13+
 ```
 
-#### **Node.js/MCP Errors**
+#### **Python MCP Errors**
 
 ```bash
-# Install Node dependencies
-python mcp_email.py --action list
-cd ..\mcp-browser && npm install
-cd ..\mcp-odoo && npm install
-cd ..\mcp-social && npm install
+# Install Python dependencies
+pip install -r requirements.txt
 
-# Check Node version
-node --version  # Should be v18+
+# Test MCP Servers
+python mcp_email.py --action list
+python mcp_browser.py --action navigate --url https://example.com
+python mcp_odoo.py --action get_leads
+python mcp_social.py --action linkedin --content "Test"
+
+# Check Python version
+python --version  # Should be 3.13+
 ```
 
 #### **Git Sync Issues**
