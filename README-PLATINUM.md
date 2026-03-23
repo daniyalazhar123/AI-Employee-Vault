@@ -466,10 +466,10 @@ curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # Install MCPs
-cd mcp-email && npm install
-cd ../mcp-browser && npm install
-cd ../mcp-odoo && npm install
-cd ../mcp-social && npm install
+python mcp_email.py --action list
+python mcp_browser.py --action navigate
+python mcp_odoo.py --action get_leads
+python mcp_social.py --action linkedin
 cd ..
 
 # Create .env.cloud

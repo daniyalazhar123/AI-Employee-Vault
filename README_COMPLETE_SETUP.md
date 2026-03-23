@@ -62,7 +62,7 @@ python platinum_demo.py
 
 ```bash
 # Install Qwen CLI (AI Employee ka Brain)
-npm install -g @anthropic/claude-code
+npm install -g @anthropic/qwen
 
 # Verify
 qwen --version
@@ -84,7 +84,7 @@ pip install langdetect googletrans==4.0.0-rc1 schedule psutil
 
 ```bash
 # PM2 install (24/7 operation ke liye)
-npm install -g pm2
+pip install pm2
 
 # Verify
 pm2 --version

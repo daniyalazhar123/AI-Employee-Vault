@@ -215,7 +215,7 @@ python watchers/whatsapp_watcher.py
 python linkedin_post_generator.py
 
 # Odoo test
-cd mcp-odoo && npm start
+python mcp_odoo.py --action get_leads
 ```
 
 ---
@@ -310,13 +310,13 @@ pip install -r requirements.txt
 playwright install chromium
 
 # 2. Install MCP servers
-cd mcp-email && npm install
-cd ../mcp-browser && npm install
-cd ../mcp-odoo && npm install
-cd ../mcp-social && npm install
+python mcp_email.py --action list
+python mcp_browser.py --action navigate
+python mcp_odoo.py --action get_leads
+python mcp_social.py --action linkedin
 
 # 3. Authenticate Gmail
-cd mcp-email && node authenticate.js
+cd mcp-email && python authenticate.py
 
 # 4. Test system
 python ai_employee_orchestrator.py
