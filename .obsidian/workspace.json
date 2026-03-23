@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "README_UPDATED_FINAL.md",
+                "file": "qwem.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README_UPDATED_FINAL"
+              "title": "qwem"
             }
           }
         ],
@@ -200,6 +200,17 @@
   },
   "active": "7d49ea9d6c37d228",
   "lastOpenFiles": [
+    "HACKATHON_FINAL_VERIFICATION_REPORT.md",
+    "HACKATHON_FINAL_VERIFICATION_CHECKLIST.md",
+    "SILVER_TIER_FINAL.md",
+    "SOCIAL_MEDIA_INTEGRATION.md",
+    "social_watcher.py.md",
+    "TESTING_COMMANDS_COMPLETE.md",
+    "TESTING_GUIDE.md",
+    "TIER_ANALYSIS_REPORT.md",
+    "VAULT_COMPLETE_STATUS_MARCH_22.md",
+    "WORK_REVIEW_SUMMARY.md",
+    "README_UPDATED_FINAL.md",
     "cloud/deploy_cloud.py",
     "README.md",
     "README-PLATINUM.md",
@@ -212,7 +223,6 @@
     "dashboard/index.html",
     "dashboard/api.py",
     "dashboard",
-    "mcp_odoo.py",
     "PLATINUM_TIER_STATUS_TRACKING.md",
     "PLATINUM_TIER_COMPLETE_GUIDE.md",
     "PLATINUM_TIER_FINAL_VERIFICATION.md",
@@ -221,21 +231,11 @@
     "Logs/Demo_Send_Log.md",
     "Approved/APPROVAL_DRAFT_REPLY_EMAIL_PLATINUM_DEMO.md",
     "In_Progress/cloud/EMAIL_PLATINUM_DEMO.md",
-    "VAULT_COMPLETE_STATUS_MARCH_22.md",
     "README-GOLD.md",
     "README-SILVER.md",
     "README-BRONZE.md",
     "README_COMPLETE_SETUP.md",
     "COMPLETE_ACTIVATION_GUIDE.md",
-    "odoo/README.md",
-    "Social_Summaries/social_summary_linkedin_2026-03-17_7days.md",
-    "MCP_SERVERS_LINKEDIN_POSTING.md",
-    "ODOO_MCP_HACKATHON_COMPLIANCE.md",
-    "GITHUB_PUSH_GUIDE.md",
-    "README_UPDATED_FINAL.md",
-    "COMPLETE_TESTING_COMMANDS.md",
-    "GOLD_TIER_100_COMPLETE_FINAL.md",
-    "ODOO_INSTALLATION_STATUS.md",
     "mcp-social/node_modules/playwright-core/lib/vite/recorder/playwright-logo.svg",
     "mcp-social/node_modules/playwright-core/lib/vite/traceViewer/playwright-logo.svg",
     "mcp-social/node_modules/playwright-core/lib/server/chromium/appIcon.png",
