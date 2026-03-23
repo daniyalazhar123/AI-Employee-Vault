@@ -114,15 +114,14 @@ Silver Tier transforms your AI Employee from a basic foundation into a **functio
 python -c "import pathlib; print('Bronze:', pathlib.Path('Dashboard.md').exists())"
 ```
 
-### **Step 2: Install MCP Dependencies**
+### **Step 2: Install Python MCP Servers**
 
 ```bash
-# Install MCP servers
-cd mcp-email && npm install
-cd ..\mcp-browser && npm install
-cd ..\mcp-odoo && npm install
-cd ..\mcp-social && npm install
-cd ..
+# Test MCP Servers (Pure Python)
+python mcp_email.py --action list
+python mcp_browser.py --action navigate --url https://example.com
+python mcp_odoo.py --action get_leads
+python mcp_social.py --action linkedin --content "Test post"
 ```
 
 ### **Step 3: Setup Social Media Generators**
@@ -186,31 +185,17 @@ dir Social_Drafts\linkedin
 
 **Pass Criteria:** Draft created in Social_Drafts/
 
-### **Test 4: All MCP Servers**
+### **Test 4: All MCP Servers (Pure Python)**
 
 ```bash
-# Test Email MCP
-cd mcp-email
-npm start
-# Expected: Server starts
-
-# Test Browser MCP
-cd ..\mcp-browser
-npm start
-# Expected: Server starts
-
-# Test Odoo MCP
-cd ..\mcp-odoo
-npm start
-# Expected: Server starts
-
-# Test Social MCP
-cd ..\mcp-social
-npm start
-# Expected: Server starts
+# Test MCP Servers
+python mcp_email.py --action list
+python mcp_browser.py --action navigate --url https://example.com
+python mcp_odoo.py --action get_leads
+python mcp_social.py --action linkedin --content "Test"
 ```
 
-**Pass Criteria:** All 4 MCP servers start
+**Pass Criteria:** All 4 MCP servers respond
 
 ### **Test 5: Approval Workflow**
 
@@ -402,13 +387,12 @@ type Social_Drafts\twitter\*.md
 
 **Test:**
 ```bash
-cd mcp-email
-npm start
+python mcp_email.py --action list
 ```
 
 ### **Browser MCP**
 
-**Location:** `mcp-browser/`
+**Location:** `mcp_browser.py`
 
 **Commands:**
 - `navigate` - Go to URL
@@ -420,13 +404,12 @@ npm start
 
 **Test:**
 ```bash
-cd mcp-browser
-npm start
+python mcp_browser.py --action navigate --url https://example.com
 ```
 
 ### **Odoo MCP**
 
-**Location:** `mcp-odoo/`
+**Location:** `mcp_odoo.py`
 
 **Commands:**
 - `create_invoice` - Create invoice
@@ -440,13 +423,12 @@ npm start
 
 **Test:**
 ```bash
-cd mcp-odoo
-npm start
+python mcp_odoo.py --action get_leads
 ```
 
 ### **Social MCP**
 
-**Location:** `mcp-social/`
+**Location:** `mcp_social.py`
 
 **Commands:**
 - `post_linkedin` - Post to LinkedIn
@@ -459,8 +441,7 @@ npm start
 
 **Test:**
 ```bash
-cd mcp-social
-npm start
+python mcp_social.py --action linkedin --content "Test"
 ```
 
 ---
