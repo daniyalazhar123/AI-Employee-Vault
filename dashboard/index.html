@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Employee Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <h1>🤖 AI Employee Dashboard</h1>
+            <p class="subtitle">Your 24/7 Digital Employee</p>
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                <span id="status-text">Online</span>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card revenue">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <h3>Revenue</h3>
+                    <p class="stat-value" id="revenue">Rs. 113,000</p>
+                    <p class="stat-label">Total Tracked</p>
+                </div>
+            </div>
+
+            <div class="stat-card processed">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <h3>Processed</h3>
+                    <p class="stat-value" id="processed">811</p>
+                    <p class="stat-label">Total Items</p>
+                </div>
+            </div>
+
+            <div class="stat-card pending">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-content">
+                    <h3>Pending</h3>
+                    <p class="stat-value" id="pending">397</p>
+                    <p class="stat-label">Awaiting Action</p>
+                </div>
+            </div>
+
+            <div class="stat-card completed">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <h3>Completed</h3>
+                    <p class="stat-value" id="completed">24</p>
+                    <p class="stat-label">Tasks Done</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3>📈 Activity Trend (Last 7 Days)</h3>
+                <canvas id="activityChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h3>📊 Task Distribution</h3>
+                <canvas id="distributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="activity-section">
+            <h3>🕐 Recent Activity</h3>
+            <div class="activity-feed" id="activity-feed">
+                <div class="activity-item loading">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Platinum Tier - Personal AI Employee Hackathon 0</p>
+            <p>Last Updated: <span id="last-updated">-</span></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

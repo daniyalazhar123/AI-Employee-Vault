@@ -1,17 +1,19 @@
-# 🤖 AI EMPLOYEE VAULT - COMPLETE AUTOMATION SYSTEM
+# 🤖 AI EMPLOYEE VAULT - PURE PYTHON AUTOMATION
 
-**Your 24/7 Digital Employee for Business & Personal Automation**
+**Your 24/7 Digital Employee - Now 100% Python!**
 
 ![Status](https://img.shields.io/badge/Status-Production_Ready-green)
 ![Tier](https://img.shields.io/badge/Tier-Platinum_Ready-yellow)
 ![Gold](https://img.shields.io/badge/Gold-100%25_Complete-brightgreen)
 ![Python](https://img.shields.io/badge/Python-3.13+-blue)
-![Node](https://img.shields.io/badge/Node-18+-green)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
 **🏆 Hackathon:** Personal AI Employee Hackathon 0  
 **🥇 Status:** Gold Tier 100% Complete | Platinum Tier Ready  
-**📂 Total Files:** 160+ | **💻 Code:** 12,000+ lines | **📝 Docs:** 5,000+ lines
+**🐍 Stack:** Pure Python + FastAPI + Next.js  
+**📂 Total Files:** 160+ | **💻 Code:** 15,000+ lines | **📝 Docs:** 5,000+ lines
 
 ---
 
@@ -46,14 +48,11 @@ A **complete AI Employee** that works 24/7 managing your:
 # Install Python 3.13+
 https://www.python.org/downloads/
 
-# Install Node.js 18+
-https://nodejs.org/
-
-# Install Qwen CLI
-npm install -g @anthropic/qwen
-
-# Install dependencies
+# Install dependencies (Pure Python!)
 pip install -r requirements.txt
+
+# Install Playwright browsers
+playwright install chromium
 ```
 
 ### **Start AI Employee**
@@ -66,11 +65,35 @@ python watchers/gmail_watcher.py
 python watchers/whatsapp_watcher.py
 python watchers/social_watcher.py
 
+# Use MCP Servers (Pure Python)
+python mcp_email.py --action list
+python mcp_odoo.py --action get_leads
+python mcp_browser.py --action navigate --url https://example.com
+python mcp_social.py --action linkedin --content "Business update"
+
 # Generate CEO Briefing
 python ceo_briefing_enhanced.py
 
 # Run Platinum Demo
 python platinum_demo.py
+```
+
+### **Start Dashboard (FastAPI + Next.js)**
+```bash
+# One-click start
+cd dashboard
+start.bat
+
+# Or manually:
+# Backend (FastAPI)
+python dashboard/api.py
+
+# Frontend (Next.js) - Optional
+cd dashboard/frontend
+npm install
+npm run dev
+
+# Open browser: http://localhost:8000
 ```
 
 ---

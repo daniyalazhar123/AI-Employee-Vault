@@ -1,5 +1,6 @@
 # ============================================
 # AI Employee Vault - Python Dependencies
+# Platinum Tier - Pure Python Implementation
 # ============================================
 
 # File System Monitoring
@@ -11,12 +12,27 @@ google-auth-oauthlib>=1.2.0
 google-auth-httplib2>=0.2.0
 google-api-python-client>=2.118.0
 
-# Browser Automation (WhatsApp Web)
+# Browser Automation (WhatsApp Web, Social Media)
 playwright>=1.40.0
 
-# Odoo CRM Integration (Optional)
-# Uncomment if using Odoo:
-# odoo>=16.0
+# Odoo CRM Integration
+xmlrpc-client>=0.3.0
+
+# Dashboard (FastAPI)
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-multipart>=0.0.6
+
+# Cloud Deployment (SSH)
+paramiko>=3.4.0
+
+# Language Detection & Translation
+langdetect>=1.0.9
+deep-translator>=1.11.0
+
+# Data Processing
+python-dotenv>=1.0.0
+requests>=2.31.0
 
 # ============================================
 # Installation
