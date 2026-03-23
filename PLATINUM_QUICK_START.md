@@ -152,10 +152,10 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Install Node dependencies
-cd mcp-email && npm install
-cd ../mcp-browser && npm install
-cd ../mcp-odoo && npm install
-cd ../mcp-social && npm install
+python mcp_email.py --action list
+python mcp_browser.py --action navigate
+python mcp_odoo.py --action get_leads
+python mcp_social.py --action linkedin
 cd ..
 ```
 

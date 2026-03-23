@@ -542,13 +542,13 @@ docker-compose up -d
 ### Test All Credentials
 ```bash
 # Test Gmail
-cd mcp-email && npm start
+python mcp_email.py --action list
 
 # Test Odoo
-cd mcp-odoo && npm start
+python mcp_odoo.py --action get_leads
 
 # Test Social
-cd mcp-social && npm start
+python mcp_social.py --action linkedin
 ```
 
 ---

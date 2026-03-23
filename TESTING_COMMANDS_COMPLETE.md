@@ -344,7 +344,7 @@ python social_summary_generator.py twitter 7
 
 ```bash
 # Test all 4 MCP servers
-cd mcp-email && npm start
+python mcp_email.py --action list
 cd ..\mcp-browser && npm start
 cd ..\mcp-odoo && npm start
 cd ..\mcp-social && npm start
@@ -692,7 +692,7 @@ python --version  # Should be 3.13+
 
 ```bash
 # Install Node dependencies
-cd mcp-email && npm install
+python mcp_email.py --action list
 cd ..\mcp-browser && npm install
 cd ..\mcp-odoo && npm install
 cd ..\mcp-social && npm install

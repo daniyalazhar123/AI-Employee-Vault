@@ -536,10 +536,10 @@ Total: 34 commands across 4 servers
 **Bas yeh karo:**
 ```bash
 # Test MCP servers
-cd mcp-email && npm start
-cd mcp-browser && npm start
-cd mcp-odoo && npm start
-cd mcp-social && npm start
+python mcp_email.py --action list
+python mcp_browser.py --action screenshot
+python mcp_odoo.py --action get_leads
+python mcp_social.py --action linkedin
 
 # Test LinkedIn posting
 qwen -y "Generate LinkedIn post"

@@ -321,7 +321,7 @@ ODOO_PASSWORD=admin
 - [ ] ⚠️ Get credentials (URL, DB, username, password)
 - [ ] ⚠️ (Optional) Get API key from Odoo Online
 - [ ] ⚠️ Update `config/mcp.json` if using Odoo Online
-- [ ] ⚠️ Test: `cd mcp-odoo && npm start`
+- [ ] ⚠️ Test: `python mcp_odoo.py --action get_leads`
 
 ### Social Media (No Credentials Needed)
 - [x] ✅ Browser automation configured

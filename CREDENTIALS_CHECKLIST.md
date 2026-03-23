@@ -110,7 +110,7 @@ copy .env.example .env
 [  ] Create database at http://localhost:8069
 [  ] Install apps (Invoicing, CRM, Contacts)
 [✅] Config already set (admin/admin)
-[  ] Test: cd mcp-odoo && npm start
+[  ] Test: python mcp_odoo.py --action get_leads
 ```
 
 ### Social Media (No Setup Needed)
@@ -155,7 +155,7 @@ docker run -d -p 8069:8069 --name odoo_community odoo:19.0
 # 4. Install Odoo apps (Invoicing, CRM, Contacts)
 
 # 5. Test Odoo
-cd mcp-odoo && npm start
+python mcp_odoo.py --action get_leads
 
 # 6. Test everything
 python ceo_briefing_enhanced.py

@@ -40,7 +40,7 @@ cd "C:\Users\CC\Documents\Obsidian Vault"
 # Create install script
 echo "Installing all MCP servers..."
 
-cd mcp-email && npm install && cd ..
+python mcp_email.py --action list && cd ..
 cd mcp-browser && npm install && npx playwright install chromium && cd ..
 cd mcp-odoo && npm install && cd ..
 cd mcp-social && npm install && npx playwright install chromium && cd ..

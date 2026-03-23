@@ -458,10 +458,10 @@ Total Hashtags: 45
 
 1. **Check MCP Servers:**
    ```bash
-   cd mcp-email && npm start
-   cd mcp-browser && npm start
-   cd mcp-odoo && npm start
-   cd mcp-social && npm start
+   python mcp_email.py --action list
+   python mcp_browser.py --action screenshot
+   python mcp_odoo.py --action get_leads
+   python mcp_social.py --action linkedin
    ```
 
 2. **Test Audit Logging:**

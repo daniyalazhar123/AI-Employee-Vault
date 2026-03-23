@@ -401,9 +401,9 @@ python -c "import vault_sync; print('✅ Vault Sync OK')"
 python -c "import platinum_demo; print('✅ Platinum Demo OK')"
 
 # Check MCP servers
-cd mcp-email && npm start --if-present && cd ..
-cd mcp-odoo && npm start --if-present && cd ..
-cd mcp-social && npm start --if-present && cd ..
+python mcp_email.py --action list --if-present && cd ..
+python mcp_odoo.py --action get_leads --if-present && cd ..
+python mcp_social.py --action linkedin --if-present && cd ..
 
 # Check folders
 dir Needs_Action | findstr "files"
