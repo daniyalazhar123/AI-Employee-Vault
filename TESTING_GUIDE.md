@@ -291,7 +291,7 @@ cd "C:\Users\CC\Documents\Obsidian Vault\mcp-email"
 npm ls
 
 # Test start (will run continuously)
-timeout /t 5 /nobreak >nul && npm start
+timeout /t 2
 ```
 
 **Expected Output:**
@@ -311,7 +311,7 @@ cd "C:\Users\CC\Documents\Obsidian Vault\mcp-browser"
 npm ls
 
 # Test start
-timeout /t 5 /nobreak >nul && npm start
+timeout /t 2
 ```
 
 **Expected Output:**
@@ -331,7 +331,7 @@ cd "C:\Users\CC\Documents\Obsidian Vault\mcp-odoo"
 npm ls
 
 # Test start (will fail if Odoo not running - expected)
-timeout /t 5 /nobreak >nul && npm start 2>&1 || echo "⚠️ Odoo MCP: Connection error (expected if Odoo not running)"
+timeout /t 2 2>&1 || echo "⚠️ Odoo MCP: Connection error (expected if Odoo not running)"
 ```
 
 **Expected Output:**
@@ -351,7 +351,7 @@ cd "C:\Users\CC\Documents\Obsidian Vault\mcp-social"
 npm ls
 
 # Test start
-timeout /t 5 /nobreak >nul && npm start
+timeout /t 2
 ```
 
 **Expected Output:**
