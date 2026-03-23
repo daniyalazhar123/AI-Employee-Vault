@@ -2,12 +2,19 @@
 
 **Your 24/7 Digital Employee for Business & Personal Automation**
 
+## 🏆 Tier Status
+
+![Bronze](https://img.shields.io/badge/Bronze-✅-bronze)
+![Silver](https://img.shields.io/badge/Silver-✅-silver)
+![Gold](https://img.shields.io/badge/Gold-✅-gold)
+![Platinum](https://img.shields.io/badge/Platinum-In%20Progress-lightgrey)
+
 ![Qwen CLI](https://img.shields.io/badge/Qwen_CLI-v0.12.6-blue)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-green)
 ![Tier](https://img.shields.io/badge/Tier-Gold_Complete-yellow)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
-*Gold Tier Complete - Personal AI Employee Hackathon 0*
+**🥇 Gold Tier Complete - Personal AI Employee Hackathon 0**
 
 **🤖 Primary Engine: Qwen CLI v0.12.6 | Alternative: Claude Code**
 
