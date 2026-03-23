@@ -70,7 +70,7 @@ Platinum Tier = **Gold Tier + 24/7 Cloud Deployment + Cloud/Local Separation**
    pip install -r requirements.txt
    
    # Start with PM2 (process manager)
-   npm install -g pm2
+   pip install pm2
    pm2 start orchestrator.py --name cloud-orchestrator --interpreter python3
    pm2 save
    pm2 startup

@@ -143,7 +143,7 @@ ls mcp-email\token.json
 
 ```bash
 cd mcp-email
-npm start
+python test_mcp.py
 ```
 
 Then in Claude Code:
@@ -297,7 +297,7 @@ Your Odoo MCP is already configured with these credentials:
 
 ```bash
 cd mcp-odoo
-npm start
+python test_mcp.py
 ```
 
 Then in Claude Code:
@@ -404,7 +404,7 @@ When browser opens:
 
 ```bash
 cd mcp-social
-npm start
+python test_mcp.py
 ```
 
 Then in Claude Code:

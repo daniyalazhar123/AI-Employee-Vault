@@ -53,7 +53,7 @@
 #### **Test 1: Email MCP**
 ```bash
 cd mcp-email
-npm start
+python test_mcp.py
 ```
 
 **Expected Output:**
@@ -68,7 +68,7 @@ Server running on stdio
 #### **Test 2: Browser MCP**
 ```bash
 cd mcp-browser
-npm start
+python test_mcp.py
 ```
 
 **Expected Output:**
@@ -83,7 +83,7 @@ Server running on stdio
 #### **Test 3: Odoo MCP**
 ```bash
 cd mcp-odoo
-npm start
+python test_mcp.py
 ```
 
 **Expected Output (if Odoo running):**
@@ -106,7 +106,7 @@ Server running on stdio (will retry on demand)
 #### **Test 4: Social MCP**
 ```bash
 cd mcp-social
-npm start
+python test_mcp.py
 ```
 
 **Expected Output:**
@@ -472,7 +472,7 @@ cd mcp-social
 npm install
 
 # Try again
-npm start
+python test_mcp.py
 ```
 
 ---

@@ -102,7 +102,7 @@ curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # Install PM2 (process manager)
-sudo npm install -g pm2
+sudo pip install pm2
 
 # Create app directory
 mkdir -p /home/ubuntu/ai-employee-vault

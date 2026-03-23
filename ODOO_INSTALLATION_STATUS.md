@@ -208,7 +208,7 @@ netstat -an | findstr 8069
 ### **Test Odoo MCP:**
 ```bash
 cd "C:\Users\CC\Documents\Obsidian Vault\mcp-odoo"
-npm start
+python test_mcp.py
 ```
 
 **Expected:**

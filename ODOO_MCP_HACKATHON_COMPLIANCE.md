@@ -303,7 +303,7 @@ COMPLIANCE: 100% ✅
 ### **Check MCP Server:**
 ```bash
 cd mcp-odoo
-npm start
+python test_mcp.py
 # Expected: "Odoo MCP Server running"
 ```
 

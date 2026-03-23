@@ -76,19 +76,19 @@ cp config/mcp.json ~/.config/claude-code/mcp.json
 ```bash
 # Test Email MCP
 cd mcp-email
-npm start
+python test_mcp.py
 
 # Test Browser MCP
 cd mcp-browser
-npm start
+python test_mcp.py
 
 # Test Odoo MCP
 cd mcp-odoo
-npm start
+python test_mcp.py
 
 # Test Social MCP
 cd mcp-social
-npm start
+python test_mcp.py
 ```
 
 ---
@@ -129,7 +129,7 @@ npm start
 
 4. **Test:**
    ```bash
-   npm start
+   python test_mcp.py
    ```
 
 ### Browser MCP Setup
@@ -143,7 +143,7 @@ npm start
 
 2. **Test:**
    ```bash
-   npm start
+   python test_mcp.py
    ```
 
 ### Odoo MCP Setup
@@ -173,7 +173,7 @@ npm start
 
 4. **Test:**
    ```bash
-   npm start
+   python test_mcp.py
    ```
 
 ### Social MCP Setup
@@ -192,7 +192,7 @@ npm start
 
 3. **Test:**
    ```bash
-   npm start
+   python test_mcp.py
    ```
 
 ---

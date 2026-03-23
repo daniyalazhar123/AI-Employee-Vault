@@ -635,7 +635,7 @@ for %f in (*.py) do python -m py_compile "%f"
 qwen --version
 
 # Check MCP servers
-cd ..\mcp-email && npm start
+cd ..\mcp-email && python test_mcp.py
 ```
 
 ### Start Automation:

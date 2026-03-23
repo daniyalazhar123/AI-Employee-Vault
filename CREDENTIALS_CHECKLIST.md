@@ -101,7 +101,7 @@ copy .env.example .env
 ```
 [✅] credentials.json exists
 [⚠️] Generate token: cd mcp-email && node authenticate.js
-[  ] Test: npm start
+[  ] Test: python test_mcp.py
 ```
 
 ### Odoo Integration (Optional for Gold Tier)

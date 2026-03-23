@@ -255,7 +255,7 @@ npm install -g @anthropic/qwen
 qwen --version
 
 # Install PM2 (process manager)
-npm install -g pm2
+pip install pm2
 pm2 version
 
 # Clone your vault (WITHOUT secrets!)

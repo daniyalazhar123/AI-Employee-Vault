@@ -19,7 +19,7 @@ python --version
 
 ### Check Node.js Version
 ```bash
-node --version && npm --version
+python --version
 ```
 
 ---
@@ -142,8 +142,8 @@ stop_all_watchers.bat
 ### Test Email MCP
 ```bash
 cd mcp-email
-npm ls
-npm start
+python mcp_email.py --action list
+python test_mcp.py
 ```
 
 **Expected:** Server starts
@@ -153,8 +153,8 @@ npm start
 ### Test Browser MCP
 ```bash
 cd mcp-browser
-npm ls
-npm start
+python mcp_email.py --action list
+python test_mcp.py
 ```
 
 **Expected:** Server starts
@@ -164,8 +164,8 @@ npm start
 ### Test Odoo MCP
 ```bash
 cd mcp-odoo
-npm ls
-npm start
+python mcp_email.py --action list
+python test_mcp.py
 ```
 
 **Expected:** Server starts (may fail to connect to Odoo - normal if not running)
@@ -175,8 +175,8 @@ npm start
 ### Test Social MCP
 ```bash
 cd mcp-social
-npm ls
-npm start
+python mcp_email.py --action list
+python test_mcp.py
 ```
 
 **Expected:** Server starts

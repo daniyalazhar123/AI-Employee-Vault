@@ -114,7 +114,7 @@ Browser will save your session. **No API keys needed!**
 ### After Gmail Token
 ```bash
 cd mcp-email
-npm start
+python test_mcp.py
 ```
 
 ### After Playwright Install
@@ -126,7 +126,7 @@ python social_summary_generator.py all 7
 ### After Odoo Setup
 ```bash
 cd mcp-odoo
-npm start
+python test_mcp.py
 ```
 
 ---

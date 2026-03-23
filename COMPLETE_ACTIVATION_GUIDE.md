@@ -30,7 +30,7 @@
 # Download from: https://nodejs.org/
 
 # Install Qwen CLI globally
-npm install -g @anthropic/claude-code
+npm install -g @anthropic/qwen
 
 # Verify installation
 qwen --version
@@ -214,7 +214,7 @@ right-click start_ai_employee_247.bat → Run as Administrator
 
 ```bash
 # Install PM2
-npm install -g pm2
+pip install pm2
 
 # Create PM2 ecosystem file
 cd "C:\Users\CC\Documents\Obsidian Vault"

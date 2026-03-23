@@ -182,7 +182,7 @@ Edit your `config/mcp.json`:
 
 ```bash
 cd "C:\Users\CC\Documents\Obsidian Vault\mcp-odoo"
-npm start
+python test_mcp.py
 ```
 
 **Expected Output:**
@@ -396,7 +396,7 @@ Should return HTML.
 
 ```bash
 cd "C:\Users\CC\Documents\Obsidian Vault\mcp-odoo"
-npm start
+python test_mcp.py
 ```
 
 **Expected:**

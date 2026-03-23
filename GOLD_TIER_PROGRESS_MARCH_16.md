@@ -278,7 +278,7 @@ python social_summary_generator.py all 7
 
 # Test Odoo MCP
 cd mcp-odoo
-npm start
+python test_mcp.py
 
 # Test orchestrator
 python orchestrator.py process_needs_action

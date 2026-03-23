@@ -59,7 +59,7 @@ You can now use the MCP Email Server!
 
 **Test It:**
 ```bash
-npm start
+python test_mcp.py
 ```
 
 ---
@@ -157,7 +157,7 @@ API Key:  NOT NEEDED (uses password authentication)
 
 ```bash
 cd "C:\Users\CC\Documents\Obsidian Vault\mcp-odoo"
-npm start
+python test_mcp.py
 ```
 
 If you see:
@@ -312,7 +312,7 @@ ODOO_PASSWORD=admin
 ### Gmail (Email Integration)
 - [x] ✅ `credentials.json` exists
 - [ ] ⚠️ Generate token: `cd mcp-email && node authenticate.js`
-- [ ] ⚠️ Test: `npm start`
+- [ ] ⚠️ Test: `python test_mcp.py`
 
 ### Odoo (Accounting Integration)
 - [ ] ⚠️ Install Odoo (Docker or Online)
@@ -522,7 +522,7 @@ dir token.json
 ### Check Odoo Connection
 ```bash
 cd mcp-odoo
-npm start
+python test_mcp.py
 # Should show "Connected to Odoo"
 ```
 

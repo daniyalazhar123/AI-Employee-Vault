@@ -140,7 +140,7 @@ cd mcp-odoo
 npm install
 
 # Test connection
-npm start
+python test_mcp.py
 ```
 
 **Integration:**

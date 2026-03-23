@@ -38,7 +38,7 @@
 **Test Command:**
 ```bash
 cd mcp-email
-npm start
+python test_mcp.py
 ```
 
 **Status:** ✅ **READY**
@@ -56,7 +56,7 @@ node authenticate.js
 **Test Command:**
 ```bash
 cd mcp-browser
-npm start
+python test_mcp.py
 ```
 
 **Status:** ✅ **READY**
@@ -74,7 +74,7 @@ npm start
 **Test Command:**
 ```bash
 cd mcp-odoo
-npm start
+python test_mcp.py
 ```
 
 **Status:** ✅ **READY**
@@ -93,7 +93,7 @@ npm start
 **Test Command:**
 ```bash
 cd mcp-social
-npm start
+python test_mcp.py
 ```
 
 **Status:** ✅ **READY**

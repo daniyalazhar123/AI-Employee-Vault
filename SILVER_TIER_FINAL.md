@@ -180,19 +180,19 @@ Once Claude Code is running with MCP support:
 ```bash
 # Test Email MCP
 cd mcp-email
-npm start
+python test_mcp.py
 
 # Test Browser MCP
 cd mcp-browser
-npm start
+python test_mcp.py
 
 # Test Odoo MCP
 cd mcp-odoo
-npm start
+python test_mcp.py
 
 # Test Social MCP
 cd mcp-social
-npm start
+python test_mcp.py
 ```
 
 ---

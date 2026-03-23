@@ -521,9 +521,9 @@ python -m py_compile odoo_lead_watcher.py && echo "✅ Odoo Watcher: OK"
 
 # Verify All MCP Servers
 python mcp_email.py --action list --if-present
-cd ../mcp-browser && npm start --if-present
-cd ../mcp-odoo && npm start --if-present
-cd ../mcp-social && npm start --if-present
+cd ../mcp-browser && python test_mcp.py --if-present
+cd ../mcp-odoo && python test_mcp.py --if-present
+cd ../mcp-social && python test_mcp.py --if-present
 ```
 
 ---

@@ -123,7 +123,7 @@ docker-compose ps
 
 # 4. Test Odoo MCP
 cd ..\mcp-odoo
-npm start
+python test_mcp.py
 
 # 5. Test Odoo Lead Watcher
 python ..\watchers\odoo_lead_watcher.py
@@ -245,7 +245,7 @@ Odoo dashboard mein:
 
 ```bash
 cd "C:\Users\CC\Documents\Obsidian Vault\mcp-odoo"
-npm start
+python test_mcp.py
 
 # MCP server start ho jayega
 ```

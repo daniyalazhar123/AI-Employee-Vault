@@ -33,7 +33,7 @@ python --version
 
 ### Check Node.js Version
 ```bash
-node --version && npm --version
+python --version
 ```
 **Expected:** Node.js v18+ and npm 10+
 
@@ -58,16 +58,16 @@ pip list
 ### Check MCP Servers Installation
 ```bash
 # Email MCP
-cd mcp-email && npm ls
+python mcp_email.py --action list
 
 # Browser MCP
-cd mcp-browser && npm ls
+python mcp_browser.py --action navigate
 
 # Odoo MCP
-cd mcp-odoo && npm ls
+python mcp_odoo.py --action get_leads
 
 # Social MCP
-cd mcp-social && npm ls
+python mcp_social.py --action linkedin
 ```
 **Expected:** All dependencies installed
 
@@ -310,10 +310,10 @@ python stop_all_watchers.bat
 cd mcp-email
 
 # Check dependencies
-npm ls
+python mcp_email.py --action list
 
 # Test start (Ctrl+C to stop)
-npm start
+python test_mcp.py
 ```
 
 **Expected Output:**
@@ -335,10 +335,10 @@ node authenticate.js
 cd mcp-browser
 
 # Check dependencies
-npm ls
+python mcp_email.py --action list
 
 # Test start
-npm start
+python test_mcp.py
 ```
 
 **Expected Output:**
@@ -355,10 +355,10 @@ Server running on stdio
 cd mcp-odoo
 
 # Check dependencies
-npm ls
+python mcp_email.py --action list
 
 # Test start (may fail if Odoo not running - expected)
-npm start
+python test_mcp.py
 ```
 
 **Expected Output (if Odoo running):**
@@ -382,10 +382,10 @@ Error: Connection refused to Odoo
 cd mcp-social
 
 # Check dependencies
-npm ls
+python mcp_email.py --action list
 
 # Test start
-npm start
+python test_mcp.py
 ```
 
 **Expected Output:**
