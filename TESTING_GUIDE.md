@@ -288,7 +288,7 @@ python start_all_watchers.bat
 cd "C:\Users\CC\Documents\Obsidian Vault\mcp-email"
 
 # Check dependencies
-npm ls
+python mcp_email.py --action list
 
 # Test start (will run continuously)
 timeout /t 2
@@ -308,7 +308,7 @@ timeout /t 2
 cd "C:\Users\CC\Documents\Obsidian Vault\mcp-browser"
 
 # Check dependencies
-npm ls
+python mcp_email.py --action list
 
 # Test start
 timeout /t 2
@@ -328,7 +328,7 @@ timeout /t 2
 cd "C:\Users\CC\Documents\Obsidian Vault\mcp-odoo"
 
 # Check dependencies
-npm ls
+python mcp_email.py --action list
 
 # Test start (will fail if Odoo not running - expected)
 timeout /t 2 2>&1 || echo "⚠️ Odoo MCP: Connection error (expected if Odoo not running)"
@@ -348,7 +348,7 @@ timeout /t 2 2>&1 || echo "⚠️ Odoo MCP: Connection error (expected if Odoo n
 cd "C:\Users\CC\Documents\Obsidian Vault\mcp-social"
 
 # Check dependencies
-npm ls
+python mcp_email.py --action list
 
 # Test start
 timeout /t 2
@@ -775,7 +775,7 @@ pip install -r requirements.txt
 
 **Issue: MCP server won't start**
 ```bash
-# Fix: Install npm dependencies
+# Fix: Install Python dependencies
 python mcp_email.py --action list
 ```
 
