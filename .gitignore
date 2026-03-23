@@ -167,3 +167,13 @@ backups/
 # - Watcher scripts
 # - Agent code
 # ============================================
+
+# CREDENTIALS - NEVER COMMIT
+config/credentials.json
+config/token.pickle
+credentials.json
+token.pickle
+odoo/example.env
+*.env
+*.env >> .gitignore.env.example
+*.env
