@@ -78,20 +78,15 @@ python ceo_briefing_enhanced.py
 python platinum_demo.py
 ```
 
-### **Start Dashboard (FastAPI + Next.js)**
+### **Start Dashboard (FastAPI)**
 ```bash
-# One-click start
+# One-click start (Windows)
 cd dashboard
 start.bat
 
 # Or manually:
 # Backend (FastAPI)
 python dashboard/api.py
-
-# Frontend (Next.js) - Optional
-cd dashboard/frontend
-npm install
-npm run dev
 
 # Open browser: http://localhost:8000
 ```
@@ -123,11 +118,11 @@ AI_Employee_Vault/
 │   ├── social_watcher.py         # Social media monitoring
 │   └── odoo_lead_watcher.py      # Odoo CRM monitoring
 │
-├── 📂 mcp-*/                      # Action Layer (4 MCP servers)
-│   ├── mcp-email/                # Email MCP (5 commands)
-│   ├── mcp-browser/              # Browser MCP (14 commands)
-│   ├── mcp-odoo/                 # Odoo MCP (8 commands)
-│   └── mcp-social/               # Social MCP (7 commands)
+├── 📂 mcp-*/                      # MCP Servers (Pure Python)
+│   ├── mcp_email.py              # Email MCP (5 commands)
+│   ├── mcp_browser.py            # Browser MCP (14 commands)
+│   ├── mcp_odoo.py               # Odoo MCP (8 commands)
+│   └── mcp_social.py             # Social MCP (7 commands)
 │
 ├── 📂 kubernetes/                 # Platinum Deployment
 │   └── deployment.yaml           # K8s config (health checks, HPA)
@@ -154,7 +149,6 @@ AI_Employee_Vault/
 ├── 📄 error_recovery.py           # Error handling
 ├── 📄 health_monitor.py           # Health monitoring
 ├── 📄 ceo_briefing_enhanced.py    # CEO briefing generator
-├── 📄 ecosystem.config.js         # PM2 process manager
 │
 ├── 📄 Dashboard.md                # Real-time dashboard
 ├── 📄 Business_Goals.md           # Business objectives
@@ -265,7 +259,6 @@ AI_Employee_Vault/
 - ✅ `vault_sync.py` - Git sync (every 5 min)
 - ✅ `platinum_demo.py` - End-to-end demo (verified)
 - ✅ `kubernetes/deployment.yaml` - K8s deployment
-- ✅ `ecosystem.config.js` - PM2 process manager
 - ✅ `cloud/setup_oracle_cloud_vm.sh` - Cloud setup
 - ✅ Security rules configured (`.gitignore`)
 - ✅ Claim-by-move rule implemented
@@ -283,8 +276,8 @@ pip install -r requirements.txt
 # Start orchestrator
 python orchestrator.py
 
-# Or start with PM2
-pm2 start ecosystem.config.js
+# Or start with systemd (Linux)
+sudo systemctl start ai-employee
 ```
 
 ### **Cloud Deployment (Platinum Tier)**
@@ -298,11 +291,12 @@ ssh -i ~/.ssh/id_rsa ubuntu@<public-ip>
 # 3. Run setup script
 bash cloud/setup_oracle_cloud_vm.sh
 
-# 4. Start agents
-pm2 start ecosystem.config.js
+# 4. Start agents (using systemd)
+sudo systemctl start cloud-agent
+sudo systemctl start local-agent
 
 # 5. Verify
-pm2 status
+systemctl status cloud-agent
 ```
 
 ---
@@ -332,10 +326,11 @@ pm2 status
 cd watchers
 for %f in (*.py) do python -m py_compile "%f"
 
-# Test MCP servers
-cd mcp-email && npm start
-cd mcp-odoo && npm start
-cd mcp-social && npm start
+# Test MCP Servers (Pure Python)
+python mcp_email.py --action list
+python mcp_odoo.py --action get_leads
+python mcp_browser.py --action navigate --url https://example.com
+python mcp_social.py --action linkedin --content "Test post"
 
 # Run Platinum Demo
 python platinum_demo.py
