@@ -1,36 +1,45 @@
 # ============================================
-# AI Employee Vault - .gitignore
+# 🔒 PLATINUM TIER - CRITICAL .GITIGNORE
+# NEVER COMMIT THESE FILES!
 # ============================================
 
-# 🔐 Sensitive Credentials & Auth (NEVER COMMIT)
+# Environment & Secrets
 .env
 .env.local
 .env.cloud
-.env.*.local
-.env.*.template
-.env.example
-config/credentials.json
-config/token.pickle
-config/.env
+.env.local.example
+*.env
+secrets/
+credentials/
 
-# 📁 Session Data (Browser/Auth Sessions)
-sessions/
+# API Credentials
+credentials.json
+token.json
+service_account.json
+*.pem
+*.key
+*.crt
+*.p12
+
+# WhatsApp Session (LOCAL ONLY!)
 whatsapp_session/
+WhatsApp/
 *.session
 *.pickle
 
-# 📊 Processed Data (User-Specific)
-data/processed_*.txt
-data/tracker_*.txt
+# Banking & Payment
+banking/
+payment_tokens/
+stripe_keys.txt
+banking_credentials.txt
 
-# 📝 Logs (ALL LOGS - Security for Platinum)
-Logs/*.log
-Logs/*.txt
-Logs/*.jsonl
+# Logs & Audit (contain sensitive data)
+Logs/
+*.log
 Logs/Audit/
 Dead_Letter_Queue/
 
-# 🐍 Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -52,64 +61,109 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
 
-# 🐍 Virtual Environments
-venv/
-env/
-ENV/
-.venv
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
 
-# 🧪 IDE & Editor
-.vscode/
+# IDE & Editor
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
 .DS_Store
-
-# 📦 Node Modules (if using Qwen CLI)
-node_modules/
-package-lock.json
-
-# 🧪 Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# 📝 Temporary Files
-*.tmp
-*.temp
-~*
-
-# 🔒 OS Files
 Thumbs.db
-.DS_Store
-.AppleDouble
-.LSOverride
-mcp-email/token.json
-mcp-email/token.pickle
-whatsapp_session/
-credentials.json
 
-# 💿 PLATINUM TIER - Cloud/Local Separation
-# NEVER SYNC THESE TO CLOUD
-.env.cloud
-.env.local
-*.env
-credentials.json
-token.json
-*.session
-*.pickle
-node_modules/
-__pycache__/
-*.pyc
-Logs/
-Dead_Letter_Queue/
-In_Progress/
-Updates/
-Signals/
-*.pem
-*.key
-*.crt
-secrets/
-config/secrets.json
+# MCP Server Credentials
+mcp-email/credentials.json
+mcp-email/token.json
+mcp-email/service_account.json
+
+# Odoo (except docker-compose and config)
+odoo/.env
+odoo/backups/
+odoo/logs/
+
+# Cloud Agent Secrets
+cloud/.env.cloud
+cloud/credentials/
+cloud/*.pem
+
+# Local Agent Secrets (CRITICAL!)
+local/.env.local
+local/credentials/
+local/*.pem
+local/*.key
+local/whatsapp_session/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (optional - keep these)
+# *.md
+# !README.md
+# !Business_Goals.md
+# !Company_Handbook.md
+
+# Demo Files (optional)
+Demo/
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Health & Monitoring
+health.jsonl
+*.health
+monitoring_logs/
+
+# Sync Files
+sync_logs/
+git_sync.log
+
+# PM2
+.pm2/
+
+# Docker (keep compose files, ignore data)
+docker-compose.override.yml
+
+# Certificates (unless public)
+ssl/
+certs/
+!certs/README.md
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup Files
+*.backup
+*.bak
+backups/
+
+# ============================================
+# ✅ SAFE TO COMMIT:
+# ============================================
+# - Python scripts (.py)
+# - JavaScript files (.js)
+# - Configuration files (except .env)
+# - Documentation (.md)
+# - Docker configs (docker-compose.yml, Dockerfile)
+# - MCP server code (not credentials)
+# - Watcher scripts
+# - Agent code
+# ============================================
