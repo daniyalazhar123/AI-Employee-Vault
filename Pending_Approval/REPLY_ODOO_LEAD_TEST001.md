@@ -5,7 +5,7 @@ lead_name: Test Lead - Demo
 recipient: Demo Customer
 email_to: demo.customer@example.com
 status: pending_approval
-created: 2026-03-16 03:45:24
+created: 2026-03-25 04:03:56
 ---
 
 # Follow-Up Email Draft
@@ -32,7 +32,7 @@ We have received your inquiry (Lead Reference: #TEST001) and are excited about t
 3. You will receive a customized proposal based on your needs
 
 ### In the Meantime:
-If you have any immediate questions or would like to provide additional details about your requirements, please don't hesitate to reach out.
+If you have any immediate questions, please don't hesitate to reach out.
 
 We look forward to partnering with you!
 
