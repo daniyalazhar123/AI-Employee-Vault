@@ -352,7 +352,7 @@ class LocalAgent:
             'details': details
         }
         
-        log_file = self.logs / 'Audit' / f"local_actions_{datetime.now().strftime('%Y%m%d')}.jsonl'
+        log_file = self.logs / 'Audit' / f"local_actions_{datetime.now().strftime('%Y%m%d')}.jsonl"
         log_file.parent.mkdir(parents=True, exist_ok=True)
         
         with open(log_file, 'a', encoding='utf-8') as f:

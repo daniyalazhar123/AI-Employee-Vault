@@ -273,8 +273,8 @@ http://localhost:8069
 ### **Test MCP Server**
 
 ```bash
-cd mcp-odoo
-npm start
+cd odoo
+python ../odoo_mcp.py --serve
 
 # Expected: Server starts without errors
 ```
@@ -291,10 +291,9 @@ python odoo_lead_watcher.py
 
 ```bash
 # Via MCP
-cd mcp-odoo
-npm start
+python ../odoo_mcp.py --test
 
-# In another terminal, test create_invoice command
+# Or test create_invoice via JSON-RPC
 ```
 
 ---

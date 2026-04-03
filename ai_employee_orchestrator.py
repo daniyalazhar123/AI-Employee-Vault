@@ -311,20 +311,20 @@ Draft the complete reply in {language} language.
     def ask_permission(self, action_type: str, content: str, language: str = 'Urdu') -> bool:
         """
         Ask user for permission before taking action
-        
+
         Args:
             action_type: "send_email", "post_linkedin", "tweet", etc.
             content: What will be sent/posted
             language: Language to ask in
-            
+
         Returns:
             True if approved, False otherwise
         """
-        
+
         # Create approval request file
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         approval_file = self.pending_approval_folder / f"APPROVAL_{action_type}_{timestamp}.md"
-        
+
         approval_content = f"""---
 type: approval_request
 action: {action_type}
@@ -370,24 +370,83 @@ status: pending
 
 **Waiting for your approval...**
 """
-        
+
         approval_file.write_text(approval_content, encoding='utf-8')
-        
+
         # Log the approval request
         self.log_info(f"📋 Approval request created: {approval_file.name}")
         self.log_info(f"Content preview: {content[:200]}...")
-        
-        # In a real system, this would wait for user input
-        # For now, we'll just return True and let user review the file
+
+        # ACTUALLY WAIT FOR USER INPUT (HITL Fix)
         print(f"\n{'='*70}")
-        print(f"📋 APPROVAL REQUEST CREATED")
+        print(f"📋 APPROVAL REQUEST")
         print(f"{'='*70}")
-        print(f"File: {approval_file}")
-        print(f"\nReview the file and respond with one of the approval commands.")
-        print(f"\nWaiting for your response...")
-        print(f"{'='*70}\n")
-        
-        return True  # In production, this would wait for actual user input
+        print(f"Action: {action_type}")
+        print(f"\nContent Preview:")
+        print(f"{'-'*70}")
+        print(content[:500] + ('...' if len(content) > 500 else ''))
+        print(f"{'-'*70}")
+        print(f"\nFull details saved to: {approval_file}")
+        print(f"\nApprove? (yes/no/edit): ")
+
+        # Approval keywords in multiple languages
+        approve_keywords = ['yes', 'haan', 'نعم', 'send', 'bhej', 'approve', 'y', 'j']
+        reject_keywords = ['no', 'nahi', 'لا', 'reject', 'revise', 'n', 'n']
+        edit_keywords = ['edit', 'change', 'modify', 'tabdeeli', 'تبدیل']
+
+        try:
+            # Wait for user input with timeout
+            import msvcrt
+            timeout = 300  # 5 minutes timeout
+            start_time = time.time()
+
+            while time.time() - start_time < timeout:
+                if msvcrt.kbhit():
+                    user_input = input().strip().lower()
+
+                    if any(kw in user_input for kw in approve_keywords):
+                        # Update approval file status
+                        updated_content = approval_content.replace('status: pending', 'status: approved')
+                        updated_content = updated_content.replace(
+                            f'created: {datetime.now().isoformat()}',
+                            f'created: {datetime.now().isoformat()}\napproved: {datetime.now().isoformat()}\napproved_by: human'
+                        )
+                        approval_file.write_text(updated_content, encoding='utf-8')
+
+                        self.log_info(f"✅ Approval granted for {action_type}")
+                        return True
+
+                    elif any(kw in user_input for kw in reject_keywords):
+                        # Update approval file status
+                        updated_content = approval_content.replace('status: pending', 'status: rejected')
+                        approval_file.write_text(updated_content, encoding='utf-8')
+
+                        self.log_info(f"❌ Approval rejected for {action_type}")
+                        return False
+
+                    elif any(kw in user_input for kw in edit_keywords):
+                        self.log_info(f"✏️ User requested edit for {action_type}")
+                        print(f"\n✏️ Please edit the file: {approval_file}")
+                        print("   Then re-run with approval.")
+                        return False
+
+                    else:
+                        print("   Invalid response. Please enter 'yes', 'no', or 'edit': ")
+
+                time.sleep(0.5)  # Don't hog CPU
+
+            # Timeout
+            self.log_info(f"⏰ Approval timeout for {action_type}")
+            print(f"\n⏰ Approval timeout (5 minutes). Action cancelled.")
+            return False
+
+        except (EOFError, KeyboardInterrupt):
+            self.log_info(f"⚠️ Approval interrupted for {action_type}")
+            print(f"\n⚠️ Approval cancelled.")
+            return False
+        except Exception as e:
+            self.log_error(f"Error in approval flow: {e}")
+            return False
     
     def process_gmail(self):
         """Process Gmail emails"""

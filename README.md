@@ -78,22 +78,23 @@ python ceo_briefing_enhanced.py
 python platinum_demo.py
 ```
 
-### **Start Dashboard (FastAPI + Next.js 14)**
+### **Start Dashboard (Pure Python)**
 ```bash
 # One-click start (Windows)
 cd dashboard
-start.bat
+start_dashboard.bat
 
 # Or manually:
-# Backend (FastAPI)
-python dashboard/api.py
+# Start MCP Servers
+python mcp_email.py --serve
+python mcp_social.py --action status
+python odoo_mcp.py --serve
 
-# Frontend (Next.js 14)
-cd dashboard
-npm install
-npm run dev
+# Start Orchestrator
+python ai_employee_orchestrator.py
 
-# Open browser: http://localhost:3000
+# Start Ralph Loop
+python ralph_loop.py "Process all files in Needs_Action" --engine claude
 ```
 
 ---

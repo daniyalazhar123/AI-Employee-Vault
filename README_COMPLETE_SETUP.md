@@ -62,7 +62,7 @@ python platinum_demo.py
 
 ```bash
 # Install Qwen CLI (AI Employee ka Brain)
-npm install -g @anthropic/qwen
+pip install qwen-code
 
 # Verify
 qwen --version

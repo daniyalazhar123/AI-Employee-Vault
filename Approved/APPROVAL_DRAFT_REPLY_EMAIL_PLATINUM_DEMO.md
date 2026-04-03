@@ -3,7 +3,7 @@ type: approval_request
 action: send_email
 draft_file: DRAFT_REPLY_EMAIL_PLATINUM_DEMO.md
 created_by: cloud
-created: 2026-03-25T04:16:43.996095
+created: 2026-04-04T03:38:36.310616
 status: pending
 agent_type: draft_only
 ---

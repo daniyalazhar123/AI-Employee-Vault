@@ -12,9 +12,7 @@ Before running tests, verify your environment:
 
 ### Required Software
 - [x] Python 3.13+ (Currently: Python 3.14.3 ✅)
-- [x] Node.js 18+ (Currently: v24.14.0 ✅)
-- [x] npm 10+ (Currently: 10.8.2 ✅)
-- [ ] Qwen CLI (Optional - for Claude Code alternative)
+- [ ] Qwen CLI or Claude Code installed
 - [ ] Playwright browsers installed
 
 ### Required Python Packages
@@ -28,7 +26,7 @@ playwright install chromium
 python mcp_email.py --action list
 python mcp_browser.py --action navigate
 python mcp_odoo.py --action get_leads
-python mcp_social.py --action linkedin
+python mcp_social.py --action status
 ```
 
 ---

@@ -43,17 +43,32 @@ class MCPEmailServer:
         self.email_password = os.getenv('EMAIL_PASSWORD', '')
         self.imap_server = os.getenv('IMAP_SERVER', 'imap.gmail.com')
         
-        # Dry run mode (default for safety)
+        # Dry run mode (default to safe mode - must explicitly disable)
         self.dry_run = os.getenv('DRY_RUN', 'true').lower() == 'true'
         
-        logger.info(f"📧 MCP Email Server initialized (Dry Run: {self.dry_run})")
+        # Approval-required flag (HITL safety)
+        self.require_approval = os.getenv('REQUIRE_APPROVAL', 'true').lower() == 'true'
+
+        logger.info(f"📧 MCP Email Server initialized (Dry Run: {self.dry_run}, Approval Required: {self.require_approval})")
     
-    def send_email(self, to: str, subject: str, body: str, 
-                   attachment_path: Optional[str] = None) -> Dict:
+    def send_email(self, to: str, subject: str, body: str,
+                   attachment_path: Optional[str] = None,
+                   approved: bool = False) -> Dict:
         """Send email via SMTP"""
         try:
             logger.info(f"📧 Sending email to: {to}")
-            
+
+            # Check approval requirement (HITL safety)
+            if self.require_approval and not approved:
+                logger.warning(f"⚠️ Approval required for email to {to}")
+                return {
+                    'success': False,
+                    'requires_approval': True,
+                    'message': f'Email to {to} requires human approval. Set approved=True or REQUIRE_APPROVAL=false',
+                    'to': to,
+                    'subject': subject
+                }
+
             if self.dry_run:
                 logger.info(f"📝 [DRY RUN] Email would be sent to {to}")
                 logger.info(f"📝 Subject: {subject}")

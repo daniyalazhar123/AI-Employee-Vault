@@ -28,6 +28,11 @@ WhatsApp/
 *.pickle
 
 # Banking & Payment
+
+# Windows reserved files
+nul
+con
+prn
 banking/
 payment_tokens/
 stripe_keys.txt
