@@ -200,6 +200,7 @@
   },
   "active": "b947b0c8f82d77fe",
   "lastOpenFiles": [
+    "final_verify.py",
     "verify_folders.py",
     "Needs_Action/cloud/EMAIL_PLATINUM_DEMO.md",
     "security_scan.py",
@@ -212,7 +213,6 @@
     "dashboard/next-env.d.ts",
     "dashboard/node_modules/typescript/lib/zh-tw/diagnosticMessages.generated.json",
     "dashboard/node_modules/typescript/lib/zh-cn/diagnosticMessages.generated.json",
-    "dashboard/node_modules/typescript/lib/ru/diagnosticMessages.generated.json",
     "dashboard/node_modules/next/README.md",
     "dashboard/node_modules/next/dist/compiled/regenerator-runtime/README.md",
     "dashboard/node_modules/next/dist/compiled/react-refresh/README.md",

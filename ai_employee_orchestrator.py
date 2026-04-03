@@ -159,7 +159,7 @@ class AIEmployeeOrchestrator:
                 return False
                 
         except FileNotFoundError:
-            self.log_error("❌ Qwen CLI not found. Install with: npm install -g @qwen-code/qwen-code")
+            self.log_error("❌ Qwen CLI not found. Install with: pip install qwen-code")
             return False
         except Exception as e:
             self.log_error(f"❌ Error checking Qwen CLI: {e}")
@@ -665,7 +665,7 @@ def main():
     # Check Qwen CLI first
     if not orchestrator.check_qwen_cli():
         print("\n❌ Qwen CLI not found. Please install first:")
-        print("   npm install -g @anthropic/qwen")
+        print("   pip install qwen-code")
         return
     
     while True:
