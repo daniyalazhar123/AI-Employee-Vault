@@ -179,19 +179,19 @@ class RateLimiter:
 # ============================================================================
 
 class OdooClient:
-    """Odoo JSON-RPC/XML-RPC client."""
-    
+    """Odoo JSON-RPC/XML-RPC client with automatic fallback."""
+
     def __init__(self, url: str, db: str, username: str, password: str, api_key: Optional[str] = None):
         """
         Initialize Odoo client.
-        
+
         Args:
             url: Odoo instance URL
             db: Database name
             username: Username
             password: Password (or API key for Odoo Online)
             api_key: Optional API key for Odoo Online
-        
+
         ⚠️ Security: Credentials loaded from env vars only
         """
         self.url = url.rstrip('/')
@@ -202,128 +202,196 @@ class OdooClient:
         self.uid = None  # User ID after authentication
         self.connected = False
         
+        # Connection mode tracking
+        self.use_jsonrpc = False  # Auto-detected during connect
+        self.xmlrpc_url = f"{self.url}/xmlrpc/2/"
+        self.jsonrpc_url = f"{self.url}/jsonrpc"
+
         logger.info(f"OdooClient initialized: url={url}, db={db}, username={username}")
+        logger.info(f"  XML-RPC URL: {self.xmlrpc_url}")
+        logger.info(f"  JSON-RPC URL: {self.jsonrpc_url}")
     
     def connect(self) -> bool:
         """
         Connect and authenticate to Odoo.
-        
+        Tries JSON-RPC first (Odoo 19+), falls back to XML-RPC.
+
         Returns:
             True if connection successful
-        
+
         ⚠️ Security: Password from env var only
         """
+        # Try JSON-RPC first (Odoo 19+ preferred method)
+        if self._jsonrpc_auth():
+            self.use_jsonrpc = True
+            self.connected = True
+            logger.info(f"✅ Odoo authentication successful via JSON-RPC (UID: {self.uid})")
+            return True
+        
+        # Fallback to XML-RPC
+        if self._xmlrpc_auth():
+            self.use_jsonrpc = False
+            self.connected = True
+            logger.info(f"✅ Odoo authentication successful via XML-RPC (UID: {self.uid})")
+            return True
+        
+        logger.error("❌ Odoo authentication failed - both JSON-RPC and XML-RPC failed")
+        return False
+    
+    def _jsonrpc_auth(self) -> bool:
+        """Authenticate via Odoo 19+ JSON-RPC API"""
         try:
-            # Common authentication endpoint
-            auth_url = f"{self.url}/web/session/authenticate"
-            
-            # Prepare authentication data
-            auth_data = {
-                'jsonrpc': '2.0',
-                'method': 'call',
-                'params': {
-                    'db': self.db,
-                    'login': self.username,
-                    'password': self.password,
-                },
-                'id': 1
-            }
-            
-            # For Odoo Online, use API key
-            if self.api_key:
-                logger.info("Using API key for Odoo Online authentication")
-                # Odoo Online uses different auth mechanism
-                # This is a stub - full implementation would use OAuth2
-            
-            # Make authentication request
             import urllib.request
             
+            payload = {
+                "jsonrpc": "2.0",
+                "method": "call",
+                "params": {
+                    "service": "common",
+                    "method": "authenticate",
+                    "args": [self.db, self.username, self.password, {}]
+                },
+                "id": 1
+            }
+            
             req = urllib.request.Request(
-                auth_url,
-                data=json.dumps(auth_data).encode('utf-8'),
+                self.jsonrpc_url,
+                data=json.dumps(payload).encode('utf-8'),
                 headers={'Content-Type': 'application/json'}
             )
             
             with urllib.request.urlopen(req, timeout=CONNECTION_TIMEOUT) as response:
                 result = json.loads(response.read().decode('utf-8'))
             
-            # Check response
             if result.get('result', {}).get('uid'):
                 self.uid = result['result']['uid']
-                self.connected = True
-                logger.info(f"✅ Odoo authentication successful (UID: {self.uid})")
+                logger.info(f"✅ JSON-RPC authentication successful (UID: {self.uid})")
                 return True
             else:
-                logger.error("❌ Odoo authentication failed - invalid credentials")
+                logger.debug("JSON-RPC auth failed: invalid credentials")
                 return False
                 
-        except urllib.error.URLError as e:
-            logger.error(f"❌ Odoo connection failed: {e}")
-            logger.error(f"   URL: {self.url}")
-            logger.error(f"   Check if Odoo is running and accessible")
-            return False
         except Exception as e:
-            logger.error(f"❌ Odoo connection error: {e}")
+            logger.debug(f"JSON-RPC auth not available: {e}")
+            return False
+    
+    def _xmlrpc_auth(self) -> bool:
+        """Authenticate via XML-RPC (fallback for older Odoo versions)"""
+        try:
+            import xmlrpc.client
+            
+            common = xmlrpc.client.ServerProxy(
+                f"{self.xmlrpc_url}common",
+                timeout=CONNECTION_TIMEOUT
+            )
+            
+            self.uid = common.authenticate(self.db, self.username, self.password, {})
+            
+            if self.uid:
+                logger.info(f"✅ XML-RPC authentication successful (UID: {self.uid})")
+                return True
+            else:
+                logger.debug("XML-RPC auth failed: invalid credentials")
+                return False
+                
+        except Exception as e:
+            logger.debug(f"XML-RPC auth not available: {e}")
             return False
     
     def execute(self, model: str, method: str, *args, **kwargs) -> Any:
         """
         Execute method on Odoo model.
-        
+        Uses JSON-RPC if available, falls back to XML-RPC.
+
         Args:
             model: Odoo model name (e.g., 'account.move', 'res.partner')
             method: Method to call (e.g., 'create', 'read', 'search')
             *args: Positional arguments
             **kwargs: Keyword arguments
-        
+
         Returns:
             Method result
-        
+
         ⚠️ Security: Requires authentication
         """
         if not self.connected:
             if not self.connect():
                 raise Exception("Not connected to Odoo")
-        
+
+        # Use JSON-RPC if available (Odoo 19+)
+        if self.use_jsonrpc:
+            return self._jsonrpc_execute(model, method, *args, **kwargs)
+        else:
+            return self._xmlrpc_execute(model, method, *args, **kwargs)
+    
+    def _jsonrpc_execute(self, model: str, method: str, *args, **kwargs) -> Any:
+        """Execute via JSON-RPC API (Odoo 19+)"""
         try:
-            # Execute URL
-            execute_url = f"{self.url}/web/dataset/call"
-            
-            # Prepare request data
-            request_data = {
-                'jsonrpc': '2.0',
-                'method': 'call',
-                'params': {
-                    'model': model,
-                    'method': method,
-                    'args': args,
-                    'kwargs': kwargs
-                },
-                'id': 1
-            }
-            
-            # Make request
             import urllib.request
             
+            payload = {
+                "jsonrpc": "2.0",
+                "method": "call",
+                "params": {
+                    "service": "object",
+                    "method": "execute_kw",
+                    "args": [
+                        self.db,
+                        self.uid,
+                        self.password,
+                        model,
+                        method,
+                        list(args),
+                        kwargs
+                    ]
+                },
+                "id": 1
+            }
+            
             req = urllib.request.Request(
-                execute_url,
-                data=json.dumps(request_data).encode('utf-8'),
+                self.jsonrpc_url,
+                data=json.dumps(payload).encode('utf-8'),
                 headers={'Content-Type': 'application/json'}
             )
             
             with urllib.request.urlopen(req, timeout=CONNECTION_TIMEOUT) as response:
                 result = json.loads(response.read().decode('utf-8'))
             
-            # Check for errors
             if 'error' in result:
                 error = result['error']
-                logger.error(f"Odoo API error: {error.get('message', 'Unknown error')}")
-                raise Exception(error.get('message', 'Unknown Odoo error'))
+                logger.error(f"JSON-RPC error: {error.get('message', 'Unknown error')}")
+                raise Exception(error.get('message', 'Unknown JSON-RPC error'))
             
             return result.get('result', {})
             
         except Exception as e:
-            logger.error(f"Error executing {method} on {model}: {e}")
+            logger.error(f"JSON-RPC execute failed: {e}")
+            # Fallback to XML-RPC
+            logger.info("Falling back to XML-RPC...")
+            return self._xmlrpc_execute(model, method, *args, **kwargs)
+    
+    def _xmlrpc_execute(self, model: str, method: str, *args, **kwargs) -> Any:
+        """Execute via XML-RPC API (fallback)"""
+        try:
+            import xmlrpc.client
+            
+            models = xmlrpc.client.ServerProxy(
+                f"{self.xmlrpc_url}object",
+                timeout=CONNECTION_TIMEOUT
+            )
+            
+            return models.execute_kw(
+                self.db,
+                self.uid,
+                self.password,
+                model,
+                method,
+                list(args),
+                kwargs
+            )
+            
+        except Exception as e:
+            logger.error(f"XML-RPC execute failed: {e}")
             raise
     
     def search_read(self, model: str, domain: List = None, fields: List = None, 
@@ -360,7 +428,7 @@ class OdooClient:
     def test_connection(self) -> Dict[str, Any]:
         """
         Test Odoo connection.
-        
+
         Returns:
             Connection status dictionary
         """
@@ -374,10 +442,10 @@ class OdooClient:
                         'url': self.url,
                         'database': self.db
                     }
-            
+
             # Try to read current user
             user_data = self.search_read('res.users', [['id', '=', self.uid]], ['name', 'login'], limit=1)
-            
+
             if user_data:
                 return {
                     'success': True,
@@ -386,7 +454,8 @@ class OdooClient:
                     'username': self.username,
                     'user_name': user_data[0].get('name', 'Unknown'),
                     'uid': self.uid,
-                    'odoo_version': 'Community'  # Would need to query for actual version
+                    'protocol': 'JSON-RPC' if self.use_jsonrpc else 'XML-RPC',
+                    'odoo_version': '19+' if self.use_jsonrpc else 'Community'
                 }
             else:
                 return {
@@ -395,7 +464,7 @@ class OdooClient:
                     'url': self.url,
                     'database': self.db
                 }
-                
+
         except Exception as e:
             return {
                 'success': False,
