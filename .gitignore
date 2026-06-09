@@ -1,13 +1,8 @@
-# ============================================
-# 🔒 PLATINUM TIER - CRITICAL .GITIGNORE
-# NEVER COMMIT THESE FILES!
-# ============================================
-
-# Environment & Secrets
+# Environment & Secrets (moved to ~/.ai_employee/secrets/)
 .env
 .env.local
 .env.cloud
-.env.local.example
+.env.linkedin
 *.env
 secrets/
 credentials/
@@ -15,11 +10,14 @@ credentials/
 # API Credentials
 credentials.json
 token.json
+token.pickle
 service_account.json
 *.pem
 *.key
 *.crt
 *.p12
+linkedin_session.json
+linkedin_cookies.json
 
 # WhatsApp Session (LOCAL ONLY!)
 whatsapp_session/
@@ -28,21 +26,24 @@ WhatsApp/
 *.pickle
 
 # Banking & Payment
-
-# Windows reserved files
-nul
-con
-prn
 banking/
 payment_tokens/
 stripe_keys.txt
 banking_credentials.txt
 
-# Logs & Audit (contain sensitive data)
+# Windows reserved files
+nul
+con
+prn
+
+# Logs & Audit
 Logs/
 *.log
 Logs/Audit/
 Dead_Letter_Queue/
+
+# In-Progress (batch processing staging)
+In_Progress/
 
 # Python
 __pycache__/
@@ -91,9 +92,8 @@ Thumbs.db
 # MCP Server Credentials
 mcp-email/credentials.json
 mcp-email/token.json
-mcp-email/service_account.json
 
-# Odoo (except docker-compose and config)
+# Odoo
 odoo/.env
 odoo/backups/
 odoo/logs/
@@ -103,7 +103,7 @@ cloud/.env.cloud
 cloud/credentials/
 cloud/*.pem
 
-# Local Agent Secrets (CRITICAL!)
+# Local Agent Secrets
 local/.env.local
 local/credentials/
 local/*.pem
@@ -115,20 +115,17 @@ local/whatsapp_session/
 .gitignore
 .gitattributes
 
-# Documentation (optional - keep these)
-# *.md
-# !README.md
-# !Business_Goals.md
-# !Company_Handbook.md
-
-# Demo Files (optional)
-Demo/
-
 # Temporary Files
 tmp/
 temp/
 *.tmp
 *.bak
+
+# Local-only Claude config (contains API key)
+.claude/settings.local.json
+
+# Browser profile data (LinkedIn Playwright)
+linkedin_profile/
 
 # Health & Monitoring
 health.jsonl
@@ -142,7 +139,7 @@ git_sync.log
 # PM2
 .pm2/
 
-# Docker (keep compose files, ignore data)
+# Docker
 docker-compose.override.yml
 
 # Certificates (unless public)
@@ -157,40 +154,14 @@ certs/
 
 # Backup Files
 *.backup
-*.bak
 backups/
 
-# ============================================
-# ✅ SAFE TO COMMIT:
-# ============================================
-# - Python scripts (.py)
-# - JavaScript files (.js)
-# - Configuration files (except .env)
-# - Documentation (.md)
-# - Docker configs (docker-compose.yml, Dockerfile)
-# - MCP server code (not credentials)
-# - Watcher scripts
-# - Agent code
-# ============================================
-
-# CREDENTIALS - NEVER COMMIT
-config/credentials.json
-config/token.pickle
-credentials.json
-token.pickle
-odoo/example.env
-*.env
-*.env >> .gitignore.env.example
-*.env
-
-# CREDENTIALS - NEVER COMMIT
-config/credentials.json
-config/token.pickle
-credentials.json
-token.pickle
-odoo/example.env
-*.env
-*.env >> .gitignore.env.example
-*.env
--e "\n# Dashboard\ndashboard/__pycache__/\ndashboard/.env\ndashboard/frontend/.next/\ncloud_deploy.log\ncloud_deploy.env"  
--e "\n# Next.js Dashboard\ndashboard/node_modules/\ndashboard/.next/\ndashboard/.env.local\ndashboard/*.log\ndashboard/.turbo/"  
+# Dashboard
+dashboard/__pycache__/
+dashboard/.env
+dashboard/frontend/.next/
+dashboard/node_modules/
+dashboard/.next/
+dashboard/.env.local
+dashboard/*.log
+dashboard/.turbo/

@@ -1,256 +1,70 @@
-# AI Employee - Agent Skills
+# AI Employee — Claude Code Skills
 
-**Gold Tier Requirement #12** - All AI functionality implemented as Agent Skills
-
-This folder contains Claude Code Agent Skills definitions for the AI Employee.
-
----
-
-## Agent Skills Structure
-
-### `/agents/` - Agent Definitions
-
-Agent skills define what the AI Employee can do autonomously.
-
-### `/skills/` - Skill Implementations
-
-Individual skill implementations that agents can use.
+**Vault:** `D:\Desktop4\Obsidian Vault`  
+**AI Engine:** Claude Code (CLI v2.1+)  
+**Loop:** `python ralph_loop.py "task description"`
 
 ---
 
-## Available Agent Skills
+## Available Skills (8)
 
-### 1. Email Processing Agent
+| Skill | Directory | Purpose |
+|-------|-----------|---------|
+| `audit-logger` | `.claude/skills/audit-logger/` | Audit logging & compliance reports |
+| `ceo-briefing-generator` | `.claude/skills/ceo-briefing-generator/` | Weekly CEO briefings with revenue tracking |
+| `email-processor` | `.claude/skills/email-processor/` | Process Gmail, draft replies, categorize urgency |
+| `error-recovery` | `.claude/skills/error-recovery/` | Circuit breaker, dead letter queue, retry logic |
+| `odoo-accounting` | `.claude/skills/odoo-accounting/` | Invoicing, payments, reconciliation |
+| `social-media-manager` | `.claude/skills/social-media-manager/` | LinkedIn/FB/IG/Twitter posting |
+| `whatsapp-responder` | `.claude/skills/whatsapp-responder/` | Monitor & respond to WhatsApp messages |
+| `ceo-briefing` | `.claude/skills/ceo-briefing/` | Legacy briefing skill |
 
-**Skill:** `email_processor`
+---
 
-**Capabilities:**
-- Read emails from Gmail
-- Draft professional replies
-- Categorize emails by urgency
-- Flag important emails for human review
+## Using Claude Code
 
-**Usage:**
-```
-@agent Process emails in Needs_Action folder
-```
-
-### 2. WhatsApp Response Agent
-
-**Skill:** `whatsapp_responder`
-
-**Capabilities:**
-- Monitor WhatsApp messages
-- Detect urgent keywords
-- Draft responses
-- Escalate complex queries
-
-**Usage:**
-```
-@agent Respond to urgent WhatsApp messages
+### Run ad-hoc task
+```bash
+claude --print "Process all email drafts in Needs_Action/"
 ```
 
-### 3. Social Media Agent
-
-**Skill:** `social_media_manager`
-
-**Capabilities:**
-- Generate posts for LinkedIn, Facebook, Instagram, Twitter
-- Add relevant hashtags
-- Schedule posts
-- Generate performance summaries
-
-**Usage:**
-```
-@agent Create and schedule social media posts for this week
+### Run via Ralph Wiggum loop (persistent)
+```bash
+python ralph_loop.py "Process all files in Needs_Action/"
 ```
 
-### 4. Odoo Accounting Agent
+The loop:
+1. Reads task file from `Needs_Action/`
+2. Passes to `claude --print <prompt>`
+3. On success → moves file to `Done/`
+4. On failure → retries with backoff (max 5)
+5. Loops until all tasks complete
 
-**Skill:** `accounting_assistant`
-
-**Capabilities:**
-- Create invoices in Odoo
-- Record payments
-- Reconcile bank transactions
-- Generate financial reports
-
-**Usage:**
-```
-@agent Create invoice for Client A
-```
-
-### 5. CEO Briefing Agent
-
-**Skill:** `ceo_briefing_generator`
-
-**Capabilities:**
-- Generate weekly CEO briefings
-- Include accounting audit
-- Add social media summaries
-- Identify bottlenecks
-
-**Usage:**
-```
-@agent Generate weekly CEO briefing
-```
-
-### 6. Ralph Loop Agent
-
-**Skill:** `persistent_task_executor`
-
-**Capabilities:**
-- Execute multi-step tasks
-- Retry on failure
-- Move tasks to Done when complete
-- Report progress
-
-**Usage:**
-```
-@agent Process all pending tasks in Needs_Action
+### Manual skill invocation
+```bash
+claude -p "Load the email-processor skill and process pending emails"
 ```
 
 ---
 
-## Agent Configuration
+## Agent Config
 
-### Agent Skills Config File
-
-Create `.claude/agents/ai-employee.json`:
+For Claude Code agent mode, use `.claude/settings.json`:
 
 ```json
 {
-  "name": "ai-employee",
-  "version": "1.0.0",
-  "description": "Personal AI Employee for business automation",
   "skills": [
-    "email_processor",
-    "whatsapp_responder",
-    "social_media_manager",
-    "accounting_assistant",
-    "ceo_briefing_generator",
-    "persistent_task_executor"
-  ],
-  "permissions": {
-    "email": {
-      "read": true,
-      "draft": true,
-      "send": false
-    },
-    "whatsapp": {
-      "read": true,
-      "draft": true,
-      "send": false
-    },
-    "social": {
-      "create": true,
-      "schedule": true,
-      "post": false
-    },
-    "accounting": {
-      "create_invoice": false,
-      "record_payment": false,
-      "read_reports": true
-    }
-  },
-  "human_in_loop": [
-    "email_send",
-    "whatsapp_send",
-    "social_post",
-    "invoice_create",
-    "payment_record"
+    "audit-logger",
+    "ceo-briefing-generator",
+    "email-processor",
+    "error-recovery",
+    "odoo-accounting",
+    "social-media-manager",
+    "whatsapp-responder"
   ]
 }
 ```
 
 ---
 
-## Skill Implementation Template
-
-### Example: Email Processor Skill
-
-Create `.claude/skills/email_processor.py`:
-
-```python
-"""
-Email Processor Agent Skill
-
-Processes emails and drafts replies.
-"""
-
-def process_emails(vault_path: str) -> dict:
-    """
-    Process emails in Needs_Action folder.
-    
-    Returns:
-        dict with processed count and drafts created
-    """
-    # Implementation here
-    return {
-        'processed': 0,
-        'drafts_created': 0
-    }
-
-def draft_reply(email_path: str) -> str:
-    """
-    Draft a reply for an email.
-    
-    Returns:
-        Path to draft file
-    """
-    # Implementation here
-    return draft_path
-```
-
----
-
-## Usage in Claude Code
-
-### Enable Agent Skills
-
-In Claude Code:
-
-```
-/agents enable ai-employee
-```
-
-### Run Agent Skill
-
-```
-@ai-employee Process all pending emails
-```
-
-### Check Agent Status
-
-```
-/agents status
-```
-
----
-
-## Gold Tier Compliance
-
-All AI functionality is implemented as Agent Skills:
-
-- ✅ Email processing → `email_processor`
-- ✅ WhatsApp responses → `whatsapp_responder`
-- ✅ Social media → `social_media_manager`
-- ✅ Accounting → `accounting_assistant`
-- ✅ CEO Briefings → `ceo_briefing_generator`
-- ✅ Task execution → `persistent_task_executor`
-
-**Status:** ✅ **COMPLETE**
-
----
-
-## Next Steps
-
-1. Implement each skill in Python
-2. Test skills with Claude Code
-3. Enable human-in-the-loop for sensitive actions
-4. Monitor skill performance
-5. Update skills based on feedback
-
----
-
-*Agent Skills for AI Employee - Gold Tier Complete*
+*Last updated: June 10, 2026*

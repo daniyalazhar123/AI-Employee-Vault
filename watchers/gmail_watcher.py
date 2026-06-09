@@ -1,3 +1,4 @@
+import sys
 """
 Gmail Watcher for AI Employee Vault
 Monitors Gmail for new unread emails and creates action items.
@@ -23,6 +24,22 @@ from googleapiclient.errors import HttpError
 
 from base_watcher import BaseWatcher, ConfigurationError
 
+# Load secrets from outside vault
+import sys as _sys
+_sys.path.insert(0, str(Path(__file__).parent.parent))
+from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
+load_secrets()
+
+# Fix Windows console encoding
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, Exception):
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+
 # Configuration
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 CHECK_INTERVAL = 120  # seconds
@@ -36,8 +53,8 @@ class GmailWatcher(BaseWatcher):
     def __init__(self, vault_path: Optional[Path] = None):
         super().__init__('gmail', vault_path)
 
-        self.credentials_file = self.vault_path / 'config' / 'credentials.json'
-        self.token_file = self.vault_path / 'config' / 'token.pickle'
+        self.credentials_file = get_secret_path('credentials.json')
+        self.token_file = get_secret_path('token.pickle')
         self.processed_file = self.vault_path / 'data' / 'processed_emails.txt'
         self.needs_action_folder = self.vault_path / 'Needs_Action'
         self.pending_approval_folder = self.vault_path / 'Pending_Approval'

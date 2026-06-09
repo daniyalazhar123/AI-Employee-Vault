@@ -116,13 +116,9 @@ IMPORTANT INSTRUCTIONS:
 Task: Process {task_file.name} completely and move to Done/ folder when finished.
 """
 
-        # Choose engine
-        if engine == 'claude':
-            cmd = ['claude', '-y', '--print', prompt]
-            timeout = 600  # 10 minutes for Claude
-        else:
-            cmd = ['qwen', '-y', prompt]
-            timeout = 180  # 3 minutes for Qwen
+        # Claude Code only — Qwen fallback removed per hackathon requirements
+        cmd = ['claude', '-y', '--print', prompt]
+        timeout = 600  # 10 minutes for Claude
 
         result = subprocess.run(
             cmd,
@@ -275,7 +271,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('task', nargs='+', help='Task description')
-    parser.add_argument('--engine', choices=['claude', 'qwen'], default=ENGINE, help='AI engine to use')
+    parser.add_argument('--engine', choices=['claude'], default='claude', help='AI engine (Claude Code only)')
     parser.add_argument('--max-iterations', type=int, default=MAX_ITERATIONS, help='Max iterations')
     args = parser.parse_args()
 
@@ -364,9 +360,8 @@ def main():
         print(f"   Check Needs_Action/ folder for the task file.")
         print("\n💡 Suggestions:")
         print("   1. Check the task file for errors")
-        print("   2. Run AI engine manually with more specific instructions")
+        print("   2. Run Claude Code manually: claude --print 'process the task'")
         print("   3. Break the task into smaller subtasks")
-        print("   4. Try switching engine (--engine claude or --engine qwen)")
 
     print("\n" + "=" * 70)
     print(f"Final iteration count: {iteration - 1 if task_complete else max_iterations}")

@@ -649,6 +649,12 @@ Ali Khan
 
 def main():
     """Main function"""
+    import sys
+    import io
+    # Fix Windows console encoding for emoji support
+    if sys.platform == 'win32':
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    
     print("\n" + "="*70)
     print("🤖 COMPLETE 24/7 AI EMPLOYEE ORCHESTRATOR")
     print("="*70)
@@ -659,9 +665,9 @@ def main():
     print("3. Start 24/7 monitoring")
     print("4. Process specific platform")
     print("5. Exit")
-    
+
     orchestrator = AIEmployeeOrchestrator()
-    
+
     # Check Qwen CLI first
     if not orchestrator.check_qwen_cli():
         print("\n❌ Qwen CLI not found. Please install first:")

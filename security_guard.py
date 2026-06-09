@@ -21,6 +21,15 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 import logging
+# Fix Windows console encoding
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, Exception):
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # Setup logging
 logging.basicConfig(
@@ -108,22 +117,9 @@ class SecurityGuard:
         logger.info(f"🔒 Security Guard initialized ({agent_type})")
     
     def _load_env(self):
-        """Load environment variables"""
-        if self.agent_type == 'cloud':
-            env_file = self.vault / '.env.cloud'
-        else:
-            env_file = self.vault / '.env.local'
-        
-        if env_file.exists():
-            with open(env_file) as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#') and '=' in line:
-                        key, value = line.split('=', 1)
-                        os.environ[key] = value
-            logger.info(f"✅ Loaded environment from {env_file}")
-        else:
-            logger.warning(f"⚠️ Environment file not found: {env_file}")
+        """Load secrets from outside vault"""
+        from secrets_config import load_secrets
+        load_secrets()
     
     def check_action_permission(self, action_type: str) -> bool:
         """

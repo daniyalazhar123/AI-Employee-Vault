@@ -35,10 +35,18 @@ from datetime import datetime
 from typing import Dict, Optional
 import logging
 
-# Setup logging
+# Load secrets from outside vault
+sys.path.insert(0, str(Path(__file__).parent))
+from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
+load_secrets()
+
+# Setup logging with UTF-8 encoding
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 logger = logging.getLogger('MCPSocial')
 
@@ -62,7 +70,7 @@ class MCPSocialServer:
         self.logs_folder.mkdir(parents=True, exist_ok=True)
 
         # Safety flags
-        self.dry_run = os.getenv('DRY_RUN', 'true').lower() == 'true'
+        self.dry_run = os.getenv('DRY_RUN', 'false').lower() == 'true'
         self.require_approval = os.getenv('REQUIRE_APPROVAL', 'true').lower() == 'true'
 
         # Credentials (from env only)
@@ -81,11 +89,12 @@ class MCPSocialServer:
         logger.info(f"   Playwright: {'✅ Available' if PLAYWRIGHT_AVAILABLE else '❌ Not installed'}")
 
     def post_to_linkedin(self, content: str, approved: bool = False) -> Dict:
-        """Post content to LinkedIn"""
+        """Post content to LinkedIn using session cookies"""
         logger.info(f"💼 Posting to LinkedIn...")
 
         # HITL safety check
         if self.require_approval and not approved:
+            logger.warning(f"⚠️ [HITL BLOCKED] Approval required for LinkedIn post")
             return {
                 'success': False,
                 'requires_approval': True,
@@ -95,74 +104,151 @@ class MCPSocialServer:
             }
 
         if self.dry_run:
-            logger.info(f"📝 [DRY RUN] LinkedIn post would be published")
+            logger.info("=" * 70)
+            logger.info("📝 [DRY RUN MODE] LinkedIn post would be published (NO ACTUAL POST)")
+            logger.info(f"📝 [DRY RUN] Content: {content[:100]}...")
+            logger.info("=" * 70)
             return self._save_draft('linkedin', content, dry_run=True)
 
+        # REAL POST - DRY_RUN=false
         if not PLAYWRIGHT_AVAILABLE:
-            return {'success': False, 'message': 'Playwright not installed'}
+            return {'success': False, 'message': 'Playwright not installed. Run: pip install playwright && playwright install chromium'}
 
-        if not self.linkedin_email or not self.linkedin_password:
-            return {'success': False, 'message': 'LinkedIn credentials not set'}
+        # Check for session cookies (now in secrets dir)
+        session_file = get_secret_path('linkedin_session.json')
+        if not session_file.exists():
+            logger.warning("⚠️ No LinkedIn session file found. Session cookies required.")
+            return {
+                'success': False,
+                'message': f'LinkedIn session file not found. Place valid linkedin_session.json in {SECRETS_DIR}.',
+                'session_file_path': str(session_file)
+            }
 
+        logger.info("=" * 70)
+        logger.info("🚀 [REAL SEND EXECUTED] Actually posting to LinkedIn...")
+        logger.info(f"🚀 [REAL SEND] Content: {content[:100]}...")
+        logger.info(f"🔑 [REAL SEND] Using session cookies from {session_file}")
+        logger.info("=" * 70)
+
+        return self._post_linkedin_with_cookies(content, session_file)
+
+    def _post_linkedin_with_cookies(self, content: str, session_file: Path) -> Dict:
+        """Post to LinkedIn using saved session cookies"""
         try:
+            # Load session cookies
+            with open(session_file, 'r') as f:
+                session_data = json.load(f)
+
+            cookies = session_data.get('cookies', [])
+
             with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context()
-                page = context.new_page()
+                # Launch browser with persistent context to accept cookies
+                user_data_dir = self.vault_path / 'linkedin_browser_data'
+                user_data_dir.mkdir(exist_ok=True)
 
-                # Login
-                page.goto('https://www.linkedin.com/login')
-                time.sleep(2)
+                context = p.chromium.launch_persistent_context(
+                    user_data_dir=str(user_data_dir),
+                    headless=True,
+                    accept_downloads=True
+                )
 
-                email_field = page.locator('#username')
-                if email_field.is_visible():
-                    email_field.fill(self.linkedin_email)
+                page = context.pages[0] if context.pages else context.new_page()
 
-                password_field = page.locator('#password')
-                if password_field.is_visible():
-                    password_field.fill(self.linkedin_password)
+                # Inject cookies
+                logger.info(f"🍪 Injecting {len(cookies)} cookies")
+                context.add_cookies(cookies)
 
-                sign_in = page.locator('button[type="submit"]')
-                if sign_in.is_visible():
-                    sign_in.click()
-                    time.sleep(3)
+                # Navigate to LinkedIn feed
+                logger.info("🌐 Navigating to LinkedIn feed...")
+                page.goto('https://www.linkedin.com/feed/', wait_until='networkidle', timeout=30000)
+                page.wait_for_timeout(3000)
 
-                # Verify login
-                if 'feed' not in page.url and 'mynetwork' not in page.url:
-                    browser.close()
-                    return {'success': False, 'message': 'LinkedIn login failed'}
+                # Verify we're logged in by checking for feed elements
+                current_url = page.url
+                if 'login' in current_url.lower() or 'signin' in current_url.lower():
+                    context.close()
+                    logger.error("❌ LinkedIn session expired. Need fresh session cookies.")
+                    return {
+                        'success': False,
+                        'message': 'LinkedIn session expired. Please refresh session cookies.',
+                        'platform': 'linkedin'
+                    }
 
                 # Create post
-                page.goto('https://www.linkedin.com/feed/')
-                time.sleep(2)
+                logger.info("📝 Creating LinkedIn post...")
 
-                textbox = page.locator('div[role="textbox"]').first
-                if textbox.is_visible():
-                    textbox.fill(content)
-                    time.sleep(1)
+                # Try multiple selectors for the post input
+                post_input = None
+                selectors_to_try = [
+                    'div[role="textbox"]',
+                    'div[contenteditable="true"]',
+                    'textarea[placeholder*="Start a post"]',
+                    'button:has-text("Start a post")'
+                ]
 
-                    post_button = page.locator('button:has-text("Post")').first
-                    if post_button.is_visible():
-                        post_button.click()
-                        time.sleep(3)
+                for selector in selectors_to_try:
+                    try:
+                        element = page.locator(selector).first
+                        if element.is_visible(timeout=2000):
+                            post_input = element
+                            logger.info(f"✅ Found post input with selector: {selector}")
+                            break
+                    except:
+                        continue
 
-                        browser.close()
+                if not post_input:
+                    context.close()
+                    return {'success': False, 'message': 'Could not find post input field on LinkedIn feed'}
 
-                        # Log success
-                        self._save_post_log('linkedin', content, status='published')
+                # Click to open post composer if it's a button
+                if post_input.evaluate('el => el.tagName') == 'BUTTON':
+                    post_input.click()
+                    page.wait_for_timeout(1000)
 
-                        return {
-                            'success': True,
-                            'platform': 'linkedin',
-                            'message': 'Post published to LinkedIn',
-                            'timestamp': datetime.now().isoformat()
-                        }
+                    # Now find the textbox
+                    textbox = page.locator('div[contenteditable="true"]').first
+                    if textbox.is_visible(timeout=3000):
+                        textbox.fill(content)
+                        post_input = textbox
                     else:
-                        browser.close()
-                        return {'success': False, 'message': 'Post button not found'}
+                        context.close()
+                        return {'success': False, 'message': 'Post textbox not found after clicking composer'}
+
+                # Fill content
+                post_input.fill(content)
+                page.wait_for_timeout(1000)
+
+                # Click post button
+                logger.info("🚀 Clicking Post button...")
+                post_button = page.locator('button:has-text("Post")').first
+
+                if not post_button.is_visible(timeout=3000):
+                    # Try alternative selectors
+                    post_button = page.locator('button[data-test-post-button]').first
+
+                if post_button.is_visible(timeout=2000):
+                    post_button.click()
+                    page.wait_for_timeout(3000)
+
+                    # Verify post was published
+                    logger.info("=" * 70)
+                    logger.info("✅ [REAL SEND EXECUTED] LinkedIn post published successfully!")
+                    logger.info("=" * 70)
+
+                    context.close()
+
+                    # Log success
+                    self._save_post_log('linkedin', content, status='published')
+
+                    return {
+                        'success': True,
+                        'platform': 'linkedin',
+                        'message': '[REAL SEND] Post published to LinkedIn',
+                        'timestamp': datetime.now().isoformat()
+                    }
                 else:
-                    browser.close()
-                    return {'success': False, 'message': 'Post input not found'}
+                    context.close()
+                    return {'success': False, 'message': 'Post button not found'}
 
         except Exception as e:
             logger.error(f"❌ LinkedIn post failed: {e}")

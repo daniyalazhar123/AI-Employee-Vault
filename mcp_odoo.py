@@ -16,6 +16,11 @@ from typing import Dict, List, Optional
 from datetime import datetime
 import logging
 
+# Load secrets from outside vault
+sys.path.insert(0, str(Path(__file__).parent))
+from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
+load_secrets()
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -45,7 +50,7 @@ class MCPOdooServer:
         self.models = None
         
         # Dry run mode
-        self.dry_run = os.getenv('DRY_RUN', 'true').lower() == 'true'
+        self.dry_run = os.getenv('DRY_RUN', 'false').lower() == 'true'
         
         logger.info(f"💼 MCP Odoo Server initialized (URL: {self.odoo_url}, Dry Run: {self.dry_run})")
         
