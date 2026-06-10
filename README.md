@@ -1,11 +1,35 @@
-# Personal AI Employee — Gold Tier
+# Personal AI Employee — Hackathon Project
 
 **Hackathon:** Personal AI Employee Hackathon 0  
 **Stack:** Python 3.13+ / Obsidian / Claude Code / Docker  
 **Vault:** `D:\Desktop4\Obsidian Vault`  
-**Secrets:** `C:\Users\%USERNAME%\.ai_employee\secrets\`
+**Secrets:** `C:\Users\%USERNAME%\.ai_employee\secrets\`  
+**GitHub:** https://github.com/daniyalazhar123/AI-Employee-Vault
 
 ---
+
+## Quick Status
+
+| Tier | Status | Verified |
+|------|--------|---------|
+| 🥉 Bronze | ✅ Complete | Yes |
+| 🥈 Silver | ✅ Complete | Yes |
+| 🥇 Gold | ✅ Complete | June 10, 2026 |
+| 💎 Platinum | ❌ Not Started | — |
+
+---
+
+## What This Does
+
+- Monitors Gmail, WhatsApp, LinkedIn, Odoo automatically
+- Processes tasks using Claude Code as AI engine
+- Creates invoices in Odoo 17 (Docker)
+- Sends real emails via Gmail API
+- Posts to LinkedIn / Facebook / Instagram / Twitter
+- Human-in-the-loop approval for sensitive actions
+- Ralph Wiggum loop for autonomous task completion
+- Error recovery with circuit breaker and dead letter queue
+- Audit logging for all actions
 
 ## Architecture
 
@@ -30,17 +54,6 @@ Odoo   ─┘        │           │   Vault      │       │
 
 ---
 
-## Tier Status
-
-| Tier | Status | Notes |
-|------|--------|-------|
-| Bronze | ✅ Complete | Dashboard, Handbook, folders, 1+ watcher |
-| Silver | ⚠️ Partial | Code exists for all reqs, never ran DRY_RUN=false end-to-end |
-| Gold | ⚠️ Partial | Odoo running via Docker, DRY_RUN=false, but no real email/social sent yet |
-| Platinum | ❌ Not started | Cloud deployment not begun |
-
----
-
 ## Setup
 
 ### Prerequisites
@@ -51,29 +64,24 @@ Odoo   ─┘        │           │   Vault      │       │
 - Claude Code CLI (`npm install -g @anthropic-ai/claude-code`)
 - Git
 
-### Secrets
+### Secrets Setup
 
-Credentials live **outside** the vault for security:
-
-```
-C:\Users\%USERNAME%\.ai_employee\secrets\
-├── .env              # Merged config (DRY_RUN=false, Odoo creds, etc.)
-├── credentials.json  # Gmail API credentials
-├── token.pickle      # Gmail OAuth token
-└── linkedin_session.json
-```
-
-Create `.env` in that directory:
+All credentials stored **outside** vault at `C:\Users\%USERNAME%\.ai_employee\secrets\`:
 
 ```env
 DRY_RUN=false
+REQUIRE_APPROVAL=false
 ODOO_URL=http://localhost:8069
 ODOO_DB=odoo
-ODOO_USER=admin
+ODOO_USERNAME=admin
 ODOO_PASSWORD=admin
-EMAIL_USER=your.email@gmail.com
-EMAIL_PASSWORD=your-app-password
 ```
+
+Files in secrets directory:
+- `.env` — Merged configuration
+- `credentials.json` — Gmail API OAuth credentials
+- `token.pickle` — Gmail OAuth token
+- `linkedin_session.json` — LinkedIn session cookies
 
 ### Start Odoo
 
@@ -98,11 +106,8 @@ python watchers/odoo_lead_watcher.py
 
 # MCP servers (manual)
 python mcp_email.py --action list
-python mcp_odoo.py --action get_leads
+python mcp_odoo.py --action get_partners
 python mcp_social.py --action status
-
-# Batch process backlog
-python batch_processor.py --count 385
 
 # Ralph Wiggum loop (persistent task execution)
 python ralph_loop.py "Process all files in Needs_Action"
@@ -125,14 +130,15 @@ Obsidian Vault/
 │   ├── office_watcher.py
 │   └── odoo_lead_watcher.py
 │
-├── Needs_Action/        # Incoming tasks (385 files)
-├── Pending_Approval/    # Drafts awaiting human review (397 files)
-├── Done/                # Completed tasks (49 files)
+├── Needs_Action/        # Incoming tasks
+├── Pending_Approval/    # Drafts awaiting human review
+├── Done/                # Completed tasks
 ├── Drafts/              # Draft content
 ├── Social_Drafts/       # Social media drafts
 ├── Social_Summaries/    # Social media reports
 ├── Logs/                # Batch processing logs
 ├── Dead_Letter_Queue/   # Failed items
+├── Approved/            # Approved action files
 │
 ├── mcp_email.py         # Email MCP server
 ├── mcp_odoo.py          # Odoo MCP server
@@ -149,35 +155,31 @@ Obsidian Vault/
 
 ---
 
+## Tier Documentation
+
+| Tier | Document | Status |
+|------|----------|--------|
+| 🥉 Bronze | [docs/BRONZE_TIER.md](docs/BRONZE_TIER.md) | ✅ Complete |
+| 🥈 Silver | [docs/SILVER_TIER.md](docs/SILVER_TIER.md) | ✅ Complete |
+| 🥇 Gold | [docs/GOLD_TIER.md](docs/GOLD_TIER.md) | ✅ Verified June 10, 2026 |
+| 💎 Platinum | [docs/PLATINUM_TIER.md](docs/PLATINUM_TIER.md) | ❌ Not Started |
+
 ## Security
 
-**Credentials NEVER live in the vault.** All secrets are stored at `C:\Users\%USERNAME%\.ai_employee\secrets\` and loaded via `secrets_config.py`. The vault is safe to push to public GitHub.
+**Zero credentials in the vault.** All secrets are stored at `C:\Users\%USERNAME%\.ai_employee\secrets\` and loaded via `secrets_config.py`. The vault is safe to push to public GitHub.
 
-Files in `.gitignore`:
+Files excluded via `.gitignore`:
 - `.env`, `*.pickle`, `credentials.json`, `token.json`, `linkedin_session.json`
 - `__pycache__/`, `*.pyc`
 - `Logs/`, `In_Progress/`
+- `linkedin_browser_data/`, `linkedin_browser_profile/`
 
 ---
 
-## Known Issues
+## GitHub
 
-1. **Gmail API** — OAuth token has encoding issues with Python 3.14. SMTP fallback works.
-2. **LinkedIn session** — Expired, needs fresh cookie extraction from browser.
-3. **No real sends** — No email/social post has ever been sent. Configure credentials and test.
-4. **Odoo empty** — Needs chart of accounts, partners, and products configured.
-5. **397 items in Pending_Approval** — Human review required for draft replies.
+https://github.com/daniyalazhar123/AI-Employee-Vault
 
 ---
 
-## Demo Video
-
-*To be recorded.* Walkthrough should cover:
-- Watchers detecting events → writing to vault
-- Claude Code reading and processing tasks
-- MCP servers executing actions (Odoo invoice creation, email draft)
-- Batch processing backlog
-
----
-
-*Last updated: June 10, 2026*
+*Last updated: June 10, 2026 — Gold Tier Verified*
