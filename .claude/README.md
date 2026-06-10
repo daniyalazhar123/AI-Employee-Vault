@@ -1,7 +1,7 @@
 # AI Employee — Claude Code Skills
 
 **Vault:** `D:\Desktop4\Obsidian Vault`  
-**AI Engine:** Claude Code (CLI v2.1+)  
+**AI Engine:** Claude Code (CLI v2.1+) / OpenRouter (DeepSeek V3)  
 **Loop:** `python ralph_loop.py "task description"`
 
 ---

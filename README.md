@@ -61,7 +61,7 @@ Odoo   ─┘        │           │   Vault      │       │
 - Docker Desktop (v29+)
 - Python 3.13+
 - Node.js v24+ (for Claude Code)
-- Claude Code CLI (`npm install -g @anthropic-ai/claude-code`)
+- Claude Code CLI (`npm install -g @anthropic-ai/claude-code`) / OpenRouter (DeepSeek V3)
 - Git
 
 ### Secrets Setup
