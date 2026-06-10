@@ -160,7 +160,7 @@ class MCPSocialServer:
 
                 # Navigate to LinkedIn feed
                 logger.info("🌐 Navigating to LinkedIn feed...")
-                page.goto('https://www.linkedin.com/feed/', wait_until='networkidle', timeout=30000)
+                page.goto('https://www.linkedin.com/feed/', wait_until='load', timeout=60000)
                 page.wait_for_timeout(3000)
 
                 # Verify we're logged in by checking for feed elements

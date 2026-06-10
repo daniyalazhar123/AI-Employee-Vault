@@ -3,12 +3,9 @@
 GMAIL OAUTH AUTHENTICATION
 Generates token.json for Gmail API access
 
-This script:
-1. Opens browser for Google login
-2. Gets authorization code
-3. Saves token.json for MCP Email Server
-
-Safe - credentials stored locally, never shared.
+Supports:
+  --noauth_local_webserver : OOB flow (print URL, user pastes code)
+  --yes                    : Auto-answer yes to prompts
 """
 
 import os
@@ -19,58 +16,55 @@ from pathlib import Path
 VAULT = Path(__file__).parent
 sys.path.insert(0, str(VAULT))
 from secrets_config import SECRETS_DIR, get_secret_path
+
 CREDENTIALS_FILE = get_secret_path('credentials.json')
 TOKEN_FILE = get_secret_path('token.json')
+USE_OOB = '--noauth_local_webserver' in sys.argv
+AUTO_YES = '--yes' in sys.argv
 
-print("="*80)
-print("🔐 GMAIL OAUTH AUTHENTICATION")
-print("="*80)
-print()
+os.environ['PYTHONIOENCODING'] = 'utf-8'
 
-# Check credentials
+_prompt_idx = 0
+def prompt(msg):
+    global _prompt_idx
+    _prompt_idx += 1
+    if AUTO_YES and _prompt_idx <= 3 and 'code' not in msg.lower():
+        print(msg + " [auto-yes]")
+        return 'y'
+    return input(msg)
+
+print("=" * 80)
+print("GMAIL OAUTH AUTHENTICATION")
+print("=" * 80)
+
 if not CREDENTIALS_FILE.exists():
-    print(f"❌ Credentials file not found: {CREDENTIALS_FILE}")
-    print("Please run setup first.")
+    print(f"ERROR: Credentials file not found: {CREDENTIALS_FILE}")
     sys.exit(1)
 
 with open(CREDENTIALS_FILE) as f:
     creds_data = json.load(f)
 
 client_id = creds_data['installed']['client_id']
-print(f"✅ Client ID: {client_id[:50]}...")
-print()
+print(f"Client ID: {client_id[:50]}...")
 
-# Check if Google libraries are installed
+# Check Google libraries
 try:
     from google_auth_oauthlib.flow import InstalledAppFlow
     from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials
-    GOOGLE_LIBS_AVAILABLE = True
 except ImportError:
-    GOOGLE_LIBS_AVAILABLE = False
-    print("⚠️  Google OAuth libraries not installed.")
-    print()
-    print("Install them with:")
-    print("  pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client")
-    print()
-    response = input("Install now? (y/n): ")
-    if response.lower() == 'y':
+    print("Google OAuth libraries not installed.")
+    resp = prompt("Install now? (y/n): ")
+    if resp.lower() == 'y':
         import subprocess
-        subprocess.run([sys.executable, '-m', 'pip', 'install', 
-                       'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'])
-        # Try importing again
-        try:
-            from google_auth_oauthlib.flow import InstalledAppFlow
-            from google.auth.transport.requests import Request
-            from google.oauth2.credentials import Credentials
-            GOOGLE_LIBS_AVAILABLE = True
-        except:
-            print("❌ Installation failed. Please install manually.")
-            sys.exit(1)
+        subprocess.run([sys.executable, '-m', 'pip', 'install',
+                        'google-auth-oauthlib', 'google-auth-httplib2', 'google-api-python-client'])
+        from google_auth_oauthlib.flow import InstalledAppFlow
+        from google.auth.transport.requests import Request
+        from google.oauth2.credentials import Credentials
     else:
         sys.exit(0)
 
-# Scopes needed for Gmail
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.send',
     'https://www.googleapis.com/auth/gmail.compose',
@@ -78,59 +72,38 @@ SCOPES = [
     'https://www.googleapis.com/auth/gmail.modify'
 ]
 
-print("📋 Required permissions:")
-print("   - Send emails")
-print("   - Compose drafts")
-print("   - Read emails")
-print("   - Modify emails")
-print()
+print("Scopes: send, compose, read, modify")
 
-# Check if token already exists
 if TOKEN_FILE.exists():
-    print(f"⚠️  Token already exists: {TOKEN_FILE}")
-    print("This will overwrite it.")
-    response = input("Continue? (y/n): ")
-    if response.lower() != 'y':
+    resp = prompt(f"Overwrite existing token? (y/n): ")
+    if resp.lower() != 'y':
         print("Aborted.")
         sys.exit(0)
-    print()
-
-print("="*80)
-print("🌐 STEP 1: Browser will open for Google login")
-print("="*80)
-print()
-print("After login:")
-print("  1. Google will show permissions screen")
-print("  2. Click 'Allow' or 'Continue'")
-print("  3. Browser will redirect to localhost (may show error - that's OK)")
-print("  4. Token will be saved automatically")
-print()
-
-response = input("Ready to authenticate? (y/n): ")
-if response.lower() != 'y':
-    print("Aborted.")
-    sys.exit(0)
 
 print()
-print("🔑 Authenticating with Google...")
-print()
+print("=" * 80)
+print("Starting OAuth flow...")
+print("=" * 80)
 
 try:
-    # Start OAuth flow
-    flow = InstalledAppFlow.from_client_secrets_file(
-        str(CREDENTIALS_FILE),
-        SCOPES,
-        redirect_uri='http://localhost:8080/'
-    )
+    flow = InstalledAppFlow.from_client_secrets_file(str(CREDENTIALS_FILE), SCOPES)
 
-    # This opens browser
-    creds = flow.run_local_server(
-        port=8080,
-        open_browser=True,
-        authorization_prompt_message="Opening browser... Please wait.\n"
-    )
+    if USE_OOB:
+        flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
+        auth_url, _ = flow.authorization_url(prompt='consent')
+        print()
+        print("=" * 80)
+        print("OPEN THIS URL IN YOUR BROWSER:")
+        print("=" * 80)
+        print(auth_url)
+        print("=" * 80)
+        print("After authorizing, Google shows a code.")
+        code = prompt("Paste authorization code: ")
+        flow.fetch_token(code=code.strip())
+        creds = flow.credentials
+    else:
+        creds = flow.run_local_server(port=8080, open_browser=True)
 
-    # Save token
     token_data = {
         'token': creds.token,
         'refresh_token': creds.refresh_token,
@@ -145,29 +118,18 @@ try:
         json.dump(token_data, f, indent=2)
 
     print()
-    print("="*80)
-    print("✅ GMAIL AUTHENTICATION SUCCESSFUL!")
-    print("="*80)
-    print()
-    print(f"Token saved to: {TOKEN_FILE}")
-    print()
-    print("Next steps:")
-    print("  1. Set DRY_RUN=false in .env.local (when ready for real sends)")
-    print("  2. Email MCP will use Gmail API automatically")
-    print("  3. Run: python check_execution_status.py to verify")
-    print()
+    print("=" * 80)
+    print("SUCCESS! Token saved to:")
+    print(f"  {TOKEN_FILE}")
+    print("=" * 80)
 
 except Exception as e:
     print()
-    print("="*80)
-    print("❌ AUTHENTICATION FAILED")
-    print("="*80)
+    print("=" * 80)
+    print(f"ERROR: {e}")
+    print("=" * 80)
     print()
-    print(f"Error: {e}")
-    print()
-    print("Troubleshooting:")
-    print("  1. Make sure Google account is logged in")
-    print("  2. Check if pop-up blocker is enabled")
-    print("  3. Try running in incognito window")
-    print("  4. Ensure credentials.json is correct")
-    print()
+    print("If 'deleted_client': recreate OAuth client in Google Cloud Console")
+    print("If 'access_denied':   try again and click Allow")
+    print("If 'redirect_uri':    use --noauth_local_webserver flag")
+    sys.exit(1)
