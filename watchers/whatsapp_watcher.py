@@ -45,10 +45,10 @@ class WhatsAppWatcher(BaseWatcher):
     def __init__(self, vault_path: Optional[Path] = None):
         super().__init__('whatsapp', vault_path)
         
-        self.session_folder = self.vault_path / 'sessions' / 'whatsapp_session'
-        self.processed_file = self.vault_path / 'data' / 'processed_whatsapp.txt'
-        self.needs_action_folder = self.vault_path / 'Needs_Action'
-        self.pending_approval_folder = self.vault_path / 'Pending_Approval'
+        self.session_folder = Path(str(self.vault_path)) / 'sessions' / 'whatsapp_session'
+        self.processed_file = Path(str(self.vault_path)) / 'data' / 'processed_whatsapp.txt'
+        self.needs_action_folder = Path(str(self.vault_path)) / 'Needs_Action'
+        self.pending_approval_folder = Path(str(self.vault_path)) / 'Pending_Approval'
         
         self.processed_messages: Set[str] = set()
         self.context: Optional[BrowserContext] = None

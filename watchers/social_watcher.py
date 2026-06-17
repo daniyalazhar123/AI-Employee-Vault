@@ -61,9 +61,9 @@ class SocialWatcher(BaseWatcher):
     def __init__(self, vault_path: Optional[Path] = None):
         super().__init__('social', vault_path)
         
-        self.social_folder = self.vault_path / 'Social_Drafts'
+        self.social_folder = Path(str(self.vault_path)) / 'Social_Drafts'
         self.polished_folder = self.social_folder / 'Polished'
-        self.needs_action_folder = self.vault_path / 'Needs_Action'
+        self.needs_action_folder = Path(str(self.vault_path)) / 'Needs_Action'
         
         self.processed_drafts: set = set()
         self.handler = SocialHandler(self)

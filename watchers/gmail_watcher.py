@@ -55,9 +55,9 @@ class GmailWatcher(BaseWatcher):
 
         self.credentials_file = get_secret_path('credentials.json')
         self.token_file = get_secret_path('token.pickle')
-        self.processed_file = self.vault_path / 'data' / 'processed_emails.txt'
-        self.needs_action_folder = self.vault_path / 'Needs_Action'
-        self.pending_approval_folder = self.vault_path / 'Pending_Approval'
+        self.processed_file = Path(str(self.vault_path)) / 'data' / 'processed_emails.txt'
+        self.needs_action_folder = Path(str(self.vault_path)) / 'Needs_Action'
+        self.pending_approval_folder = Path(str(self.vault_path)) / 'Pending_Approval'
 
         self.gmail_service = None
         self.processed_ids: Set[str] = set()

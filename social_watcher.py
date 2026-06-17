@@ -1,76 +1,203 @@
+import sys
+"""
+Social Watcher for AI Employee Vault
+
+Monitors Social_Drafts folder for new draft posts.
+Features:
+- File system event monitoring
+- Auto-polishing with AI
+- Robust error handling
+- JSON logging to /Logs/ folder
+"""
+
+import subprocess
 import time
+from datetime import datetime
 from pathlib import Path
+from typing import Optional
+
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-import subprocess
 
-VAULT_PATH = Path(__file__).parent
-SOCIAL_FOLDER = VAULT_PATH / "Social_Drafts"
-POLISHED_FOLDER = SOCIAL_FOLDER / "Polished"
-NEEDS_ACTION = VAULT_PATH / "Needs_Action"
+from base_watcher import BaseWatcher
+# Fix Windows console encoding
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, Exception):
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+
+
+# Configuration
+CHECK_INTERVAL = 1  # seconds
+
 
 class SocialHandler(FileSystemEventHandler):
+    """Handle file system events for social drafts."""
+    
+    def __init__(self, watcher: 'SocialWatcher'):
+        self.watcher = watcher
+    
     def on_created(self, event):
+        """Handle file creation events."""
         if event.is_directory:
             return
         
         file_path = Path(event.src_path)
-        print(f"New raw social post detected: {file_path.name}")
+        
+        # Skip Polished subfolder
+        if 'Polished' in file_path.parts:
+            return
+        
+        self.watcher.process_draft(file_path)
 
-        action_file = NEEDS_ACTION / f"SOCIAL_{file_path.name.replace('.', '_')}.md"
-        content = f"""---
+
+class SocialWatcher(BaseWatcher):
+    """Social media drafts monitoring watcher."""
+    
+    def __init__(self, vault_path: Optional[Path] = None):
+        super().__init__('social', vault_path)
+        
+        self.social_folder = self.vault_path / 'Social_Drafts'
+        self.polished_folder = self.social_folder / 'Polished'
+        self.needs_action_folder = self.vault_path / 'Needs_Action'
+        
+        self.processed_drafts: set = set()
+        self.handler = SocialHandler(self)
+        self.observer: Optional[Observer] = None
+        
+        # Ensure folders exist
+        self.social_folder.mkdir(exist_ok=True)
+        self.polished_folder.mkdir(exist_ok=True)
+        self.needs_action_folder.mkdir(exist_ok=True)
+    
+    def create_action_file(self, file_path: Path) -> Optional[Path]:
+        """
+        Create action file for social draft.
+        
+        Args:
+            file_path: Path to draft file
+        
+        Returns:
+            Path to action file or None if failed
+        """
+        try:
+            filename = f"SOCIAL_{file_path.name.replace('.', '_')}.md"
+            filepath = self.needs_action_folder / filename
+            
+            content = f"""---
 type: social_draft
 file_name: {file_path.name}
 path: {file_path}
-created: {time.strftime("%Y-%m-%d %H:%M:%S")}
+created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 status: pending
 ---
 
 New raw social post added: {file_path.name}
 
-Task: Read this file, turn it into a professional version (LinkedIn/FB/IG/X style), add 3-5 relevant hashtags, and save the polished post in Social_Drafts/Polished.
+## Task
+Read this file, turn it into a professional version (LinkedIn/FB/IG/X style), 
+add 3-5 relevant hashtags, and save the polished post in Social_Drafts/Polished.
+
+## Requirements
+- Professional tone (see Company_Handbook.md)
+- Platform-appropriate formatting
+- 3-5 relevant hashtags
+- Save as: POLISHED_{{original_name}}.md
 """
-
-        action_file.write_text(content, encoding='utf-8')
-        print(f"Action file created: {action_file}")
-
-        try:
-            result = subprocess.run(
-                ["qwen", "-y", f"Read the social draft action file: {action_file.name} in Needs_Action folder. Turn it into a professional version with 3-5 hashtags. Save the polished post in Social_Drafts/Polished folder as POLISHED_{file_path.stem}.md"],
-                check=False,
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                errors='replace',
-                cwd=str(VAULT_PATH),
-                shell=True,
-                timeout=120
-            )
-            print("Qwen triggered for social post")
-            print("Qwen output:", result.stdout.strip())
-            print("Qwen error (if any):", result.stderr.strip())
+            
+            filepath.write_text(content, encoding='utf-8')
+            self.log_info(f"Action file created: {filename}")
+            return filepath
+            
+        except IOError as e:
+            self.log_error(f"Failed to create action file: {e}", exc=e)
+            return None
         except Exception as e:
-            print(f"Qwen error: {e}")
+            self.log_error(f"Unexpected error: {e}", exc=e)
+            return None
+    
+    def trigger_qwen(self, action_file: Path, original_file: Path) -> bool:
+        """Trigger Qwen CLI to polish social post."""
+        polished_name = f"POLISHED_{original_file.stem}.md"
+        
+        prompt = (
+            f"Read the social draft action file: {action_file.name} in Needs_Action folder. "
+            f"Turn it into a professional version with 3-5 hashtags. "
+            f"Save the polished post in Social_Drafts/Polished folder as {polished_name}"
+        )
+        
+        return self.trigger_qwen(prompt)
+    
+    def process_draft(self, file_path: Path):
+        """
+        Process a newly detected draft.
+        
+        Args:
+            file_path: Path to draft file
+        """
+        self.log_info(f"New draft detected: {file_path.name}")
+        
+        # Skip if already processed
+        if file_path.name in self.processed_drafts:
+            self.log_warning(f"Skipping already processed draft: {file_path.name}")
+            return
+        
+        try:
+            # Create action file
+            action_file = self.create_action_file(file_path)
+            
+            if action_file:
+                # Trigger Qwen
+                self.trigger_qwen(action_file, file_path)
+                
+                # Mark as processed
+                self.processed_drafts.add(file_path.name)
+                self.save_processed_ids('processed_social_drafts.txt', self.processed_drafts)
+            
+        except Exception as e:
+            self.log_error(f"Failed to process draft {file_path.name}: {e}", exc=e)
+    
+    def run(self):
+        """Main watcher loop."""
+        self.print_status_header("📱 SOCIAL WATCHER STARTED")
+        self.log_info(f"Watching folder: {self.social_folder}")
+        self.log_info(f"Polished folder: {self.polished_folder}")
+        
+        # Load processed drafts
+        self.processed_drafts = self.load_processed_ids('processed_social_drafts.txt')
+        
+        # Setup observer
+        self.observer = Observer()
+        self.observer.schedule(self.handler, str(self.social_folder), recursive=False)
+        
+        try:
+            self.observer.start()
+            self.log_info("✅ Social watcher started")
+            self.log_info("Press Ctrl+C to stop\n")
+            
+            while True:
+                time.sleep(CHECK_INTERVAL)
+        
+        except KeyboardInterrupt:
+            self.log_info("\n\n⏹️  Stopping Social Watcher...")
+            self.observer.stop()
+            self.log_info(f"Final uptime: {self.get_uptime()}")
+            self.log_info("✅ Watcher stopped successfully")
+        
+        finally:
+            if self.observer:
+                self.observer.join()
 
-if __name__ == "__main__":
-    if not SOCIAL_FOLDER.exists():
-        SOCIAL_FOLDER.mkdir()
-        print("Created Social_Drafts folder")
-    if not POLISHED_FOLDER.exists():
-        POLISHED_FOLDER.mkdir()
-        print("Created Polished subfolder")
 
-    event_handler = SocialHandler()
-    observer = Observer()
-    observer.schedule(event_handler, SOCIAL_FOLDER, recursive=False)
-    observer.start()
+def main():
+    """Entry point."""
+    watcher = SocialWatcher()
+    watcher.run()
 
-    print("Watching Social_Drafts folder... Press Ctrl+C to stop")
 
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-        print("Watcher stopped")
-    observer.join()
+if __name__ == '__main__':
+    main()

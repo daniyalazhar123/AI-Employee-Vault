@@ -56,8 +56,8 @@ class OfficeWatcher(BaseWatcher):
     def __init__(self, vault_path: Optional[Path] = None):
         super().__init__('office', vault_path)
         
-        self.office_folder = self.vault_path / 'Office_Files'
-        self.needs_action_folder = self.vault_path / 'Needs_Action'
+        self.office_folder = Path(str(self.vault_path)) / 'Office_Files'
+        self.needs_action_folder = Path(str(self.vault_path)) / 'Needs_Action'
         
         self.processed_files: set = set()
         self.handler = OfficeHandler(self)

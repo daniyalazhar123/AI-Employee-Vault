@@ -34,7 +34,7 @@ class BaseWatcher:
             vault_path: Path to vault root (defaults to script parent)
         """
         self.name = name
-        self.vault_path = vault_path or Path(__file__).parent.parent
+        self.vault_path = Path(vault_path) if vault_path is not None else Path(__file__).parent.parent
         self.logs_folder = self.vault_path / 'Logs'
         self.logger = self._setup_logging()
         self.processed_ids = set()

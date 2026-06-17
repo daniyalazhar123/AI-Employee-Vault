@@ -52,10 +52,10 @@ class OdooLeadWatcher(BaseWatcher):
     def __init__(self, vault_path: Optional[Path] = None):
         super().__init__('odoo', vault_path)
         
-        self.needs_action_folder = self.vault_path / 'Needs_Action'
-        self.pending_approval_folder = self.vault_path / 'Pending_Approval'
-        self.dashboard_file = self.vault_path / 'docs' / 'Dashboard.md'
-        self.processed_file = self.vault_path / 'data' / 'processed_odoo_leads.txt'
+        self.needs_action_folder = Path(str(self.vault_path)) / 'Needs_Action'
+        self.pending_approval_folder = Path(str(self.vault_path)) / 'Pending_Approval'
+        self.dashboard_file = Path(str(self.vault_path)) / 'docs' / 'Dashboard.md'
+        self.processed_file = Path(str(self.vault_path)) / 'data' / 'processed_odoo_leads.txt'
         
         self.processed_ids: Set[str] = set()
         self.odoo_connected = False
