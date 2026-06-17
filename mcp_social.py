@@ -177,78 +177,67 @@ class MCPSocialServer:
                 # Create post
                 logger.info("📝 Creating LinkedIn post...")
 
-                # Try multiple selectors for the post input
-                post_input = None
-                selectors_to_try = [
-                    'div[role="textbox"]',
-                    'div[contenteditable="true"]',
-                    'textarea[placeholder*="Start a post"]',
-                    'button:has-text("Start a post")'
-                ]
-
-                for selector in selectors_to_try:
-                    try:
-                        element = page.locator(selector).first
-                        if element.is_visible(timeout=2000):
-                            post_input = element
-                            logger.info(f"✅ Found post input with selector: {selector}")
-                            break
-                    except:
-                        continue
-
-                if not post_input:
-                    context.close()
-                    return {'success': False, 'message': 'Could not find post input field on LinkedIn feed'}
-
-                # Click to open post composer if it's a button
-                if post_input.evaluate('el => el.tagName') == 'BUTTON':
-                    post_input.click()
-                    page.wait_for_timeout(1000)
-
-                    # Now find the textbox
-                    textbox = page.locator('div[contenteditable="true"]').first
-                    if textbox.is_visible(timeout=3000):
-                        textbox.fill(content)
-                        post_input = textbox
-                    else:
-                        context.close()
-                        return {'success': False, 'message': 'Post textbox not found after clicking composer'}
-
-                # Fill content
-                post_input.fill(content)
-                page.wait_for_timeout(1000)
-
-                # Click post button
-                logger.info("🚀 Clicking Post button...")
-                post_button = page.locator('button:has-text("Post")').first
-
-                if not post_button.is_visible(timeout=3000):
-                    # Try alternative selectors
-                    post_button = page.locator('button[data-test-post-button]').first
-
-                if post_button.is_visible(timeout=2000):
-                    post_button.click()
-                    page.wait_for_timeout(3000)
-
-                    # Verify post was published
-                    logger.info("=" * 70)
-                    logger.info("✅ [REAL SEND EXECUTED] LinkedIn post published successfully!")
-                    logger.info("=" * 70)
-
-                    context.close()
-
-                    # Log success
-                    self._save_post_log('linkedin', content, status='published')
-
-                    return {
-                        'success': True,
-                        'platform': 'linkedin',
-                        'message': '[REAL SEND] Post published to LinkedIn',
-                        'timestamp': datetime.now().isoformat()
-                    }
+                # Step 1: Click "Start a post" button using text matching
+                logger.info("🔍 Looking for 'Start a post' button...")
+                start_post = page.get_by_text('Start a post', exact=True).first
+                if start_post.count() > 0 and start_post.is_visible():
+                    start_post.click()
+                    logger.info("✅ Clicked 'Start a post'")
                 else:
                     context.close()
-                    return {'success': False, 'message': 'Post button not found'}
+                    return {'success': False, 'message': 'Could not find "Start a post" button on LinkedIn feed'}
+
+                page.wait_for_timeout(3000)
+
+                # Step 2: Find the contenteditable text input
+                textbox = page.locator('[contenteditable="true"]').first
+                if textbox.count() == 0:
+                    context.close()
+                    return {'success': False, 'message': 'Post textbox not found after clicking Start a post'}
+
+                # Step 3: Fill content
+                textbox.fill(content)
+                logger.info("✅ Content filled in post editor")
+                page.wait_for_timeout(1500)
+
+                # Step 4: Click Post button using JavaScript (handles visibility issues)
+                logger.info("🚀 Clicking Post button...")
+                clicked = page.evaluate("""
+                () => {
+                    const btns = document.querySelectorAll('button');
+                    for (const b of btns) {
+                        if (b.innerText && b.innerText.trim() === 'Post' && b.offsetParent !== null) {
+                            b.click();
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                """)
+
+                if clicked:
+                    page.wait_for_timeout(4000)
+
+                    # Verify post was published (check if share box closed)
+                    ce_after = page.locator('[contenteditable="true"]').first
+                    if ce_after.count() == 0 or not ce_after.is_visible():
+                        logger.info("=" * 70)
+                        logger.info("✅ [REAL SEND EXECUTED] LinkedIn post published successfully!")
+                        logger.info("=" * 70)
+                        context.close()
+                        self._save_post_log('linkedin', content, status='published')
+                        return {
+                            'success': True,
+                            'platform': 'linkedin',
+                            'message': '[REAL SEND] Post published to LinkedIn',
+                            'timestamp': datetime.now().isoformat()
+                        }
+                    else:
+                        context.close()
+                        return {'success': False, 'message': 'Post button click did not close share box'}
+                else:
+                    context.close()
+                    return {'success': False, 'message': 'Post button not found or not clickable'}
 
         except Exception as e:
             logger.error(f"❌ LinkedIn post failed: {e}")
