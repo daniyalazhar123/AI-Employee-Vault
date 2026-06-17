@@ -255,9 +255,9 @@ sudo apt update && sudo apt upgrade -y
 cd /tmp
 
 # Download Odoo
-wget https://nightly.odoo.com/17.0/nightly/src/odoo_17.0.latest.zip
-unzip odoo_17.0.latest.zip
-sudo mv odoo-17.0-latest /opt/odoo
+wget https://nightly.odoo.com/19.0/nightly/src/odoo_19.0.latest.zip
+unzip odoo_19.0.latest.zip
+sudo mv odoo-19.0-latest /opt/odoo
 
 # Install dependencies
 cd /opt/odoo

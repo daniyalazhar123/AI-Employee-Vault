@@ -20,7 +20,7 @@
 | HITL approval workflow | ✅ Complete | `REQUIRE_APPROVAL=true` in `.env`, all actions require approval |
 | Claude reasoning loop | ✅ Complete | `ralph_loop.py` — persistent task executor with Claude Code |
 | MCP social server | ✅ Complete | `mcp_social.py` with LinkedIn/Facebook/Instagram/Twitter support |
-| MCP Odoo server | ✅ Complete | `mcp_odoo.py` with Odoo 17 ERP integration |
+| MCP Odoo server | ✅ Complete | `mcp_odoo.py` with Odoo 19 ERP integration |
 | Dead Letter Queue | ✅ Complete | Failed items routed to `Dead_Letter_Queue/` for review |
 | Batch processor | ✅ Complete | `batch_processor.py` handles backlog of 385+ files |
 

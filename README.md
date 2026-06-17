@@ -23,7 +23,7 @@
 
 - Monitors Gmail, WhatsApp, LinkedIn, Odoo automatically
 - Processes tasks using Claude Code as AI engine
-- Creates invoices in Odoo 17 (Docker)
+- Creates invoices in Odoo 19 (Docker)
 - Sends real emails via Gmail API
 - Posts to LinkedIn / Facebook / Instagram / Twitter
 - Human-in-the-loop approval for sensitive actions
@@ -47,7 +47,7 @@ Odoo   ─┘        │           │   Vault      │       │
             └──────────┘    └──────────┘    └──────────┘
                   │                │                │
                   ▼                ▼                ▼
-             Gmail API        Odoo 17 (Docker)   LinkedIn/FB/IG/Twitter
+             Gmail API        Odoo 19 (Docker)   LinkedIn/FB/IG/Twitter
 ```
 
 **Flow:** Watchers detect events → write `.md` files to vault folders → Claude Code reads tasks → executes via MCP servers.
@@ -87,7 +87,7 @@ Files in secrets directory:
 
 ```bash
 docker compose up -d
-# Odoo 17 at http://localhost:8069
+# Odoo 19 at http://localhost:8069
 # PostgreSQL 15 at localhost:5432
 # Default: admin / admin
 ```
@@ -147,7 +147,7 @@ Obsidian Vault/
 ├── ralph_loop.py        # Persistent task executor
 ├── batch_processor.py   # Backlog processor
 ├── secrets_config.py    # Centralized secrets loader
-├── docker-compose.yml   # Odoo 17 + PostgreSQL 15
+├── docker-compose.yml   # Odoo 19 + PostgreSQL 15
 ├── STATUS.md            # Current real status
 ├── Dashboard.md         # Live dashboard (counts)
 └── README.md            # This file

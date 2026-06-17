@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Odoo 17 running via Docker
+- Odoo 19 running via Docker
 - mcp_odoo.py authenticated with invoice creation
 - DRY_RUN=false in all MCP servers
 - Real email sent via Gmail API
@@ -18,7 +18,7 @@
 
 | Requirement | Status | Details |
 |-------------|--------|---------|
-| Odoo 17 via Docker | ✅ Complete | `docker compose up -d`, running at http://localhost:8069 |
+| Odoo 19 via Docker | ✅ Complete | `docker compose up -d`, running at http://localhost:8069 |
 | mcp_odoo.py authenticated | ✅ Complete | Invoice #1 and #2 created via JSON-RPC |
 | DRY_RUN=false all MCPs | ✅ Complete | `mcp_email.py`, `mcp_social.py`, `mcp_odoo.py` all set to real mode |
 | Real email via Gmail API | ✅ Complete | Message ID: `19eaf0416b78f363`, sent to smartydaniyazhar234@gmail.com |
@@ -38,7 +38,7 @@
 
 1. Complete Bronze and Silver requirements
 2. Install Docker Desktop (v29+)
-3. Run `docker compose up -d` to start Odoo 17 + PostgreSQL 15
+3. Run \`docker compose up -d\` to start Odoo 19 + PostgreSQL 15
 4. Configure `C:\Users\%USERNAME%\.ai_employee\secrets\.env`:
    ```env
    DRY_RUN=false

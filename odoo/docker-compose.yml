@@ -28,7 +28,7 @@ services:
   # Odoo Community Edition
   # --------------------------------------------
   odoo:
-    image: odoo:17.0-community
+    image: odoo:19.0
     container_name: ai-employee-odoo
     restart: unless-stopped
     ports:

@@ -8,9 +8,9 @@ phone: +1-555-0123
 company: Demo Company Ltd.
 priority: 3
 stage: New
-create_date: 2026-04-09 02:21:55
+create_date: 2026-06-17 12:06:24
 status: pending
-created: 2026-04-09 02:21:55
+created: 2026-06-17 12:06:24
 ---
 
 # Odoo Lead: Test Lead - Demo
@@ -25,7 +25,7 @@ created: 2026-04-09 02:21:55
 | **Phone** | +1-555-0123 |
 | **Priority** | 3/5 |
 | **Stage** | New |
-| **Created** | 2026-04-09 02:21:55 |
+| **Created** | 2026-06-17 12:06:24 |
 
 ## Description
 This is a test lead created to demonstrate the Odoo Lead Watcher functionality.

@@ -5,7 +5,7 @@ lead_name: Test Lead - Demo
 recipient: Demo Customer
 email_to: demo.customer@example.com
 status: pending_approval
-created: 2026-04-09 02:21:55
+created: 2026-06-17 12:06:24
 ---
 
 # Follow-Up Email Draft

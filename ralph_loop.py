@@ -117,7 +117,7 @@ Task: Process {task_file.name} completely and move to Done/ folder when finished
 """
 
         # Claude Code only — Qwen fallback removed per hackathon requirements
-        cmd = ['claude', '-y', '--print', prompt]
+        cmd = ['claude', '--yes', '--print', prompt]
         timeout = 600  # 10 minutes for Claude
 
         result = subprocess.run(
