@@ -17,8 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileCreatedEvent
-from watchdog.events import EVENT_TYPE_FILE_CREATED
+from watchdog.events import FileSystemEventHandler, FileCreatedEvent, EVENT_TYPE_CREATED
 
 from base_watcher import BaseWatcher
 # Fix Windows console encoding
