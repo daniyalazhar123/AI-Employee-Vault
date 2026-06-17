@@ -126,6 +126,7 @@ temp/
 
 # Browser profile data (LinkedIn Playwright)
 linkedin_profile/
+linkedin_browser_data/
 
 # Health & Monitoring
 health.jsonl
