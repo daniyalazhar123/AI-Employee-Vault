@@ -307,9 +307,9 @@ class BaseWatcher:
                 )
                 return False
 
-            # Run AI engine with the prompt
+            # Run AI engine with the prompt via stdin
             result = subprocess.run(
-                ['opencode', '-y', prompt],
+                ['opencode', 'run', prompt],
                 capture_output=True,
                 text=True,
                 encoding='utf-8',
