@@ -82,6 +82,7 @@ class MCPSocialServer:
         self.instagram_password = os.getenv('INSTAGRAM_PASSWORD', '')
         self.twitter_username = os.getenv('TWITTER_USERNAME', '')
         self.twitter_password = os.getenv('TWITTER_PASSWORD', '')
+        self.twitter_email = os.getenv('TWITTER_EMAIL', '')
 
         logger.info(f"📱 MCP Social Media Server initialized")
         logger.info(f"   Dry Run: {self.dry_run}")
@@ -187,57 +188,138 @@ class MCPSocialServer:
                     context.close()
                     return {'success': False, 'message': 'Could not find "Start a post" button on LinkedIn feed'}
 
-                page.wait_for_timeout(3000)
+                page.wait_for_timeout(2000)
 
-                # Step 2: Find the contenteditable text input
+                # Step 2: Find the text input (try multiple selectors with increasing waits)
+                logger.info("🔍 Looking for share box text editor...")
                 textbox = page.locator('[contenteditable="true"]').first
+                for attempt in range(5):
+                    if textbox.count() > 0:
+                        break
+                    page.wait_for_timeout(1500)
+                    textbox = page.locator('[contenteditable="true"]').first
+
                 if textbox.count() == 0:
                     context.close()
                     return {'success': False, 'message': 'Post textbox not found after clicking Start a post'}
 
-                # Step 3: Fill content
-                textbox.fill(content)
-                logger.info("✅ Content filled in post editor")
-                page.wait_for_timeout(1500)
+                # Step 3: Type content character by character (triggers React events)
+                logger.info("📝 Typing content into editor...")
+                textbox.click()
+                page.wait_for_timeout(500)
+                textbox.type(content, delay=20)
+                logger.info("✅ Content typed in post editor")
+                page.wait_for_timeout(2000)
 
-                # Step 4: Click Post button using JavaScript (handles visibility issues)
-                logger.info("🚀 Clicking Post button...")
-                clicked = page.evaluate("""
-                () => {
-                    const btns = document.querySelectorAll('button');
+                # Step 4: Find and click Post button inside the Shadow DOM
+                logger.info("🚀 Looking for Post button in Shadow DOM...")
+                page.wait_for_timeout(1000)
+
+                result = textbox.evaluate("""
+                (el) => {
+                    const root = el.getRootNode();
+                    if (!(root instanceof ShadowRoot)) return 'not_in_shadow';
+                    const btns = root.querySelectorAll('button');
                     for (const b of btns) {
-                        if (b.innerText && b.innerText.trim() === 'Post' && b.offsetParent !== null) {
+                        const text = (b.innerText || '').trim();
+                        if (text === 'Post') {
+                            if (b.disabled) {
+                                return 'post_button_disabled';
+                            }
                             b.click();
-                            return true;
+                            return 'clicked_post';
                         }
                     }
-                    return false;
+                    return 'no_post_button';
                 }
                 """)
 
-                if clicked:
-                    page.wait_for_timeout(4000)
+                logger.info(f"📋 Shadow DOM result: {result}")
 
-                    # Verify post was published (check if share box closed)
-                    ce_after = page.locator('[contenteditable="true"]').first
-                    if ce_after.count() == 0 or not ce_after.is_visible():
-                        logger.info("=" * 70)
-                        logger.info("✅ [REAL SEND EXECUTED] LinkedIn post published successfully!")
-                        logger.info("=" * 70)
-                        context.close()
-                        self._save_post_log('linkedin', content, status='published')
-                        return {
-                            'success': True,
-                            'platform': 'linkedin',
-                            'message': '[REAL SEND] Post published to LinkedIn',
-                            'timestamp': datetime.now().isoformat()
+                if result == 'post_button_disabled':
+                    logger.info("⚠️ Post button is disabled - waiting and retrying...")
+                    page.wait_for_timeout(3000)
+                    # Check again after waiting
+                    result = textbox.evaluate("""
+                    (el) => {
+                        const root = el.getRootNode();
+                        if (!(root instanceof ShadowRoot)) return 'not_in_shadow';
+                        const btns = root.querySelectorAll('button');
+                        for (const b of btns) {
+                            if ((b.innerText || '').trim() === 'Post') {
+                                if (b.disabled) return 'post_button_disabled';
+                                b.click();
+                                return 'clicked_post';
+                            }
                         }
-                    else:
-                        context.close()
-                        return {'success': False, 'message': 'Post button click did not close share box'}
+                        return 'no_post_button';
+                    }
+                    """)
+                    logger.info(f"📋 Retry result: {result}")
+
+                    if result == 'post_button_disabled':
+                        # Try forcing click on disabled button anyway
+                        logger.info("⚠️ Trying force-click on disabled Post button...")
+                        textbox.evaluate("""
+                        (el) => {
+                            const root = el.getRootNode();
+                            const btns = root.querySelectorAll('button');
+                            for (const b of btns) {
+                                if ((b.innerText || '').trim() === 'Post') {
+                                    // Dispatch click with bubbles:true to simulate user click
+                                    b.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+                                    b.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true}));
+                                    b.dispatchEvent(new PointerEvent('pointerup', {bubbles: true}));
+                                    return 'force_clicked';
+                                }
+                            }
+                            return 'no_button';
+                        }
+                        """)
+                        page.wait_for_timeout(3000)
+
+                elif result == 'clicked_post':
+                    logger.info("✅ Post button clicked!")
+                    page.wait_for_timeout(3000)
+                elif result == 'not_in_shadow':
+                    logger.error("❌ Contenteditable not in Shadow DOM - unexpected")
+                elif result == 'no_post_button':
+                    logger.error("❌ No Post button found in Shadow DOM")
+
+                # If JS methods didn't work, try pressing Enter key
+                ce_after = page.locator('[contenteditable="true"]').first
+                if ce_after.count() > 0 and ce_after.is_visible():
+                    logger.info("⌨️ Trying keyboard submit methods...")
+                    for key_combo in ['Control+Enter', 'Meta+Enter', 'Enter']:
+                        if ce_after.count() == 0:
+                            break
+                        ce_after.focus()
+                        page.keyboard.press(key_combo)
+                        page.wait_for_timeout(2000)
+                        ce_after = page.locator('[contenteditable="true"]').first
+                        if ce_after.count() == 0:
+                            logger.info(f"✅ {key_combo} submitted the post!")
+                            break
+
+                # Final verification
+                ce_final = page.locator('[contenteditable="true"]').first
+                still_open = ce_final.count() > 0
+
+                if not still_open:
+                    logger.info("=" * 70)
+                    logger.info("✅ [REAL SEND EXECUTED] LinkedIn post published successfully!")
+                    logger.info("=" * 70)
+                    context.close()
+                    self._save_post_log('linkedin', content, status='published')
+                    return {
+                        'success': True,
+                        'platform': 'linkedin',
+                        'message': '[REAL SEND] Post published to LinkedIn',
+                        'timestamp': datetime.now().isoformat()
+                    }
                 else:
                     context.close()
-                    return {'success': False, 'message': 'Post button not found or not clickable'}
+                    return {'success': False, 'message': 'Could not post to LinkedIn - share box still open after all methods'}
 
         except Exception as e:
             logger.error(f"❌ LinkedIn post failed: {e}")
@@ -425,45 +507,110 @@ class MCPSocialServer:
         try:
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
-                context = browser.new_context()
+                context = browser.new_context(
+                    viewport={'width': 1280, 'height': 800},
+                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                )
                 page = context.new_page()
 
-                # Login
-                page.goto('https://twitter.com/i/flow/login')
-                time.sleep(3)
+                # Login (X.com new unified login flow)
+                logger.info("🌐 Logging into X/Twitter...")
+                page.goto('https://x.com/i/flow/login', timeout=60000)
+                page.wait_for_timeout(5000)
 
-                # Enter username
-                username_field = page.locator('input[autocomplete="username"]')
+                # Find and fill username/email field
+                logger.info("🔍 Finding login fields...")
+                username_field = page.locator('input[name="username_or_email"]').first
                 if username_field.is_visible():
                     username_field.fill(self.twitter_username)
-                    page.locator('div[role="button"]:has-text("Next")').click()
-                    time.sleep(2)
+                    page.wait_for_timeout(500)
+                else:
+                    # Try alternative selector
+                    username_field = page.locator('input[autocomplete*="username"]').first
+                    if username_field.is_visible():
+                        username_field.fill(self.twitter_username)
+                        page.wait_for_timeout(500)
 
-                # Enter password
-                password_field = page.locator('input[name="password"]')
+                # Find and fill password field
+                password_field = page.locator('input[name="password"]').first
                 if password_field.is_visible():
                     password_field.fill(self.twitter_password)
-                    page.locator('div[role="button"]:has-text("Log in")').click()
-                    time.sleep(3)
+                    page.wait_for_timeout(500)
+
+                # Look for login/submit button (X.com uses "Continue" button)
+                login_btn = page.locator('button[type="submit"]').first
+                if not login_btn.is_visible():
+                    login_btn = page.locator('button:text-is("Continue")').first
+                if not login_btn.is_visible():
+                    login_btn = page.locator('button:has-text("Log in")').first
+                if not login_btn.is_visible():
+                    login_btn = page.locator('[role="button"]:has-text("Next")').first
+
+                if login_btn.is_visible():
+                    login_text = login_btn.inner_text()
+                    login_btn.click()
+                    page.wait_for_timeout(3000)
+                    logger.info(f"✅ Login submitted ({login_text})")
+
+                    # Handle X.com onboarding flow (may include email verification)
+                    for step in range(5):
+                        # Check if we're on home page
+                        current_url = page.url
+                        if 'home' in current_url or 'compose' in current_url:
+                            logger.info(f"✅ On home page after {step} steps")
+                            break
+
+                        # Check for email/phone input
+                        email_input = page.locator('input[name="email"], input[type="email"], input[name="phone"]').first
+                        if email_input.is_visible():
+                            email_val = email_input.input_value()
+                            if not email_val:
+                                # Fill email (use username which is the email)
+                                email_input.fill(self.twitter_username)
+                                page.wait_for_timeout(500)
+                                logger.info("✅ Filled email field")
+                            else:
+                                logger.info(f"✅ Email prefilled: {email_val}")
+
+                        # Click continue/next button
+                        next_btn = page.locator('button[type="submit"]').first
+                        if next_btn.is_visible():
+                            btn_text = next_btn.inner_text()
+                            next_btn.click()
+                            page.wait_for_timeout(2000)
+                            logger.info(f"✅ Onboarding step: {btn_text}")
+                        else:
+                            # Try Enter key
+                            page.keyboard.press('Enter')
+                            page.wait_for_timeout(2000)
+                            if page.url == current_url:
+                                logger.warning(f"⚠️ Stuck at: {page.url}")
+                                break
+
+                    page.wait_for_timeout(2000)
+                else:
+                    logger.warning("⚠️ Login button not found")
+                    page.keyboard.press('Enter')
+                    page.wait_for_timeout(3000)
 
                 # Create tweet
-                page.goto('https://twitter.com/compose/tweet')
-                time.sleep(2)
+                logger.info("✍️ Composing tweet...")
+                page.goto('https://x.com/compose/post', timeout=30000)
+                page.wait_for_timeout(3000)
 
-                tweet_box = page.locator('div[contenteditable="true"][data-testid="tweetTextarea_0"]')
+                tweet_box = page.locator('div[contenteditable="true"]').first
                 if tweet_box.is_visible():
                     tweet_box.fill(content)
-                    time.sleep(1)
+                    page.wait_for_timeout(1000)
 
-                    tweet_button = page.locator('div[role="button"]:has-text("Post")')
+                    tweet_button = page.locator('div[data-testid="tweetButtonInline"]').first
                     if tweet_button.is_visible():
                         tweet_button.click()
-                        time.sleep(3)
+                        page.wait_for_timeout(3000)
 
                         browser.close()
-
                         self._save_post_log('twitter', content, status='published')
-
+                        logger.info("✅ Tweet published successfully!")
                         return {
                             'success': True,
                             'platform': 'twitter',

@@ -55,8 +55,8 @@
 | T1: Odoo 19 + CRM | ✅ 50 modules installed | CRM, Sale, Account, l10n_pk, CRM lead #1 created |
 | T2: Gmail IMAP Live | ✅ 672 inbox emails | Live inbox read via IMAP (credentials set) |
 | T3: Email Reply Draft | ✅ Draft + HITL block | Company_Handbook tone followed, HITL blocks sends |
-| T4: LinkedIn Post | ⚠️ Partial — selectors updated | `get_by_text('Start a post')` + `[contenteditable="true"]` + JS click. Session valid but Post button detection inconsistent (rate limiting/UI A/B). |
-| T5: Facebook Real Post | ❌ Email typo not fixed | `smartyasmat234@gmail.coml` still has trailing 'l' in .env |
+| T4: LinkedIn Post | ✅ PASS — Shadow DOM fix | `.type()` + `getRootNode().querySelector()` inside open Shadow Root. Real post published at 05:10 AM! |
+| T5: Facebook Real Post | ⚠️ Partial — email fixed, not retested | Email typo fixed in `.env` (`smartyasmat234@gmail.com`). Needs fresh live test. |
 | T6: Instagram | ✅ Draft saved (web limit) | Web posting limited - expected behavior |
 | T7: Office Watcher | ✅ File detected | Gold tier test file created in Office_Files/ |
 | T8: Odoo Lead Watcher | ✅ CRM live + leads | CRM module installed, lead created via XML-RPC |
@@ -75,20 +75,21 @@
 - ✅ Error recovery tested: CircuitBreaker + DLQ (9 items)
 - ✅ All 5 watchers initialized and ready
 - ✅ LinkedIn selectors UPDATED to current DOM (`get_by_text('Start a post')` + JS Post click)
-- ⚠️ LinkedIn Post button: Inconsistent - works in fresh sessions, rate limited after multiple tests
-- ❌ Facebook: Email typo `...coml` still present in .env — aapne fix nahi kiya
+- ✅ **LinkedIn PASS** — Shadow DOM fix: `.type()` instead of `.fill()`, Post button via `getRootNode().querySelector()`. Real post published!
+- ✅ LinkedIn session: 24 cookies with `li_at` (fresh at 04:53 AM)
+- ⚠️ Facebook: Email fixed in `.env` (trailing 'l' removed). No live test yet.
 - ✅ Instagram: Post saved as draft (web posting limitation)
-- ⚠️ Twitter: Credentials not configured
-- ✅ mcp_social.py updated with new LinkedIn selectors
+- ❌ Twitter (X.com): Account rate-limited — "Please try again later". Needs manual browser session.
+- ✅ `mcp_social.py` updated: LinkedIn Shadow DOM logic + X.com login flow
 
 ### Status
-**Gold Tier Live: 12/14 components working (2 remaining issues)**
+**Gold Tier Live: 11/14 PASS, 2/14 PARTIAL, 1/14 FAIL**
 
 | Tier | Status |
 |------|--------|
 | Bronze | ✅ Complete |
 | Silver | ✅ 100% (all credentials set, LinkedIn selectors updated) |
-| Gold | ✅ 86% (12/14 pass, 1 LinkedIn partial, 1 FB email typo) |
+| Gold | ✅ 79% (11 PASS + 2 PARTIAL + 1 FAIL) |
 | Platinum | ❌ Not deployed |
 
 ---
