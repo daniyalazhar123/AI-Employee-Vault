@@ -35,6 +35,16 @@ from datetime import datetime
 from typing import Dict, Optional
 import logging
 
+# Fix Windows console encoding
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, Exception):
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+
 # Load secrets from outside vault
 sys.path.insert(0, str(Path(__file__).parent))
 from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
@@ -357,53 +367,227 @@ class MCPSocialServer:
 
                 # Login
                 page.goto('https://www.facebook.com/login')
-                time.sleep(2)
+                page.wait_for_timeout(3000)
 
-                email_field = page.locator('#email')
-                if email_field.is_visible():
-                    email_field.fill(self.facebook_email)
+                logger.info(f"🔑 Logging in as {self.facebook_email}...")
 
-                password_field = page.locator('#pass')
-                if password_field.is_visible():
-                    password_field.fill(self.facebook_password)
+                # Fill email field
+                email_done = False
+                for sel in ['#email', 'input[name="email"]', 'input[type="text"]']:
+                    try:
+                        el = page.locator(sel).first
+                        if el.is_visible(timeout=2000):
+                            el.fill(self.facebook_email)
+                            email_done = True
+                            logger.info(f"✅ Filled email via: {sel}")
+                            break
+                    except Exception:
+                        continue
+                if not email_done:
+                    browser.close()
+                    return {'success': False, 'message': 'Facebook email field not found'}
 
-                login_button = page.locator('button[name="login"]')
-                if login_button.is_visible():
-                    login_button.click()
-                    time.sleep(3)
+                # Fill password field
+                for sel in ['#pass', 'input[name="pass"]', 'input[type="password"]']:
+                    try:
+                        el = page.locator(sel).first
+                        if el.is_visible(timeout=2000):
+                            el.fill(self.facebook_password)
+                            logger.info(f"✅ Filled password via: {sel}")
+                            break
+                    except Exception:
+                        continue
+
+                # Click login button
+                login_clicked = False
+                for sel in ['button[name="login"]', 'button[type="submit"]', 'button:has-text("Log in")']:
+                    try:
+                        el = page.locator(sel).first
+                        if el.is_visible(timeout=2000):
+                            el.click()
+                            login_clicked = True
+                            logger.info(f"✅ Clicked login via: {sel}")
+                            break
+                    except Exception:
+                        continue
+                if login_clicked:
+                    page.wait_for_timeout(5000)
+                else:
+                    page.keyboard.press('Enter')
+                    page.wait_for_timeout(5000)
 
                 # Create post
+                logger.info("🌐 Navigating to Facebook feed...")
                 page.goto('https://www.facebook.com/')
-                time.sleep(2)
+                page.wait_for_timeout(5000)
 
-                # Find post box
-                post_box = page.locator('[placeholder="What\'s on your mind?"]').first
-                if post_box.is_visible():
-                    post_box.fill(content)
-                    time.sleep(1)
+                current_url = page.url
+                logger.info(f"📍 Feed URL: {current_url}")
 
-                    # Click post button
-                    post_button = page.locator('[aria-label="Post"]').first
-                    if post_button.is_visible():
-                        post_button.click()
-                        time.sleep(3)
+                # Step 1: Click the "What's on your mind?" trigger to open composer
+                logger.info("🔍 Opening post composer...")
 
-                        browser.close()
+                # Build selector list based on detected Facebook domain
+                trigger_selectors = [
+                    f'[placeholder*="What\'s on your mind"]',
+                    f'[aria-label*="What\'s on your mind"]',
+                    'span:has-text("What\'s on your mind")',
+                    f'[role="button"]:has-text("What\'s on your mind")',
+                    '[data-pagelet="FeedComposer"] [role="button"]',
+                    'form [contenteditable="true"]',
+                ]
 
-                        self._save_post_log('facebook', content, status='published')
+                composer_opened = False
+                for sel in trigger_selectors:
+                    try:
+                        el = page.locator(sel).first
+                        if el.is_visible(timeout=2000):
+                            el.click()
+                            page.wait_for_timeout(2000)
+                            composer_opened = True
+                            logger.info(f"✅ Clicked trigger: {sel}")
+                            break
+                    except Exception:
+                        continue
 
-                        return {
-                            'success': True,
-                            'platform': 'facebook',
-                            'message': 'Post published to Facebook',
-                            'timestamp': datetime.now().isoformat()
-                        }
-                    else:
-                        browser.close()
-                        return {'success': False, 'message': 'Facebook post button not found'}
-                else:
+                # Fallback: press 'p' keyboard shortcut to open composer
+                if not composer_opened:
+                    logger.info("⌨️ Trying keyboard shortcut 'p' to open composer...")
+                    page.keyboard.press('p')
+                    page.wait_for_timeout(3000)
+                    for sel in [
+                        '[contenteditable="true"]',
+                        'div[contenteditable="true"][role="textbox"]',
+                        '[data-lexical-editor="true"]',
+                    ]:
+                        try:
+                            if page.locator(sel).first.is_visible(timeout=2000):
+                                composer_opened = True
+                                logger.info(f"✅ Composer opened via keyboard, found: {sel}")
+                                break
+                        except Exception:
+                            continue
+
+                # Fallback: navigate directly to composer URL
+                if not composer_opened:
+                    logger.info("🌐 Trying composer URL directly...")
+                    try:
+                        page.goto('https://www.facebook.com/composer/mbasic/?basic_composer=1')
+                        page.wait_for_timeout(3000)
+                        for sel in [
+                            '[contenteditable="true"]',
+                            'textarea',
+                            'div[contenteditable="true"][role="textbox"]',
+                        ]:
+                            try:
+                                if page.locator(sel).first.is_visible(timeout=2000):
+                                    composer_opened = True
+                                    logger.info(f"✅ Composer via URL, found: {sel}")
+                                    break
+                            except Exception:
+                                continue
+                    except Exception:
+                        pass
+
+                if not composer_opened:
+                    logger.warning("⚠️ Could not open Facebook composer — saving draft instead")
+                    result = self._save_draft('facebook', content, dry_run=False)
                     browser.close()
-                    return {'success': False, 'message': 'Facebook post box not found'}
+                    result['message'] += ' (composer not accessible, saved as draft)'
+                    return result
+
+                # Step 2: Find the contenteditable div or textarea in the expanded composer
+                logger.info("✍️ Finding text editor...")
+                text_editor = None
+                editor_selectors = [
+                    '[contenteditable="true"]',
+                    'div[contenteditable="true"][role="textbox"]',
+                    '[data-lexical-editor="true"]',
+                    '[contenteditable="true"]:not([style*="none"])',
+                    'textarea:not([name*="pass"])',
+                ]
+                for sel in editor_selectors:
+                    try:
+                        editor = page.locator(sel).first
+                        if editor.is_visible(timeout=2000):
+                            text_editor = editor
+                            logger.info(f"✅ Found editor: {sel}")
+                            break
+                    except Exception:
+                        continue
+
+                if not text_editor:
+                    logger.warning("⚠️ Text editor not found — saving as draft")
+                    result = self._save_draft('facebook', content, dry_run=False)
+                    browser.close()
+                    result['message'] += ' (editor not found, saved as draft)'
+                    return result
+
+                # Step 3: Type content
+                logger.info("📝 Typing content...")
+                text_editor.click()
+                page.wait_for_timeout(500)
+                text_editor.fill(content)
+                page.wait_for_timeout(1500)
+
+                # Step 4: Find and click Post button
+                logger.info("🚀 Finding Post button...")
+                post_button = None
+                button_selectors = [
+                    '[aria-label="Post"]',
+                    'button:has-text("Post")',
+                    '[role="button"]:has-text("Post")',
+                    'div[aria-label="Post"][role="button"]',
+                    '[data-pagelet="FeedComposer"] button:has-text("Post")',
+                    '[type="submit"]:has-text("Post")',
+                ]
+                for sel in button_selectors:
+                    try:
+                        btn = page.locator(sel).first
+                        if btn.is_visible(timeout=2000) and btn.is_enabled():
+                            post_button = btn
+                            logger.info(f"✅ Found Post button: {sel}")
+                            break
+                    except Exception:
+                        continue
+
+                if not post_button:
+                    logger.warning("⚠️ Post button not found — trying keyboard submit...")
+                    page.keyboard.press('Control+Enter')
+                    page.wait_for_timeout(3000)
+
+                if post_button:
+                    post_button.click()
+                    page.wait_for_timeout(5000)
+
+                # Step 5: Verify post was published (editor should close)
+                editor_still_open = page.locator('[contenteditable="true"]').first
+                try:
+                    still_visible = editor_still_open.is_visible(timeout=3000)
+                except Exception:
+                    still_visible = True
+
+                browser.close()
+
+                if not still_visible:
+                    logger.info("✅ Facebook post published successfully!")
+                    self._save_post_log('facebook', content, status='published')
+                    return {
+                        'success': True,
+                        'platform': 'facebook',
+                        'message': 'Post published to Facebook',
+                        'timestamp': datetime.now().isoformat()
+                    }
+                else:
+                    logger.warning("⚠️ Editor still open — saving draft for safety")
+                    result = self._save_draft('facebook', content, dry_run=False)
+                    return {
+                        'success': False,
+                        'platform': 'facebook',
+                        'message': 'Facebook post may not have published — saved draft in Social_Drafts',
+                        'draft_saved': True,
+                        'draft_file': result.get('draft_file')
+                    }
 
         except Exception as e:
             logger.error(f"❌ Facebook post failed: {e}")
