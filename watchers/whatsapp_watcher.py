@@ -110,9 +110,12 @@ class WhatsAppWatcher(BaseWatcher):
             self.log_warning(f"Auth check failed: {e}")
             return False
     
-    def setup_browser(self) -> bool:
+    def setup_browser(self, playwright) -> bool:
         """
         Launch browser and navigate to WhatsApp Web.
+        
+        Args:
+            playwright: sync_playwright instance (kept alive by caller)
         
         Returns:
             True if setup successful
@@ -122,50 +125,49 @@ class WhatsAppWatcher(BaseWatcher):
             
             storage_state = self.load_storage_state()
             
-            with sync_playwright() as p:
-                # Launch persistent context
-                self.context = p.chromium.launch_persistent_context(
-                    user_data_dir=str(self.session_folder),
-                    headless=False,  # Visible for QR scanning
-                    args=[
-                        '--disable-blink-features=AutomationControlled',
-                        '--no-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--window-size=1280,800'
-                    ],
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
-                )
+            # Launch persistent context
+            self.context = playwright.chromium.launch_persistent_context(
+                user_data_dir=str(self.session_folder),
+                headless=False,  # Visible for QR scanning
+                args=[
+                    '--disable-blink-features=AutomationControlled',
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--window-size=1280,800'
+                ],
+                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+            )
+            
+            self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
+            
+            self.log_info("Navigating to WhatsApp Web...")
+            self.page.goto('https://web.whatsapp.com', wait_until='domcontentloaded', timeout=60000)
+            
+            # Wait for QR scan if needed
+            if not self.is_authenticated():
+                self.log_info("=" * 60)
+                self.log_info("📱 QR CODE DETECTED — SCAN KAREN:")
+                self.log_info("   1. Apna phone kholo")
+                self.log_info("   2. WhatsApp kholo")
+                self.log_info("   3. Menu > Linked Devices (ya WhatsApp Web)")
+                self.log_info("   4. 'Scan QR Code' dabao")
+                self.log_info("   5. Is screen ka QR code scan karo")
+                self.log_info("=" * 60)
+                self.log_info(f"⏳ Scan karne ke liye {SESSION_TIMEOUT} seconds tak wait karein...")
                 
-                self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
+                for i in range(SESSION_TIMEOUT, 0, -1):
+                    print(f"   Time remaining: {i} seconds", end='\r')
+                    time.sleep(1)
                 
-                self.log_info("Navigating to WhatsApp Web...")
-                self.page.goto('https://web.whatsapp.com', wait_until='domcontentloaded', timeout=60000)
+                print()  # Newline after countdown
                 
-                # Wait for QR scan if needed
                 if not self.is_authenticated():
-                    self.log_info("=" * 60)
-                    self.log_info("📱 QR CODE DETECTED — SCAN KAREN:")
-                    self.log_info("   1. Apna phone kholo")
-                    self.log_info("   2. WhatsApp kholo")
-                    self.log_info("   3. Menu > Linked Devices (ya WhatsApp Web)")
-                    self.log_info("   4. 'Scan QR Code' dabao")
-                    self.log_info("   5. Is screen ka QR code scan karo")
-                    self.log_info("=" * 60)
-                    self.log_info(f"⏳ Scan karne ke liye {SESSION_TIMEOUT} seconds tak wait karein...")
-                    
-                    for i in range(SESSION_TIMEOUT, 0, -1):
-                        print(f"   Time remaining: {i} seconds", end='\r')
-                        time.sleep(1)
-                    
-                    print()  # Newline after countdown
-                    
-                    if not self.is_authenticated():
-                        self.log_warning("QR code not scanned in time")
-                        return False
-                
-                self.log_info("✅ WhatsApp Web authenticated successfully")
-                return True
-                
+                    self.log_warning("QR code not scanned in time")
+                    return False
+            
+            self.log_info("✅ WhatsApp Web authenticated successfully")
+            return True
+            
         except PlaywrightTimeout as e:
             self.log_error(f"Browser timeout: {e}", exc=e)
             return False
@@ -355,61 +357,62 @@ status: pending
         # Load processed messages
         self.processed_messages = self.load_processed_ids('processed_whatsapp.txt')
         
-        # Setup browser
-        if not self.setup_browser():
-            self.log_error("Browser setup failed. Exiting.")
-            return
-        
-        self.log_info("👀 Monitoring for messages... Press Ctrl+C to stop\n")
-        
-        try:
-            while True:
-                cycle_start = datetime.now()
-                
-                try:
-                    # Check for messages
-                    new_messages = self.check_messages()
+        with sync_playwright() as p:
+            # Setup browser (pass playwright instance so event loop stays alive)
+            if not self.setup_browser(p):
+                self.log_error("Browser setup failed. Exiting.")
+                return
+            
+            self.log_info("👀 Monitoring for messages... Press Ctrl+C to stop\n")
+            
+            try:
+                while True:
+                    cycle_start = datetime.now()
                     
-                    if new_messages:
-                        for msg in new_messages:
-                            self.log_info(f"📩 {msg['contact']}: {msg['message'][:50]}...")
-                            
-                            # Create action file
-                            action_file = self.create_action_file(msg)
-                            if action_file:
-                                self.trigger_ai_engine(action_file)
-                            
-                            # Mark as processed
-                            self.processed_messages.add(msg['message_id'])
+                    try:
+                        # Check for messages
+                        new_messages = self.check_messages()
                         
-                        # Save processed IDs
-                        self.save_processed_ids('processed_whatsapp.txt', self.processed_messages)
+                        if new_messages:
+                            for msg in new_messages:
+                                self.log_info(f"📩 {msg['contact']}: {msg['message'][:50]}...")
+                                
+                                # Create action file
+                                action_file = self.create_action_file(msg)
+                                if action_file:
+                                    self.trigger_ai_engine(action_file)
+                                
+                                # Mark as processed
+                                self.processed_messages.add(msg['message_id'])
+                            
+                            # Save processed IDs
+                            self.save_processed_ids('processed_whatsapp.txt', self.processed_messages)
+                        
+                        else:
+                            self.log_info(f"⏳ No new messages - {datetime.now().strftime('%H:%M:%S')}")
+                        
+                        # Save session periodically
+                        self.save_storage_state()
                     
-                    else:
-                        self.log_info(f"⏳ No new messages - {datetime.now().strftime('%H:%M:%S')}")
+                    except Exception as e:
+                        self.log_error(f"Error in check cycle: {e}", exc=e)
                     
-                    # Save session periodically
-                    self.save_storage_state()
-                
-                except Exception as e:
-                    self.log_error(f"Error in check cycle: {e}", exc=e)
-                
-                # Sleep
-                elapsed = (datetime.now() - cycle_start).total_seconds()
-                sleep_time = max(0, CHECK_INTERVAL - elapsed)
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
-        
-        except KeyboardInterrupt:
-            self.log_info("\n\n⏹️  Stopping WhatsApp Watcher...")
-            self.save_storage_state()
-            self.save_processed_ids('processed_whatsapp.txt', self.processed_messages)
-            self.log_info(f"Final uptime: {self.get_uptime()}")
-            self.log_info("✅ Watcher stopped successfully")
-        
-        finally:
-            if self.context:
-                self.context.close()
+                    # Sleep
+                    elapsed = (datetime.now() - cycle_start).total_seconds()
+                    sleep_time = max(0, CHECK_INTERVAL - elapsed)
+                    if sleep_time > 0:
+                        time.sleep(sleep_time)
+            
+            except KeyboardInterrupt:
+                self.log_info("\n\n⏹️  Stopping WhatsApp Watcher...")
+                self.save_storage_state()
+                self.save_processed_ids('processed_whatsapp.txt', self.processed_messages)
+                self.log_info(f"Final uptime: {self.get_uptime()}")
+                self.log_info("✅ Watcher stopped successfully")
+            
+            finally:
+                if self.context:
+                    self.context.close()
 
 
 def main():

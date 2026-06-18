@@ -54,7 +54,7 @@ class OdooLeadWatcher(BaseWatcher):
         
         self.needs_action_folder = Path(str(self.vault_path)) / 'Needs_Action'
         self.pending_approval_folder = Path(str(self.vault_path)) / 'Pending_Approval'
-        self.dashboard_file = Path(str(self.vault_path)) / 'docs' / 'Dashboard.md'
+        self.dashboard_file = Path(str(self.vault_path)) / 'Dashboard.md'
         self.processed_file = Path(str(self.vault_path)) / 'data' / 'processed_odoo_leads.txt'
         
         self.processed_ids: Set[str] = set()
