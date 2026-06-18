@@ -145,7 +145,7 @@ class AIEmployeeOrchestrator:
         """Check if AI engine (OpenCode + DeepSeek V4 Flash) is installed and working"""
         try:
             result = subprocess.run(
-                ['opencode', '--version'],
+                ['opencode.cmd', '--version'],
                 capture_output=True,
                 text=True,
                 timeout=10
@@ -200,7 +200,7 @@ Respond in {language} language.
 """
             
             result = subprocess.run(
-                ['opencode', '-y', full_prompt],
+                ['opencode.cmd', 'run', full_prompt],
                 capture_output=True,
                 text=True,
                 encoding='utf-8',

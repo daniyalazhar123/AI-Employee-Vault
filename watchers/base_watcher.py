@@ -296,7 +296,7 @@ class BaseWatcher:
             # First check if opencode command exists
             try:
                 subprocess.run(
-                    ['opencode', '--version'],
+                    ['opencode.cmd', '--version'],
                     capture_output=True,
                     timeout=5,
                     check=True
@@ -309,7 +309,7 @@ class BaseWatcher:
 
             # Run AI engine with the prompt via stdin
             result = subprocess.run(
-                ['opencode', 'run', prompt],
+                ['opencode.cmd', 'run', prompt],
                 capture_output=True,
                 text=True,
                 encoding='utf-8',
