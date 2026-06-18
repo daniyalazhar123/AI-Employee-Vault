@@ -185,7 +185,7 @@ class WhatsAppWatcher(BaseWatcher):
         
         try:
             # Wait for page load
-            self.page.wait_for_load_state('networkidle', timeout=30000)
+            self.page.wait_for_load_state('domcontentloaded', timeout=60000)
             time.sleep(2)
             
             # Find chat list
