@@ -133,7 +133,7 @@ class WhatsAppWatcher(BaseWatcher):
                         '--disable-dev-shm-usage',
                         '--window-size=1280,800'
                     ],
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
                 )
                 
                 self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
