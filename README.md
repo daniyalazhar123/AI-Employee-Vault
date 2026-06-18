@@ -22,7 +22,7 @@
 ## What This Does
 
 - Monitors Gmail, WhatsApp, LinkedIn, Odoo automatically
-- Processes tasks using Claude Code as AI engine
+- Processes tasks using OpenCode + DeepSeek V4 Flash as AI engine
 - Creates invoices in Odoo 19 (Docker)
 - Sends real emails via Gmail API
 - Posts to LinkedIn / Facebook / Instagram / Twitter
@@ -36,7 +36,7 @@
 ```
 Email ─┐
 WhatsApp ─┤                  ┌─────────────┐
-Social  ─┼── Watchers ─────→ │   Obsidian   │ ←── Claude Code (AI Engine)
+Social  ─┼── Watchers ─────→ │   Obsidian   │ ←── OpenCode + DeepSeek (AI Engine)
 Odoo   ─┘        │           │   Vault      │       │
                   │           │ (File System)│       │
                   │           └─────────────┘       │
@@ -50,11 +50,15 @@ Odoo   ─┘        │           │   Vault      │       │
              Gmail API        Odoo 19 (Docker)   LinkedIn/FB/IG/Twitter
 ```
 
-**Flow:** Watchers detect events → write `.md` files to vault folders → Claude Code reads tasks → executes via MCP servers.
+**Flow:** Watchers detect events → write `.md` files to vault folders → OpenCode + DeepSeek reads tasks → executes via MCP servers.
 
 ---
 
-## Setup
+## Screenshots
+
+*Coming soon — see demo video for live demonstration*
+
+---
 
 ### Prerequisites
 
@@ -161,7 +165,7 @@ Obsidian Vault/
 |------|----------|--------|
 | 🥉 Bronze | [docs/BRONZE_TIER.md](docs/BRONZE_TIER.md) | ✅ Complete |
 | 🥈 Silver | [docs/SILVER_TIER.md](docs/SILVER_TIER.md) | ✅ Complete |
-| 🥇 Gold | [docs/GOLD_TIER.md](docs/GOLD_TIER.md) | ✅ Verified June 10, 2026 |
+| 🥇 Gold | [docs/GOLD_TIER.md](docs/GOLD_TIER.md) | ✅ Verified June 18-19, 2026 |
 | 💎 Platinum | [docs/PLATINUM_TIER.md](docs/PLATINUM_TIER.md) | ❌ Not Started |
 
 ## Security
@@ -182,4 +186,4 @@ https://github.com/daniyalazhar123/AI-Employee-Vault
 
 ---
 
-*Last updated: June 18, 2026 — Gold Tier 11/14 PASS*
+*Last updated: June 19, 2026 — Gold Tier Live Tested*
