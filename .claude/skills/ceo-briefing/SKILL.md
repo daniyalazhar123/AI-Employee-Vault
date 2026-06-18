@@ -1,3 +1,9 @@
+---
+name: ceo-briefing
+description: |
+  Generate weekly Monday Morning CEO Briefing with revenue tracking, completed
+  tasks, bottlenecks, and proactive suggestions for the business owner.
+---
 # CEO Briefing Skill
 
 ## Purpose

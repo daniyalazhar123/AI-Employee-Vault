@@ -5,6 +5,46 @@
       "source": "bilalmk/todo_correct",
       "sourceType": "github",
       "computedHash": "f73daf75e38650c202e61f652a26578db157f8423e8bcf283bcd93b441641461"
+    },
+    "ceo-briefing-generator": {
+      "source": ".claude/skills/ceo-briefing-generator",
+      "sourceType": "local",
+      "computedHash": "3957DF2DA1C2E24FC0A967F1F73870EF648FA3298B9E2D7A32FA7B29C0BF5293"
+    },
+    "email-processor": {
+      "source": ".claude/skills/email-processor",
+      "sourceType": "local",
+      "computedHash": "223BF2D1A9FE3EF74A7878AB6C9D03BA0A3944C03BF799611D98E62B7AB3E424"
+    },
+    "audit-logger": {
+      "source": ".claude/skills/audit-logger",
+      "sourceType": "local",
+      "computedHash": "9EB957526C71BB4E7CCEF2F4551A663F6606A59C366B6F50BAD2AB4CC3AAF691"
+    },
+    "error-recovery": {
+      "source": ".claude/skills/error-recovery",
+      "sourceType": "local",
+      "computedHash": "3973046187704B2EED590C975BB7C619018C3339AF14D98B72463907B54D92F4"
+    },
+    "odoo-accounting": {
+      "source": ".claude/skills/odoo-accounting",
+      "sourceType": "local",
+      "computedHash": "2243ACE762701DA3300469695116E03F8E293A5246734A42D7CF79C0E6DB469B"
+    },
+    "social-media-manager": {
+      "source": ".claude/skills/social-media-manager",
+      "sourceType": "local",
+      "computedHash": "993435268A0242A4A09095AC2A62B896D25E2BA6ECD3DBE0C42534F5A19B3084"
+    },
+    "whatsapp-responder": {
+      "source": ".claude/skills/whatsapp-responder",
+      "sourceType": "local",
+      "computedHash": "19A02147DDE1E0F3DD3B7E72F54CD429E05F4A4ED0AC296364B59957FEC1D08C"
+    },
+    "ceo-briefing": {
+      "source": ".claude/skills/ceo-briefing",
+      "sourceType": "local",
+      "computedHash": "FAF39A0F7A05561D733A4CC4C3AB37475CC1505787630A9499CF092A02C03BB8"
     }
   }
 }
