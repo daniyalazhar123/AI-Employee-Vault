@@ -147,7 +147,7 @@ Read this file, summarize content, make it professional if needed, and update Da
             f"Read the file, summarize content, and update Dashboard.md if relevant."
         )
         
-        return self.trigger_ai_engine(prompt)
+        return super().trigger_ai_engine(prompt)
     
     def process_new_file(self, file_path: Path):
         """

@@ -130,7 +130,7 @@ add 3-5 relevant hashtags, and save the polished post in Social_Drafts/Polished.
             f"Save the polished post in Social_Drafts/Polished folder as {polished_name}"
         )
         
-        return self.trigger_ai_engine(prompt)
+        return super().trigger_ai_engine(prompt)
     
     def process_draft(self, file_path: Path):
         """

@@ -344,7 +344,7 @@ status: pending
             f"Save the reply draft in Pending_Approval folder as REPLY_{action_file.stem}.md"
         )
         
-        return self.trigger_ai_engine(prompt)
+        return super().trigger_ai_engine(prompt)
     
     def run(self):
         """Main watcher loop."""
