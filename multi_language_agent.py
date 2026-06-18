@@ -171,12 +171,12 @@ class MultiLanguageAIAgent:
         english_query = self.translate_to_english(user_query, detected_lang)
         print(f"🔄 English Query: {english_query}")
         
-        # Step 3: Process with Qwen CLI
-        qwen_response = self._process_with_qwen(english_query, user_name)
+        # Step 3: Process with AI engine
+        ai_response = self._process_with_ai(english_query, user_name)
         
         # Step 4: Translate response back to user's language
         response_in_user_lang = self.translate_from_english(
-            qwen_response['response'], 
+            ai_response['response'], 
             detected_lang
         )
         
@@ -186,9 +186,9 @@ class MultiLanguageAIAgent:
             'detected_language': detected_lang,
             'english_translation': english_query,
             'response': response_in_user_lang,
-            'response_english': qwen_response['response'],
-            'action': qwen_response['action'],
-            'permission_required': qwen_response['permission_required'],
+            'response_english': ai_response['response'],
+            'action': ai_response['action'],
+            'permission_required': ai_response['permission_required'],
             'timestamp': datetime.now().isoformat()
         }
         
@@ -197,8 +197,8 @@ class MultiLanguageAIAgent:
         
         return result
     
-    def _process_with_qwen(self, query: str, user_name: str) -> dict:
-        """Process query with Qwen CLI"""
+    def _process_with_ai(self, query: str, user_name: str) -> dict:
+        """Process query with AI engine (OpenCode + DeepSeek V4 Flash)"""
         prompt = f"""
 Bhai {user_name} ne yeh query ki hai: "{query}"
 
@@ -208,10 +208,10 @@ Keep response short and friendly.
 Response: """
         
         try:
-            # Try different Qwen CLI commands
-            qwen_commands = ['qwen', 'claude-code', 'qwen-code']
+            # Try different AI engine commands
+            ai_commands = ['opencode', 'claude', 'claude-code']
             
-            for cmd in qwen_commands:
+            for cmd in ai_commands:
                 try:
                     result = subprocess.run(
                         [cmd, '-y', prompt],
@@ -231,7 +231,7 @@ Response: """
                 except:
                     continue
             
-            # If Qwen not available, use simple response
+            # If AI engine not available, use simple response
             return {
                 'response': f"Bhai {user_name}! Main aapka AI Employee hoon. Main aapki madad karne ke liye taiyar hoon. Aap mujh se kuch bhi pooch sakte hain!",
                 'action': 'none',
@@ -240,7 +240,7 @@ Response: """
         
         except Exception as e:
             return {
-                'response': f"Bhai! Main aapka AI Employee hoon. Main aapki madad kar sakta hoon. (Qwen CLI error: {str(e)})",
+                'response': f"Bhai! Main aapka AI Employee hoon. Main aapki madad kar sakta hoon. (AI engine error: {str(e)})",
                 'action': 'none',
                 'permission_required': False
             }

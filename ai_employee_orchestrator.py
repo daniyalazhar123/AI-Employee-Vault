@@ -141,40 +141,40 @@ class AIEmployeeOrchestrator:
         except Exception as e:
             print(f"Warning: Could not write to log file: {e}")
     
-    def check_qwen_cli(self) -> bool:
-        """Check if Qwen CLI is installed and working"""
+    def check_ai_engine(self) -> bool:
+        """Check if AI engine (OpenCode + DeepSeek V4 Flash) is installed and working"""
         try:
             result = subprocess.run(
-                ['qwen', '--version'],
+                ['opencode', '--version'],
                 capture_output=True,
                 text=True,
                 timeout=10
             )
             
             if result.returncode == 0:
-                self.log_info(f"✅ Qwen CLI found: {result.stdout.strip()}")
+                self.log_info(f"✅ AI engine found: {result.stdout.strip()}")
                 return True
             else:
-                self.log_error("❌ Qwen CLI returned error")
+                self.log_error("❌ AI engine returned error")
                 return False
                 
         except FileNotFoundError:
-            self.log_error("❌ Qwen CLI not found. Install with: pip install qwen-code")
+            self.log_error("❌ AI engine not found. Install with: pip install opencode")
             return False
         except Exception as e:
-            self.log_error(f"❌ Error checking Qwen CLI: {e}")
+            self.log_error(f"❌ Error checking AI engine: {e}")
             return False
     
-    def ask_qwen(self, prompt: str, language: str = 'Urdu') -> str:
+    def ask_ai_engine(self, prompt: str, language: str = 'Urdu') -> str:
         """
-        Ask Qwen CLI to process something
+        Ask AI engine (OpenCode + DeepSeek V4 Flash) to process something
         
         Args:
-            prompt: What you want Qwen to do
+            prompt: What you want the AI engine to do
             language: Language for response (Urdu, English, Arabic, etc.)
             
         Returns:
-            Qwen's response
+            AI engine's response
         """
         try:
             # Build the full prompt with language instruction
@@ -200,7 +200,7 @@ Respond in {language} language.
 """
             
             result = subprocess.run(
-                ['qwen', '-y', full_prompt],
+                ['opencode', '-y', full_prompt],
                 capture_output=True,
                 text=True,
                 encoding='utf-8',
@@ -211,18 +211,18 @@ Respond in {language} language.
             
             if result.returncode == 0:
                 response = result.stdout.strip()
-                self.log_info(f"✅ Qwen responded ({len(response)} chars)")
+                self.log_info(f"✅ AI engine responded ({len(response)} chars)")
                 return response
             else:
                 error_msg = result.stderr.strip() if result.stderr else "Unknown error"
-                self.log_error(f"❌ Qwen error: {error_msg}")
+                self.log_error(f"❌ AI engine error: {error_msg}")
                 return f"Error: {error_msg}"
                 
         except subprocess.TimeoutExpired:
-            self.log_error("❌ Qwen timeout (5 minutes)")
-            return "Error: Timeout - Qwen took too long to respond"
+            self.log_error("❌ AI engine timeout (5 minutes)")
+            return "Error: Timeout - AI engine took too long to respond"
         except Exception as e:
-            self.log_error(f"❌ Error calling Qwen: {e}")
+            self.log_error(f"❌ Error calling AI engine: {e}")
             return f"Error: {str(e)}"
     
     def analyze_email(self, email_content: str) -> Dict:
@@ -254,7 +254,7 @@ Provide response in JSON format:
 }}
 """
         
-        response = self.ask_qwen(prompt, 'English')
+        response = self.ask_ai_engine(prompt, 'English')
         
         try:
             # Try to parse JSON from response
@@ -306,7 +306,7 @@ Requirements:
 Draft the complete reply in {language} language.
 """
         
-        return self.ask_qwen(prompt, language)
+        return self.ask_ai_engine(prompt, language)
     
     def ask_permission(self, action_type: str, content: str, language: str = 'Urdu') -> bool:
         """
@@ -668,10 +668,10 @@ def main():
 
     orchestrator = AIEmployeeOrchestrator()
 
-    # Check Qwen CLI first
-    if not orchestrator.check_qwen_cli():
-        print("\n❌ Qwen CLI not found. Please install first:")
-        print("   pip install qwen-code")
+    # Check AI engine first
+    if not orchestrator.check_ai_engine():
+        print("\n❌ AI engine not found. Please install first:")
+        print("   pip install opencode")
         return
     
     while True:

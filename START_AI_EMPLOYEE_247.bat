@@ -3,7 +3,7 @@ REM ============================================
 REM 🚀 AI EMPLOYEE 24/7 - COMPLETE STARTUP
 REM ============================================
 REM Bhai! Yeh script complete AI Employee ko
-REM 24/7 mode mein start karegi with Qwen CLI!
+REM 24/7 mode mein start karegi with opencode CLI!
 REM ============================================
 
 echo ============================================
@@ -13,7 +13,7 @@ echo.
 echo Bhai! Complete AI Employee start ho raha hai...
 echo.
 echo Features:
-echo   ✅ Qwen CLI Brain
+echo   ✅ opencode CLI Brain
 echo   ✅ 25+ Languages Support
 echo   ✅ All Programming Languages
 echo   ✅ All AI Frameworks

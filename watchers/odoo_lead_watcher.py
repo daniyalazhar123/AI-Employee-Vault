@@ -333,8 +333,8 @@ Sales Team
             self.log_error(f"Unexpected error: {e}", exc=e)
             return None
     
-    def trigger_qwen(self, action_file: Path) -> bool:
-        """Trigger Qwen CLI to process lead."""
+    def trigger_ai_engine(self, action_file: Path) -> bool:
+        """Trigger AI engine to process lead."""
         prompt = (
             f"Read the Odoo lead file: {action_file.name} in Needs_Action folder.\n\n"
             f"Tasks:\n"
@@ -345,7 +345,7 @@ Sales Team
             f"Process this lead completely."
         )
         
-        return self.trigger_qwen(prompt, timeout=180)
+        return self.trigger_ai_engine(prompt, timeout=180)
     
     def update_dashboard(self, lead_count: int):
         """Update Dashboard.md with lead summary."""
@@ -398,7 +398,7 @@ Sales Team
         
         if action_file:
             self.create_follow_up_draft(test_lead, action_file)
-            self.trigger_qwen(action_file)
+            self.trigger_ai_engine(action_file)
             self.processed_ids.add(str(test_lead['id']))
             self.save_processed_ids('processed_odoo_leads.txt', self.processed_ids)
             self.update_dashboard(1)
@@ -445,8 +445,8 @@ Sales Team
                     # Create follow-up draft
                     self.create_follow_up_draft(lead, action_file)
                     
-                    # Trigger Qwen
-                    self.trigger_qwen(action_file)
+                    # Trigger AI engine
+                    self.trigger_ai_engine(action_file)
                     
                     # Mark as processed
                     self.processed_ids.add(str(lead_id))

@@ -1,21 +1,21 @@
-# ðŸ¤– Qwen Code Orchestrator
+# =ƒñû opencode Code Orchestrator
 
-**Status:** âœ… **COMPLETE**
-**Purpose:** Central orchestrator for AI Employee using Qwen Code CLI
-**Replaces:** Claude Code â†’ **Qwen Code CLI**
+**Status:** G£à **COMPLETE**
+**Purpose:** Central orchestrator for AI Employee using opencode Code CLI
+**Replaces:** Claude Code GåÆ **opencode Code CLI**
 
 ---
 
 ## Overview
 
-The Orchestrator is the central control script that triggers **Qwen Code CLI** (not Claude Code) for all AI Employee automation tasks.
+The Orchestrator is the central control script that triggers **opencode Code CLI** (not Claude Code) for all AI Employee automation tasks.
 
 **Key Features:**
-- âœ… Process Needs_Action folder
-- âœ… Process emails, WhatsApp, social drafts, Odoo leads
-- âœ… Run Ralph Wiggum persistent loop
-- âœ… Generate CEO briefings
-- âœ… All via **Qwen Code CLI** (`qwen -y`)
+- G£à Process Needs_Action folder
+- G£à Process emails, WhatsApp, social drafts, Odoo leads
+- G£à Run Ralph Wiggum persistent loop
+- G£à Generate CEO briefings
+- G£à All via **opencode Code CLI** (`opencode -y`)
 
 ---
 
@@ -23,19 +23,19 @@ The Orchestrator is the central control script that triggers **Qwen Code CLI** (
 
 ### Prerequisites
 
-- âœ… Python 3.13+
-- âœ… Node.js 18+
-- âœ… Qwen CLI installed
+- G£à Python 3.13+
+- G£à Node.js 18+
+- G£à opencode CLI installed
 
-### Install Qwen CLI
+### Install opencode CLI
 
 ```bash
-npm install -g @anthropic/qwen
+npm install -g opencode
 ```
 
 Verify installation:
 ```bash
-qwen --version
+opencode --version
 # Output: 0.12.3
 ```
 
@@ -73,17 +73,17 @@ python orchestrator.py run_ralph_loop "Update Dashboard with latest sales"
 
 ### Advanced Usage
 
-**Custom Qwen Command:**
+**Custom opencode Command:**
 ```bash
-# Use specific Qwen version
-set QWEN_COMMAND=qwen-code
+# Use specific opencode version
+set AI_COMMAND=opencode-code
 python orchestrator.py process_needs_action
 ```
 
 **Custom Timeout:**
 ```bash
 # Set 5 minute timeout
-set QWEN_TIMEOUT=300
+set AI_TIMEOUT=300
 python orchestrator.py run_ralph_loop "Complex task"
 ```
 
@@ -97,8 +97,8 @@ Process all files in Needs_Action folder.
 
 **What it does:**
 1. Scans Needs_Action/ for .md files
-2. Sends each file to Qwen Code CLI
-3. Qwen processes and moves to Done/ when complete
+2. Sends each file to opencode Code CLI
+3. opencode processes and moves to Done/ when complete
 4. Creates drafts in Pending_Approval/ if needed
 
 **Usage:**
@@ -170,7 +170,7 @@ Run Ralph Wiggum persistent task loop.
 
 **What it does:**
 1. Creates task file in Needs_Action/
-2. Runs Qwen iteratively until complete
+2. Runs opencode iteratively until complete
 3. Moves to Done/ when finished
 4. Max 10 iterations
 
@@ -203,22 +203,22 @@ python orchestrator.py generate_briefing
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `QWEN_COMMAND` | `qwen` | Qwen CLI command |
-| `QWEN_TIMEOUT` | `180` | Timeout in seconds |
-| `QWEN_ARGS` | `-y` | Qwen arguments |
+| `AI_COMMAND` | `opencode` | opencode CLI command |
+| `AI_TIMEOUT` | `180` | Timeout in seconds |
+| `AI_ARGS` | `-y` | opencode arguments |
 
 ### Set Environment Variables
 
 **Windows:**
 ```bash
-set QWEN_COMMAND=qwen
-set QWEN_TIMEOUT=300
+set AI_COMMAND=opencode
+set AI_TIMEOUT=300
 ```
 
 **Mac/Linux:**
 ```bash
-export QWEN_COMMAND=qwen
-export QWEN_TIMEOUT=300
+export AI_COMMAND=opencode
+export AI_TIMEOUT=300
 ```
 
 ---
@@ -229,31 +229,31 @@ All watchers now use the Orchestrator pattern:
 
 ### Gmail Watcher
 ```python
-# Triggers Qwen via orchestrator
+# Triggers opencode via orchestrator
 python orchestrator.py process_email
 ```
 
 ### WhatsApp Watcher
 ```python
-# Triggers Qwen via orchestrator
+# Triggers opencode via orchestrator
 python orchestrator.py process_whatsapp
 ```
 
 ### Office Watcher
 ```python
-# Triggers Qwen via orchestrator
+# Triggers opencode via orchestrator
 python orchestrator.py process_needs_action
 ```
 
 ### Social Watcher
 ```python
-# Triggers Qwen via orchestrator
+# Triggers opencode via orchestrator
 python orchestrator.py process_social
 ```
 
 ### Odoo Lead Watcher
 ```python
-# Triggers Qwen via orchestrator
+# Triggers opencode via orchestrator
 python orchestrator.py process_odoo
 ```
 
@@ -267,8 +267,8 @@ python orchestrator.py process_odoo
 1. Gmail Watcher detects new email
 2. Creates EMAIL_*.md in Needs_Action/
 3. Triggers: python orchestrator.py process_email
-4. Orchestrator calls Qwen Code CLI
-5. Qwen drafts reply in Pending_Approval/
+4. Orchestrator calls opencode Code CLI
+5. opencode drafts reply in Pending_Approval/
 6. Human reviews and approves
 7. Email MCP sends email
 8. File moved to Done/
@@ -281,7 +281,7 @@ python orchestrator.py process_odoo
 2. Social Watcher detects
 3. Creates SOCIAL_*.md in Needs_Action/
 4. Triggers: python orchestrator.py process_social
-5. Qwen creates polished versions
+5. opencode creates polished versions
 6. Saves to Social_Drafts/Polished/
 7. Human approves
 8. Social MCP posts to platforms
@@ -291,30 +291,30 @@ python orchestrator.py process_odoo
 
 ## Troubleshooting
 
-### Error: "qwen: command not found"
+### Error: "opencode: command not found"
 
 **Solution:**
 ```bash
-npm install -g @anthropic/qwen
+npm install -g opencode
 ```
 
-### Error: "Qwen timeout"
+### Error: "opencode timeout"
 
 **Solution:**
 ```bash
 # Increase timeout
-set QWEN_TIMEOUT=600
+set AI_TIMEOUT=600
 python orchestrator.py run_ralph_loop "Complex task"
 ```
 
-### Error: "Qwen not responding"
+### Error: "opencode not responding"
 
 **Solution:**
-- Check Qwen installation: `qwen --version`
+- Check opencode installation: `opencode --version`
 - Check Node.js: `node --version`
-- Reinstall Qwen: `npm install -g @anthropic/qwen --force`
+- Reinstall opencode: `npm install -g opencode --force`
 
-### Qwen Output Cut Off
+### opencode Output Cut Off
 
 **Solution:**
 - Increase timeout
@@ -340,10 +340,10 @@ python orchestrator.py process_needs_action
 
 ```bash
 # Simple tasks
-set QWEN_TIMEOUT=120
+set AI_TIMEOUT=120
 
 # Complex tasks
-set QWEN_TIMEOUT=600
+set AI_TIMEOUT=600
 ```
 
 ### 3. Monitor Logs
@@ -366,13 +366,13 @@ python orchestrator.py run_ralph_loop "Complete the entire onboarding process"
 
 ```
 orchestrator.py              # Main orchestrator script
-â”œâ”€â”€ process_needs_action()   # Process all files
-â”œâ”€â”€ process_email()          # Process emails
-â”œâ”€â”€ process_whatsapp()       # Process WhatsApp
-â”œâ”€â”€ process_social()         # Process social
-â”œâ”€â”€ process_odoo()           # Process Odoo
-â”œâ”€â”€ run_ralph_loop()         # Ralph loop
-â””â”€â”€ generate_briefing()      # CEO briefing
+Gö£GöÇGöÇ process_needs_action()   # Process all files
+Gö£GöÇGöÇ process_email()          # Process emails
+Gö£GöÇGöÇ process_whatsapp()       # Process WhatsApp
+Gö£GöÇGöÇ process_social()         # Process social
+Gö£GöÇGöÇ process_odoo()           # Process Odoo
+Gö£GöÇGöÇ run_ralph_loop()         # Ralph loop
+GööGöÇGöÇ generate_briefing()      # CEO briefing
 ```
 
 ---
@@ -401,14 +401,14 @@ python orchestrator.py process_odoo
 python orchestrator.py generate_briefing
 ```
 
-### Test Qwen CLI Directly
+### Test opencode CLI Directly
 
 ```bash
 # Simple test
-qwen -y "What is 2 + 2?"
+opencode -y "What is 2 + 2?"
 
 # File test
-qwen -y "Read Dashboard.md and summarize"
+opencode -y "Read Dashboard.md and summarize"
 ```
 
 ---
@@ -430,22 +430,22 @@ qwen -y "Read Dashboard.md and summarize"
 
 After Orchestrator is working:
 
-1. âœ… Test all commands
-2. âœ… Integrate with watchers
-3. âœ… Setup scheduled runs
-4. âœ… Monitor performance
-5. âœ… Add error handling
+1. G£à Test all commands
+2. G£à Integrate with watchers
+3. G£à Setup scheduled runs
+4. G£à Monitor performance
+5. G£à Add error handling
 
 ---
 
 ## References
 
-- [Qwen CLI Documentation](https://docs.anthropic.com/claude-code/)
+- [opencode CLI Documentation](https://docs.anthropic.com/claude-code/)
 - [Orchestrator Pattern](https://en.wikipedia.org/wiki/Orchestration_(computing))
 - [AI Employee Hackathon](Personal%20AI%20Employee%20Hackathon%200_%20Building%20Autonomous%20FTEs%20in%202026.md)
 
 ---
 
-**Status:** âœ… **COMPLETE - Qwen Code CLI Integrated**
+**Status:** G£à **COMPLETE - opencode Code CLI Integrated**
 
 *Created: March 16, 2026*

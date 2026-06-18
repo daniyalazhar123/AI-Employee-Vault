@@ -1,7 +1,7 @@
 # Personal AI Employee — Hackathon Project
 
 **Hackathon:** Personal AI Employee Hackathon 0  
-**Stack:** Python 3.13+ / Obsidian / Claude Code / Docker  
+**Stack:** Python 3.13+ / Obsidian / OpenCode + DeepSeek V4 Flash / Docker  
 **Vault:** `D:\Desktop4\Obsidian Vault`  
 **Secrets:** `C:\Users\%USERNAME%\.ai_employee\secrets\`  
 **GitHub:** https://github.com/daniyalazhar123/AI-Employee-Vault
@@ -14,7 +14,7 @@
 |------|--------|---------|
 | 🥉 Bronze | ✅ Complete | Yes |
 | 🥈 Silver | ✅ Complete | Yes |
-| 🥇 Gold | ✅ Complete | June 10, 2026 |
+| 🥇 Gold | ✅ Complete (11/14 PASS) | June 18, 2026 |
 | 💎 Platinum | ❌ Not Started | — |
 
 ---
@@ -182,4 +182,4 @@ https://github.com/daniyalazhar123/AI-Employee-Vault
 
 ---
 
-*Last updated: June 10, 2026 — Gold Tier Verified*
+*Last updated: June 18, 2026 — Gold Tier 11/14 PASS*

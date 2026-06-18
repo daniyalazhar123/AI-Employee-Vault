@@ -22,7 +22,7 @@ Automate email processing and reply drafting for AI Employee.
 
 - Gmail API credentials configured
 - Gmail Watcher running
-- Qwen Code CLI installed
+- opencode Code CLI installed
 
 ## Quick Start
 
@@ -35,7 +35,7 @@ python orchestrator.py process_email
 ### Process Specific Email
 
 ```bash
-qwen -y "Read EMAIL_[filename].md in Needs_Action folder and draft reply"
+opencode -y "Read EMAIL_[filename].md in Needs_Action folder and draft reply"
 ```
 
 ## Workflow
@@ -46,7 +46,7 @@ qwen -y "Read EMAIL_[filename].md in Needs_Action folder and draft reply"
 # Gmail Watcher automatically:
 # - Checks unread emails every 2 minutes
 # - Creates action file in Needs_Action/
-# - Triggers Qwen for reply drafting
+# - Triggers opencode for reply drafting
 ```
 
 ### 2. Action File Created
@@ -71,10 +71,10 @@ status: pending
 - [ ] Archive after processing
 ```
 
-### 3. Qwen Drafts Reply
+### 3. opencode Drafts Reply
 
 ```bash
-qwen -y "Draft professional reply following Company_Handbook rules"
+opencode -y "Draft professional reply following Company_Handbook rules"
 ```
 
 ### 4. Reply Saved to Pending_Approval
@@ -125,7 +125,7 @@ python watchers/gmail_watcher.py
 cat Needs_Action/EMAIL_*.md
 
 # Draft reply
-qwen -y "Read Needs_Action/EMAIL_*.md and draft reply"
+opencode -y "Read Needs_Action/EMAIL_*.md and draft reply"
 
 # Send via MCP
 @email send_email --to client@example.com --subject "Re: Meeting" --body "..."
@@ -169,12 +169,12 @@ Follow guidelines in `Company_Handbook.md`:
 # - Network errors (retry with delay)
 ```
 
-### Qwen Errors
+### opencode Errors
 
 ```bash
-# If Qwen fails:
+# If opencode fails:
 # 1. Check action file exists
-# 2. Verify Qwen CLI: qwen --version
+# 2. Verify opencode CLI: opencode --version
 # 3. Retry with simpler prompt
 ```
 
@@ -222,7 +222,7 @@ ls Pending_Approval/REPLY_*.md
 | Issue | Solution |
 |-------|----------|
 | No new emails detected | Check Gmail credentials, verify token.pickle |
-| Reply not drafted | Check Qwen CLI: `qwen --version` |
+| Reply not drafted | Check opencode CLI: `opencode --version` |
 | Gmail API error | Re-authenticate: `cd mcp-email && node authenticate.js` |
 | Action file not created | Check watcher is running |
 
@@ -245,11 +245,11 @@ ls Pending_Approval/REPLY_*.md
 
 ```
 .clade/skills/email-processor/
-â”œâ”€â”€ SKILL.md          # This file
-â””â”€â”€ email_processor.py  # Implementation (optional)
+Gö£GöÇGöÇ SKILL.md          # This file
+GööGöÇGöÇ email_processor.py  # Implementation (optional)
 ```
 
 ---
 
-**Status:** âœ… **COMPLETE - Silver Tier**
+**Status:** G£à **COMPLETE - Silver Tier**
 **Last Updated:** March 16, 2026

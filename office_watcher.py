@@ -140,14 +140,14 @@ Read this file, summarize content, make it professional if needed, and update Da
             self.log_error(f"Unexpected error: {e}", exc=e)
             return None
     
-    def trigger_qwen(self, action_file: Path) -> bool:
-        """Trigger Qwen CLI to process file."""
+    def trigger_ai_engine(self, action_file: Path) -> bool:
+        """Trigger AI engine to process file."""
         prompt = (
             f"Process Needs_Action folder and handle the latest OFFICE file: {action_file.name}. "
             f"Read the file, summarize content, and update Dashboard.md if relevant."
         )
         
-        return self.trigger_qwen(prompt)
+        return self.trigger_ai_engine(prompt)
     
     def process_new_file(self, file_path: Path):
         """
@@ -167,8 +167,8 @@ Read this file, summarize content, make it professional if needed, and update Da
             action_file = self.create_action_file(file_path)
             
             if action_file:
-                # Trigger Qwen
-                self.trigger_qwen(action_file)
+                # Trigger AI engine
+                self.trigger_ai_engine(action_file)
                 
                 # Mark as processed
                 self.processed_files.add(file_path.name)

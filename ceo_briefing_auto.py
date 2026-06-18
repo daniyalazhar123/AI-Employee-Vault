@@ -35,7 +35,7 @@ def generate_briefing():
     goals_file = VAULT / 'Business_Goals.md'
     goals_content = goals_file.read_text(encoding='utf-8', errors='replace')[:500] if goals_file.exists() else 'No goals defined'
     
-    briefing = f"""# Monday Morning CEO Briefing
+    briefing = f"""# {now.strftime('%A')} Morning CEO Briefing
 **Generated:** {now.strftime('%Y-%m-%d %H:%M')}
 **Period:** Weekly Autonomous Report
 

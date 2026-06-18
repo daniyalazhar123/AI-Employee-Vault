@@ -276,41 +276,40 @@ class BaseWatcher:
         self.log_info(f"Uptime: {self.get_uptime()}")
         self.log_info("=" * width)
 
-    def trigger_qwen(self, prompt: str, timeout: int = 120) -> bool:
+    def trigger_ai_engine(self, prompt: str, timeout: int = 120) -> bool:
         """
-        Trigger Qwen CLI with a prompt.
+        Trigger AI engine (OpenCode + DeepSeek V4 Flash) with a prompt.
         
-        This is a common method for all watchers to trigger Qwen.
-        Handles missing Qwen CLI gracefully.
+        This is a common method for all watchers to trigger the AI engine.
+        Handles missing AI engine gracefully.
         
         Args:
-            prompt: Prompt to send to Qwen
+            prompt: Prompt to send to the AI engine
             timeout: Timeout in seconds (default: 120)
             
         Returns:
-            True if Qwen executed successfully, False otherwise
+            True if AI engine executed successfully, False otherwise
         """
         import subprocess
         
         try:
-            # First check if qwen command exists
+            # First check if opencode command exists
             try:
                 subprocess.run(
-                    ['qwen', '--version'],
+                    ['opencode', '--version'],
                     capture_output=True,
                     timeout=5,
                     check=True
                 )
             except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
                 self.log_warning(
-                    "Qwen CLI not found in PATH. Action files created for manual processing. "
-                    "Install Qwen CLI with: npm install -g @anthropic/qwen"
+                    "AI engine not found in PATH. Action files created for manual processing."
                 )
                 return False
 
-            # Run Qwen with the prompt
+            # Run AI engine with the prompt
             result = subprocess.run(
-                ['qwen', '-y', prompt],
+                ['opencode', '-y', prompt],
                 capture_output=True,
                 text=True,
                 encoding='utf-8',
@@ -319,20 +318,20 @@ class BaseWatcher:
                 timeout=timeout
             )
 
-            self.log_info("Qwen processing completed")
+            self.log_info("AI engine processing completed")
 
             if result.stdout:
-                self.log_info(f"Qwen output: {result.stdout.strip()[:200]}...")
+                self.log_info(f"AI engine output: {result.stdout.strip()[:200]}...")
             if result.stderr:
-                self.log_warning(f"Qwen stderr: {result.stderr.strip()[:200]}...")
+                self.log_warning(f"AI engine stderr: {result.stderr.strip()[:200]}...")
 
             return result.returncode == 0
 
         except subprocess.TimeoutExpired:
-            self.log_warning(f"Qwen timeout ({timeout}s). Action file remains for manual processing.")
+            self.log_warning(f"AI engine timeout ({timeout}s). Action file remains for manual processing.")
             return False
         except Exception as e:
-            self.log_error(f"Failed to trigger Qwen: {e}", exc=e)
+            self.log_error(f"Failed to trigger AI engine: {e}", exc=e)
             return False
 
 

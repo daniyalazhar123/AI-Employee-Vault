@@ -120,8 +120,8 @@ add 3-5 relevant hashtags, and save the polished post in Social_Drafts/Polished.
             self.log_error(f"Unexpected error: {e}", exc=e)
             return None
     
-    def trigger_qwen(self, action_file: Path, original_file: Path) -> bool:
-        """Trigger Qwen CLI to polish social post."""
+    def trigger_ai_engine(self, action_file: Path, original_file: Path) -> bool:
+        """Trigger AI engine to polish social post."""
         polished_name = f"POLISHED_{original_file.stem}.md"
         
         prompt = (
@@ -130,7 +130,7 @@ add 3-5 relevant hashtags, and save the polished post in Social_Drafts/Polished.
             f"Save the polished post in Social_Drafts/Polished folder as {polished_name}"
         )
         
-        return self.trigger_qwen(prompt)
+        return self.trigger_ai_engine(prompt)
     
     def process_draft(self, file_path: Path):
         """
@@ -151,8 +151,8 @@ add 3-5 relevant hashtags, and save the polished post in Social_Drafts/Polished.
             action_file = self.create_action_file(file_path)
             
             if action_file:
-                # Trigger Qwen
-                self.trigger_qwen(action_file, file_path)
+                # Trigger AI engine
+                self.trigger_ai_engine(action_file, file_path)
                 
                 # Mark as processed
                 self.processed_drafts.add(file_path.name)

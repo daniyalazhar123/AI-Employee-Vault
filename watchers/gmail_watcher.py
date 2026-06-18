@@ -225,15 +225,15 @@ created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             self.log_error(f"Failed to create action file: {e}", exc=e)
             return None
 
-    def trigger_qwen(self, action_file: Path) -> bool:
-        """Trigger Qwen CLI to process email."""
+    def trigger_ai_engine(self, action_file: Path) -> bool:
+        """Trigger AI engine to process email."""
         prompt = (
             f"Read the email action file: {action_file.name} in Needs_Action folder. "
             f"Draft a professional reply following Company_Handbook rules. "
             f"Save the reply draft in Pending_Approval folder as REPLY_{action_file.stem}.md"
         )
         
-        return self.trigger_qwen(prompt)
+        return self.trigger_ai_engine(prompt)
 
     def mark_as_read(self, message_id: str) -> bool:
         def _mark():
@@ -287,7 +287,7 @@ created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
                             action_file = self.create_action_file(email_data)
                             if action_file:
-                                self.trigger_qwen(action_file)
+                                self.trigger_ai_engine(action_file)
                                 # self.mark_as_read(email_id)  # Uncomment agar read karna ho
                                 self.processed_ids.add(email_id)
 

@@ -36,7 +36,7 @@ Task: Read this file, turn it into a professional version (LinkedIn/FB/IG/X styl
 
         try:
             result = subprocess.run(
-                ["qwen", "-y", f"Read the social draft action file: {action_file.name} in Needs_Action folder. Turn it into a professional version with 3-5 hashtags. Save the polished post in Social_Drafts/Polished folder as POLISHED_{file_path.stem}.md"],
+                ['opencode', '-y', f"Read the social draft action file: {action_file.name} in Needs_Action folder. Turn it into a professional version with 3-5 hashtags. Save the polished post in Social_Drafts/Polished folder as POLISHED_{file_path.stem}.md"],
                 check=False,
                 capture_output=True,
                 text=True,
@@ -46,11 +46,11 @@ Task: Read this file, turn it into a professional version (LinkedIn/FB/IG/X styl
                 shell=True,
                 timeout=120
             )
-            print("Qwen triggered for social post")
-            print("Qwen output:", result.stdout.strip())
-            print("Qwen error (if any):", result.stderr.strip())
+            print("AI engine triggered for social post")
+            print("AI engine output:", result.stdout.strip())
+            print("AI engine error (if any):", result.stderr.strip())
         except Exception as e:
-            print(f"Qwen error: {e}")
+            print(f"AI engine error: {e}")
 
 if __name__ == "__main__":
     if not SOCIAL_FOLDER.exists():

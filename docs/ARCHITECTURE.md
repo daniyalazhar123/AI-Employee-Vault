@@ -2,12 +2,12 @@
 
 **Version:** 1.0.0  
 **Tier:** Gold Tier - Personal AI Employee Hackathon 0  
-**Primary Engine:** Qwen CLI v0.12.6  
+**Primary Engine:** opencode CLI v0.12.6  
 **Last Updated:** March 22, 2026
 
 ---
 
-## ðŸ“‹ Table of Contents
+## =ƒôï Table of Contents
 
 1. [System Overview](#system-overview)
 2. [Architecture Diagram](#architecture-diagram)
@@ -18,7 +18,7 @@
 7. [Extension Guide](#extension-guide)
 8. [Troubleshooting](#troubleshooting)
 9. [Performance Considerations](#performance-considerations)
-10. [Qwen CLI Integration](#qwen-cli-integration)
+10. [opencode CLI Integration](#opencode-cli-integration)
 
 ---
 
@@ -39,7 +39,7 @@ The AI Employee Vault is an autonomous automation system that manages business c
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | **Perception** | Python Watchers | Detect changes in external sources |
-| **Reasoning** | Qwen CLI v0.12.6 | Analyze, plan, decide |
+| **Reasoning** | opencode CLI v0.12.6 | Analyze, plan, decide |
 | **Action** | MCP Servers | Execute tasks (email, browser, Odoo) |
 | **Memory** | Obsidian Vault | Persistent Markdown storage |
 | **GUI** | Obsidian App | Human-readable dashboard |
@@ -51,127 +51,127 @@ The AI Employee Vault is an autonomous automation system that manages business c
 ### High-Level System View
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                           EXTERNAL SOURCES                                   â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”     â”‚
-â”‚  â”‚  Gmail   â”‚  â”‚ WhatsApp â”‚  â”‚  Odoo    â”‚  â”‚ Social   â”‚  â”‚  Office  â”‚     â”‚
-â”‚  â”‚  Inbox   â”‚  â”‚  Web     â”‚  â”‚  CRM     â”‚  â”‚  Media   â”‚  â”‚  Files   â”‚     â”‚
-â”‚  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜     â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-        â”‚            â”‚            â”‚            â”‚            â”‚
-        â–¼            â–¼            â–¼            â–¼            â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                        WATCHERS (Perception Layer)                           â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
-â”‚  â”‚    Gmail     â”‚  â”‚   WhatsApp   â”‚  â”‚     Odoo     â”‚  â”‚    Social    â”‚   â”‚
-â”‚  â”‚   Watcher    â”‚  â”‚   Watcher    â”‚  â”‚   Watcher    â”‚  â”‚   Watcher    â”‚   â”‚
-â”‚  â”‚  (2 min)     â”‚  â”‚  (30 sec)    â”‚  â”‚  (5 min)     â”‚  â”‚  (60 sec)    â”‚   â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
-â”‚         â”‚                 â”‚                 â”‚                 â”‚            â”‚
-â”‚         â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜            â”‚
-â”‚                          â”‚                 â”‚                              â”‚
-â”‚                          â–¼                 â–¼                              â”‚
-â”‚               â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”                    â”‚
-â”‚               â”‚     office_watcher.py (1 sec)        â”‚                    â”‚
-â”‚               â”‚     File system monitoring           â”‚                    â”‚
-â”‚               â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜                    â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                          â”‚
-                          â”‚ Create Action Files
-                          â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                      OBSIDIAN VAULT (Memory / GUI)                           â”‚
-â”‚                                                                              â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”    â”‚
-â”‚  â”‚  Needs_Action/                                                      â”‚    â”‚
-â”‚  â”‚  â”œâ”€â”€ EMAIL_20260322_143022.md  â† New email detected                â”‚    â”‚
-â”‚  â”‚  â”œâ”€â”€ WHATSAPP_20260322_144511.md â† WhatsApp message               â”‚    â”‚
-â”‚  â”‚  â””â”€â”€ ODOO_LEAD_20260322_150000.md â† New CRM lead                  â”‚    â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜    â”‚
-â”‚                          â”‚                                                  â”‚
-â”‚                          â–¼ (processed by Qwen CLI)                         â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”    â”‚
-â”‚  â”‚  Pending_Approval/                                                  â”‚    â”‚
-â”‚  â”‚  â”œâ”€â”€ REPLY_EMAIL_20260322_143022.md  â† Draft reply ready          â”‚    â”‚
-â”‚  â”‚  â”œâ”€â”€ POST_LINKEDIN_20260322_160000.md â† Social post draft        â”‚    â”‚
-â”‚  â”‚  â””â”€â”€ TASK_20260322_170000.md â† Task approval request              â”‚    â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜    â”‚
-â”‚                          â”‚                                                  â”‚
-â”‚                          â–¼ (after human approval)                          â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”    â”‚
-â”‚  â”‚  Approved/  â†’  Done/                                                â”‚    â”‚
-â”‚  â”‚  (Ready for execution)        (Completed + audit log)              â”‚    â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜    â”‚
-â”‚                                                                              â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                          â”‚
-                          â”‚ Trigger MCP Actions
-                          â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                        MCP SERVERS (Action Layer)                            â”‚
-â”‚                                                                              â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
-â”‚  â”‚  mcp-email   â”‚  â”‚ mcp-browser  â”‚  â”‚  mcp-odoo    â”‚  â”‚ mcp-social   â”‚   â”‚
-â”‚  â”‚              â”‚  â”‚              â”‚  â”‚              â”‚  â”‚              â”‚   â”‚
-â”‚  â”‚ â€¢ send_email â”‚  â”‚ â€¢ navigate   â”‚  â”‚ â€¢ create_    â”‚  â”‚ â€¢ post_      â”‚   â”‚
-â”‚  â”‚ â€¢ draft_emailâ”‚  â”‚ â€¢ click      â”‚  â”‚   invoice    â”‚  â”‚   linkedin   â”‚   â”‚
-â”‚  â”‚ â€¢ list_emailsâ”‚  â”‚ â€¢ type       â”‚  â”‚ â€¢ read_      â”‚  â”‚ â€¢ post_      â”‚   â”‚
-â”‚  â”‚              â”‚  â”‚ â€¢ screenshot â”‚  â”‚   accounting â”‚  â”‚   twitter    â”‚   â”‚
-â”‚  â”‚              â”‚  â”‚ â€¢ form_fill  â”‚  â”‚ â€¢ list_      â”‚  â”‚ â€¢ generate_  â”‚   â”‚
-â”‚  â”‚              â”‚  â”‚              â”‚  â”‚   partners   â”‚  â”‚   summary    â”‚   â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-          â”‚                 â”‚                 â”‚                 â”‚
-          â–¼                 â–¼                 â–¼                 â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                           EXTERNAL ACTIONS                                   â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”                    â”‚
-â”‚  â”‚  Email   â”‚  â”‚  Browser â”‚  â”‚   Odoo   â”‚  â”‚  Social  â”‚                    â”‚
-â”‚  â”‚  Sent    â”‚  â”‚  Actions â”‚  â”‚  Updated â”‚  â”‚  Posted  â”‚                    â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜                    â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                          â”‚
-                          â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                        RALPH LOOP (Persistence)                              â”‚
-â”‚  â€¢ Tracks multi-step task completion                                        â”‚
-â”‚  â€¢ Ensures no task is left incomplete                                       â”‚
-â”‚  â€¢ Recovers from crashes/errors                                             â”‚
-â”‚  â€¢ Maintains task state across restarts                                     â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé                           EXTERNAL SOURCES                                   Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ     Göé
+Göé  Göé  Gmail   Göé  Göé WhatsApp Göé  Göé  Odoo    Göé  Göé Social   Göé  Göé  Office  Göé     Göé
+Göé  Göé  Inbox   Göé  Göé  Web     Göé  Göé  CRM     Göé  Göé  Media   Göé  Göé  Files   Göé     Göé
+Göé  GööGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÿ     Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö+GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö+GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö+GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö+GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö+GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+        Göé            Göé            Göé            Göé            Göé
+        Gû+            Gû+            Gû+            Gû+            Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé                        WATCHERS (Perception Layer)                           Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ   Göé
+Göé  Göé    Gmail     Göé  Göé   WhatsApp   Göé  Göé     Odoo     Göé  Göé    Social    Göé   Göé
+Göé  Göé   Watcher    Göé  Göé   Watcher    Göé  Göé   Watcher    Göé  Göé   Watcher    Göé   Göé
+Göé  Göé  (2 min)     Göé  Göé  (30 sec)    Göé  Göé  (5 min)     Göé  Göé  (60 sec)    Göé   Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ   Göé
+Göé         Göé                 Göé                 Göé                 Göé            Göé
+Göé         GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö¼Gö¦GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö¼Gö¦GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ            Göé
+Göé                          Göé                 Göé                              Göé
+Göé                          Gû+                 Gû+                              Göé
+Göé               GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ                    Göé
+Göé               Göé     office_watcher.py (1 sec)        Göé                    Göé
+Göé               Göé     File system monitoring           Göé                    Göé
+Göé               GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ                    Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+                          Göé
+                          Göé Create Action Files
+                          Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé                      OBSIDIAN VAULT (Memory / GUI)                           Göé
+Göé                                                                              Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ    Göé
+Göé  Göé  Needs_Action/                                                      Göé    Göé
+Göé  Göé  Gö£GöÇGöÇ EMAIL_20260322_143022.md  GåÉ New email detected                Göé    Göé
+Göé  Göé  Gö£GöÇGöÇ WHATSAPP_20260322_144511.md GåÉ WhatsApp message               Göé    Göé
+Göé  Göé  GööGöÇGöÇ ODOO_LEAD_20260322_150000.md GåÉ New CRM lead                  Göé    Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ    Göé
+Göé                          Göé                                                  Göé
+Göé                          Gû+ (processed by opencode CLI)                         Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ    Göé
+Göé  Göé  Pending_Approval/                                                  Göé    Göé
+Göé  Göé  Gö£GöÇGöÇ REPLY_EMAIL_20260322_143022.md  GåÉ Draft reply ready          Göé    Göé
+Göé  Göé  Gö£GöÇGöÇ POST_LINKEDIN_20260322_160000.md GåÉ Social post draft        Göé    Göé
+Göé  Göé  GööGöÇGöÇ TASK_20260322_170000.md GåÉ Task approval request              Göé    Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ    Göé
+Göé                          Göé                                                  Göé
+Göé                          Gû+ (after human approval)                          Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ    Göé
+Göé  Göé  Approved/  GåÆ  Done/                                                Göé    Göé
+Göé  Göé  (Ready for execution)        (Completed + audit log)              Göé    Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ    Göé
+Göé                                                                              Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+                          Göé
+                          Göé Trigger MCP Actions
+                          Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé                        MCP SERVERS (Action Layer)                            Göé
+Göé                                                                              Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ   Göé
+Göé  Göé  mcp-email   Göé  Göé mcp-browser  Göé  Göé  mcp-odoo    Göé  Göé mcp-social   Göé   Göé
+Göé  Göé              Göé  Göé              Göé  Göé              Göé  Göé              Göé   Göé
+Göé  Göé GÇó send_email Göé  Göé GÇó navigate   Göé  Göé GÇó create_    Göé  Göé GÇó post_      Göé   Göé
+Göé  Göé GÇó draft_emailGöé  Göé GÇó click      Göé  Göé   invoice    Göé  Göé   linkedin   Göé   Göé
+Göé  Göé GÇó list_emailsGöé  Göé GÇó type       Göé  Göé GÇó read_      Göé  Göé GÇó post_      Göé   Göé
+Göé  Göé              Göé  Göé GÇó screenshot Göé  Göé   accounting Göé  Göé   twitter    Göé   Göé
+Göé  Göé              Göé  Göé GÇó form_fill  Göé  Göé GÇó list_      Göé  Göé GÇó generate_  Göé   Göé
+Göé  Göé              Göé  Göé              Göé  Göé   partners   Göé  Göé   summary    Göé   Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ   Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö+GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö+GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö+GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGö+GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+          Göé                 Göé                 Göé                 Göé
+          Gû+                 Gû+                 Gû+                 Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé                           EXTERNAL ACTIONS                                   Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ                    Göé
+Göé  Göé  Email   Göé  Göé  Browser Göé  Göé   Odoo   Göé  Göé  Social  Göé                    Göé
+Göé  Göé  Sent    Göé  Göé  Actions Göé  Göé  Updated Göé  Göé  Posted  Göé                    Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ                    Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+                          Göé
+                          Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé                        RALPH LOOP (Persistence)                              Göé
+Göé  GÇó Tracks multi-step task completion                                        Göé
+Göé  GÇó Ensures no task is left incomplete                                       Göé
+Göé  GÇó Recovers from crashes/errors                                             Göé
+Göé  GÇó Maintains task state across restarts                                     Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
 ```
 
 ### Component Interaction Flow
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚   WATCHER   â”‚  Detects new email
-â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜
-       â”‚ 1. Creates: Needs_Action/EMAIL_*.md
-       â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚  OBSIDIAN   â”‚  Markdown file stored
-â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜
-       â”‚ 2. Qwen CLI reads file
-       â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚  QWEN CLI   â”‚  Analyzes content, drafts reply
-â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜
-       â”‚ 3. Creates: Pending_Approval/REPLY_EMAIL_*.md
-       â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚   HUMAN     â”‚  Reviews and approves
-â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜
-       â”‚ 4. Moves file to Approved/
-       â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚   MCP       â”‚  Executes action (sends email)
-â””â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜
-       â”‚ 5. Moves file to Done/
-       â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚   AUDIT     â”‚  Logs action to Logs/Audit/
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé   WATCHER   Göé  Detects new email
+GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+       Göé 1. Creates: Needs_Action/EMAIL_*.md
+       Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé  OBSIDIAN   Göé  Markdown file stored
+GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+       Göé 2. opencode CLI reads file
+       Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé  opencode CLI   Göé  Analyzes content, drafts reply
+GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+       Göé 3. Creates: Pending_Approval/REPLY_EMAIL_*.md
+       Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé   HUMAN     Göé  Reviews and approves
+GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+       Göé 4. Moves file to Approved/
+       Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé   MCP       Göé  Executes action (sends email)
+GööGöÇGöÇGöÇGöÇGöÇGöÇGö¼GöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+       Göé 5. Moves file to Done/
+       Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé   AUDIT     Göé  Logs action to Logs/Audit/
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
 ```
 
 ---
@@ -208,7 +208,7 @@ class BaseWatcher:
         pass
 ```
 
-### 2. Qwen CLI (Brain)
+### 2. opencode CLI (Brain)
 
 **Purpose:** Reasoning engine that analyzes action files and plans responses.
 
@@ -221,17 +221,17 @@ class BaseWatcher:
 
 **Commands:**
 ```bash
-# Start Qwen CLI
-qwen --cwd "D:\Desktop4\Obsidian Vault"
+# Start opencode CLI
+opencode --cwd "D:\Desktop4\Obsidian Vault"
 
 # Process action file
-qwen -y "Read Needs_Action/EMAIL_*.md and draft reply"
+opencode -y "Read Needs_Action/EMAIL_*.md and draft reply"
 
 # Check status
-qwen -y "Show me pending approvals"
+opencode -y "Show me pending approvals"
 ```
 
-See `QWEN_CLI_GUIDE.md` for complete reference.
+See `AI_ENGINE_GUIDE.md` for complete reference.
 
 ### 3. MCP Servers (Hands)
 
@@ -246,7 +246,7 @@ See `QWEN_CLI_GUIDE.md` for complete reference.
 
 **MCP Protocol:**
 - JSON-RPC 2.0 over stdio
-- Compatible with Qwen CLI tool calling
+- Compatible with opencode CLI tool calling
 - Structured responses with error handling
 
 ### 4. Obsidian Vault (Memory)
@@ -257,15 +257,15 @@ See `QWEN_CLI_GUIDE.md` for complete reference.
 
 ```
 Obsidian Vault/
-â”œâ”€â”€ Needs_Action/       # New items requiring attention
-â”œâ”€â”€ Pending_Approval/   # Awaiting human approval
-â”œâ”€â”€ Approved/           # Approved and ready for execution
-â”œâ”€â”€ Done/               # Completed tasks
-â”œâ”€â”€ Logs/
-â”‚   â””â”€â”€ Audit/          # Audit trail (JSONL format)
-â”œâ”€â”€ Briefings/          # CEO weekly briefings
-â”œâ”€â”€ Social_Drafts/      # Social media drafts
-â””â”€â”€ config/             # Configuration (credentials excluded)
+Gö£GöÇGöÇ Needs_Action/       # New items requiring attention
+Gö£GöÇGöÇ Pending_Approval/   # Awaiting human approval
+Gö£GöÇGöÇ Approved/           # Approved and ready for execution
+Gö£GöÇGöÇ Done/               # Completed tasks
+Gö£GöÇGöÇ Logs/
+Göé   GööGöÇGöÇ Audit/          # Audit trail (JSONL format)
+Gö£GöÇGöÇ Briefings/          # CEO weekly briefings
+Gö£GöÇGöÇ Social_Drafts/      # Social media drafts
+GööGöÇGöÇ config/             # Configuration (credentials excluded)
 ```
 
 **File Naming Convention:**
@@ -289,12 +289,12 @@ Obsidian Vault/
 
 ## Data Flow
 
-### Example: WhatsApp Message â†’ Approved Email
+### Example: WhatsApp Message GåÆ Approved Email
 
 **Step 1: Message Received**
 
 ```
-WhatsApp Server â†’ WhatsApp Web â†’ whatsapp_watcher.py detects message
+WhatsApp Server GåÆ WhatsApp Web GåÆ whatsapp_watcher.py detects message
 ```
 
 **Step 2: Action File Created**
@@ -314,13 +314,13 @@ Intent: Invoice request
 Urgency: High
 ```
 
-**Step 3: Qwen CLI Processes**
+**Step 3: opencode CLI Processes**
 
 ```bash
-qwen -y "Read WHATSAPP_*.md and determine appropriate action"
+opencode -y "Read WHATSAPP_*.md and determine appropriate action"
 ```
 
-**Qwen Analysis:**
+**opencode Analysis:**
 - Intent: Client wants invoice
 - Action needed: Create invoice in Odoo, email to client
 - Information required: Client ID, invoice details
@@ -359,7 +359,7 @@ INSTRUCTIONS: Move to Approved/ to proceed, Rejected/ to cancel
 
 ```bash
 # User reviews in Obsidian
-# Moves file: Pending_Approval/ â†’ Approved/
+# Moves file: Pending_Approval/ GåÆ Approved/
 ```
 
 **Step 6: MCP Executes**
@@ -380,7 +380,7 @@ mcp-email.send_email(
 **Step 7: Completion**
 
 ```
-File moved: Approved/ â†’ Done/
+File moved: Approved/ GåÆ Done/
 Audit log entry created: Logs/Audit/2026-03-22.jsonl
 Dashboard updated: Dashboard.md
 ```
@@ -392,23 +392,23 @@ Dashboard updated: Dashboard.md
 ### Credential Isolation
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                    OBSIDIAN VAULT                            â”‚
-â”‚  (NO CREDENTIALS STORED HERE)                                â”‚
-â”‚                                                              â”‚
-â”‚  â”œâ”€â”€ Needs_Action/                                           â”‚
-â”‚  â”œâ”€â”€ Pending_Approval/                                       â”‚
-â”‚  â””â”€â”€ Done/                                                   â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé                    OBSIDIAN VAULT                            Göé
+Göé  (NO CREDENTIALS STORED HERE)                                Göé
+Göé                                                              Göé
+Göé  Gö£GöÇGöÇ Needs_Action/                                           Göé
+Göé  Gö£GöÇGöÇ Pending_Approval/                                       Göé
+Göé  GööGöÇGöÇ Done/                                                   Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
 
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                    CREDENTIAL STORAGE                        â”‚
-â”‚  (EXCLUDED FROM GIT, ENCRYPTED)                              â”‚
-â”‚                                                              â”‚
-â”‚  â”œâ”€â”€ .env.local          â† Environment variables            â”‚
-â”‚  â”œâ”€â”€ config/credentials.json â† OAuth credentials           â”‚
-â”‚  â””â”€â”€ mcp-email/token.json â† Gmail API token               â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé                    CREDENTIAL STORAGE                        Göé
+Göé  (EXCLUDED FROM GIT, ENCRYPTED)                              Göé
+Göé                                                              Göé
+Göé  Gö£GöÇGöÇ .env.local          GåÉ Environment variables            Göé
+Göé  Gö£GöÇGöÇ config/credentials.json GåÉ OAuth credentials           Göé
+Göé  GööGöÇGöÇ mcp-email/token.json GåÉ Gmail API token               Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
 ```
 
 ### Security Rules
@@ -449,7 +449,7 @@ whatsapp_session/
 Nothing sends without explicit approval:
 
 ```
-AI Drafts â†’ Human Reviews â†’ Human Approves â†’ AI Executes
+AI Drafts GåÆ Human Reviews GåÆ Human Approves GåÆ AI Executes
 ```
 
 **Approval Commands:**
@@ -458,10 +458,10 @@ AI Drafts â†’ Human Reviews â†’ Human Approves â†’ AI Executes
 |---------|--------|
 | `Haan, bhej do` | Send immediately |
 | `Yes, send it` | Send immediately |
-| `Ù†Ø¹Ù…ØŒ Ø£Ø±Ø³Ù„Ù‡` | Send immediately |
+| `+å+¦+à+î +ú+¦+¦+ä+ç` | Send immediately |
 | `Nahi, revise karo` | Redraft |
 | `No, revise it` | Redraft |
-| `Ù„Ø§ØŒ Ø±Ø§Ø¬Ø¹Ù‡` | Redraft |
+| `+ä+º+î +¦+º+¼+¦+ç` | Redraft |
 | `Edit karna hai` | I want to edit |
 | `I want to edit` | I want to edit |
 
@@ -473,18 +473,18 @@ AI Drafts â†’ Human Reviews â†’ Human Approves â†’ AI Executes
 
 **Architecture:**
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚         YOUR LOCAL MACHINE           â”‚
-â”‚                                      â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚  â”‚  Watchers + Qwen CLI + MCPs    â”‚ â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â”‚              â”‚                       â”‚
-â”‚              â–¼                       â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚  â”‚      Obsidian Vault            â”‚ â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé         YOUR LOCAL MACHINE           Göé
+Göé                                      Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ Göé
+Göé  Göé  Watchers + opencode CLI + MCPs    Göé Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ Göé
+Göé              Göé                       Göé
+Göé              Gû+                       Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ Göé
+Göé  Göé      Obsidian Vault            Göé Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
 ```
 
 **Pros:**
@@ -500,31 +500,31 @@ AI Drafts â†’ Human Reviews â†’ Human Approves â†’ AI Executes
 
 **Architecture:**
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚           CLOUD VM (AWS/Azure)       â”‚
-â”‚                                      â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚  â”‚  Cloud Agent + Watchers        â”‚ â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â”‚              â”‚                       â”‚
-â”‚              â”‚ Sync via encrypted    â”‚
-â”‚              â–¼ channel               â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚  â”‚      Local Obsidian Vault      â”‚ â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â”‚              â”‚                       â”‚
-â”‚              â–¼                       â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-         â”‚
-         â”‚ Local Qwen CLI + MCPs
-         â–¼
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚         YOUR LOCAL MACHINE           â”‚
-â”‚                                      â”‚
-â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
-â”‚  â”‚  Qwen CLI + MCP Servers        â”‚ â”‚
-â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé           CLOUD VM (AWS/Azure)       Göé
+Göé                                      Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ Göé
+Göé  Göé  Cloud Agent + Watchers        Göé Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ Göé
+Göé              Göé                       Göé
+Göé              Göé Sync via encrypted    Göé
+Göé              Gû+ channel               Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ Göé
+Göé  Göé      Local Obsidian Vault      Göé Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ Göé
+Göé              Göé                       Göé
+Göé              Gû+                       Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
+         Göé
+         Göé Local opencode CLI + MCPs
+         Gû+
+GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ
+Göé         YOUR LOCAL MACHINE           Göé
+Göé                                      Göé
+Göé  GöîGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÉ Göé
+Göé  Göé  opencode CLI + MCP Servers        Göé Göé
+Göé  GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ Göé
+GööGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÿ
 ```
 
 **Pros:**
@@ -671,18 +671,18 @@ type Logs\orchestrator.log
 python watchers/gmail_watcher.py --verbose
 ```
 
-#### Issue 2: Qwen CLI Not Found
+#### Issue 2: opencode CLI Not Found
 
 **Symptoms:**
-- `qwen: command not found`
+- `opencode: command not found`
 
 **Solutions:**
 ```bash
-# Install Qwen CLI
-npm install -g @anthropic/qwen
+# Install opencode CLI
+npm install -g opencode
 
 # Verify installation
-qwen --version
+opencode --version
 
 # Check PATH
 echo %PATH%
@@ -773,7 +773,7 @@ python -c "import os; print(os.getenv('GMAIL_CLIENT_ID', 'Not set'))"
 
 **Typical Memory:**
 - Watchers: 50-100 MB total
-- Qwen CLI: 200-500 MB
+- opencode CLI: 200-500 MB
 - MCP Servers: 100-200 MB
 - **Total:** 350-800 MB
 
@@ -784,38 +784,38 @@ python -c "import os; print(os.getenv('GMAIL_CLIENT_ID', 'Not set'))"
 
 **Optimization Tips:**
 1. Increase watcher intervals if CPU is high
-2. Run Qwen CLI with `--model fast-model` for quick tasks
+2. Run opencode CLI with `--model fast-model` for quick tasks
 3. Use SSD for faster file operations
 4. Close unused MCP servers
 
 ---
 
-## Qwen CLI Integration
+## opencode CLI Integration
 
-### How Qwen CLI Reads/Writes to Vault
+### How opencode CLI Reads/Writes to Vault
 
 **Reading Action Files:**
 
 ```bash
-# Qwen reads markdown files
-qwen -y "Read Needs_Action/EMAIL_*.md and summarize"
+# opencode reads markdown files
+opencode -y "Read Needs_Action/EMAIL_*.md and summarize"
 ```
 
 **Writing Drafts:**
 
 ```bash
-# Qwen creates draft in Pending_Approval/
-qwen -y "Create reply draft in Pending_Approval/REPLY_EMAIL_*.md"
+# opencode creates draft in Pending_Approval/
+opencode -y "Create reply draft in Pending_Approval/REPLY_EMAIL_*.md"
 ```
 
 **File Movement:**
 
 ```bash
-# Qwen can move files (with user confirmation)
-qwen -y "Move EMAIL_*.md from Needs_Action/ to Done/"
+# opencode can move files (with user confirmation)
+opencode -y "Move EMAIL_*.md from Needs_Action/ to Done/"
 ```
 
-### How Qwen CLI Calls MCP Servers
+### How opencode CLI Calls MCP Servers
 
 **Tool Calling Format:**
 
@@ -830,12 +830,12 @@ qwen -y "Move EMAIL_*.md from Needs_Action/ to Done/"
 }
 ```
 
-**Qwen CLI Configuration:**
+**opencode CLI Configuration:**
 
 ```bash
-# Add MCP servers to Qwen CLI config
-qwen --add-mcp email mcp-email/server.py
-qwen --add-mcp odoo mcp-odoo/server.py
+# Add MCP servers to opencode CLI config
+opencode --add-mcp email mcp-email/server.py
+opencode --add-mcp odoo mcp-odoo/server.py
 ```
 
 **Example Interaction:**
@@ -843,21 +843,21 @@ qwen --add-mcp odoo mcp-odoo/server.py
 ```
 User: "Send an invoice to client@example.com"
 
-Qwen CLI:
+opencode CLI:
 1. Calls mcp-odoo.create_invoice()
 2. Gets invoice PDF
 3. Calls mcp-email.send_email() with attachment
 4. Reports success
 ```
 
-### Qwen CLI Commands for Vault
+### opencode CLI Commands for Vault
 
 | Command | Purpose |
 |---------|---------|
-| `qwen -y "Show pending approvals"` | List Pending_Approval/ |
-| `qwen -y "Process all emails"` | Process Needs_Action/EMAIL_* |
-| `qwen -y "Generate weekly summary"` | Create CEO briefing |
-| `qwen -y "Check system health"` | Run health checks |
+| `opencode -y "Show pending approvals"` | List Pending_Approval/ |
+| `opencode -y "Process all emails"` | Process Needs_Action/EMAIL_* |
+| `opencode -y "Generate weekly summary"` | Create CEO briefing |
+| `opencode -y "Check system health"` | Run health checks |
 
 ---
 
@@ -888,7 +888,7 @@ Qwen CLI:
 
 | File | Purpose |
 |------|---------|
-| `QWEN_CLI_GUIDE.md` | Qwen CLI usage guide |
+| `AI_ENGINE_GUIDE.md` | opencode CLI usage guide |
 | `docs/ARCHITECTURE.md` | This file - system architecture |
 | `docs/ODOO_SETUP.md` | Odoo installation guide |
 | `README.md` | Getting started guide |

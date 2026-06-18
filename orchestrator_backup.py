@@ -1,8 +1,8 @@
 """
 Orchestrator - AI Employee Vault
 
-Main orchestrator script that triggers Qwen Code CLI for processing.
-Replaces Claude Code with Qwen CLI for all automation tasks.
+Main orchestrator script that triggers AI engine for processing.
+Replaces Claude Code with AI engine for all automation tasks.
 
 Usage:
     python orchestrator.py [command]
@@ -30,10 +30,10 @@ NEEDS_ACTION = VAULT_PATH / "Needs_Action"
 PENDING_APPROVAL = VAULT_PATH / "Pending_Approval"
 DONE_FOLDER = VAULT_PATH / "Done"
 
-# Qwen Code CLI Configuration
-QWEN_COMMAND = os.getenv("QWEN_COMMAND", "qwen")  # Can be 'qwen' or 'qwen-code'
-QWEN_ARGS = ["-y"]  # Auto-accept suggestions
-QWEN_TIMEOUT = 180  # 3 minutes timeout
+# AI engine Configuration
+AI_COMMAND = os.getenv("AI_COMMAND", "opencode")  # AI engine command
+AI_ARGS = ["-y"]  # Auto-accept suggestions
+AI_TIMEOUT = 180  # 3 minutes timeout
 
 
 def ensure_folders():
@@ -43,27 +43,27 @@ def ensure_folders():
     DONE_FOLDER.mkdir(exist_ok=True)
 
 
-def run_qwen(prompt: str, timeout: int = None) -> dict:
+def run_ai(prompt: str, timeout: int = None) -> dict:
     """
-    Run Qwen Code CLI with the given prompt.
+    Run AI engine with the given prompt.
     
     Args:
-        prompt: The prompt to send to Qwen
-        timeout: Timeout in seconds (default: QWEN_TIMEOUT)
+        prompt: The prompt to send to the AI engine
+        timeout: Timeout in seconds (default: AI_TIMEOUT)
     
     Returns:
         dict with success status, stdout, stderr, returncode
     """
     if timeout is None:
-        timeout = QWEN_TIMEOUT
+        timeout = AI_TIMEOUT
     
-    print(f"\n🤖 Running Qwen Code CLI...")
-    print(f"   Command: {QWEN_COMMAND} {' '.join(QWEN_ARGS)}")
+    print(f"\n🤖 Running AI engine...")
+    print(f"   Command: {AI_COMMAND} {' '.join(AI_ARGS)}")
     print(f"   Timeout: {timeout}s")
     
     try:
         result = subprocess.run(
-            [QWEN_COMMAND] + QWEN_ARGS + [prompt],
+            [AI_COMMAND] + AI_ARGS + [prompt],
             check=False,
             capture_output=True,
             text=True,
@@ -81,7 +81,7 @@ def run_qwen(prompt: str, timeout: int = None) -> dict:
         }
         
     except subprocess.TimeoutExpired:
-        print(f"⚠️  Qwen timeout ({timeout}s)")
+        print(f"⚠️  AI engine timeout ({timeout}s)")
         return {
             'success': False,
             'stdout': '',
@@ -89,16 +89,16 @@ def run_qwen(prompt: str, timeout: int = None) -> dict:
             'returncode': -1
         }
     except FileNotFoundError:
-        print(f"❌ Qwen Code CLI not found: {QWEN_COMMAND}")
-        print(f"   Install with: npm install -g @anthropic/qwen")
+        print(f"❌ AI engine not found: {AI_COMMAND}")
+        print(f"   Install with: npm install -g opencode")
         return {
             'success': False,
             'stdout': '',
-            'stderr': 'Qwen CLI not found',
+            'stderr': 'AI engine not found',
             'returncode': -2
         }
     except Exception as e:
-        print(f"❌ Error running Qwen: {e}")
+        print(f"❌ Error running AI engine: {e}")
         return {
             'success': False,
             'stdout': '',
@@ -139,7 +139,7 @@ Process this task completely:
 Follow Company_Handbook.md rules for all actions.
 """
         
-        result = run_qwen(prompt)
+        result = run_ai(prompt)
         
         if result['success']:
             print(f"✅ Successfully processed {file.name}")
@@ -182,7 +182,7 @@ Draft a professional reply following Company_Handbook rules:
 Keep the tone professional and helpful.
 """
         
-        result = run_qwen(prompt)
+        result = run_ai(prompt)
         
         if result['success']:
             print(f"✅ Reply draft created for {file.name}")
@@ -225,7 +225,7 @@ Draft a professional response following Company_Handbook rules:
 Keep responses friendly yet professional. Use emojis when appropriate.
 """
         
-        result = run_qwen(prompt)
+        result = run_ai(prompt)
         
         if result['success']:
             print(f"✅ Response drafted for {file.name}")
@@ -272,7 +272,7 @@ Platform guidelines:
 - Twitter: Concise (under 280 chars)
 """
         
-        result = run_qwen(prompt)
+        result = run_ai(prompt)
         
         if result['success']:
             print(f"✅ Polished posts created from {file.name}")
@@ -315,7 +315,7 @@ Process this CRM lead:
 Focus on converting the lead into a customer.
 """
         
-        result = run_qwen(prompt)
+        result = run_ai(prompt)
         
         if result['success']:
             print(f"✅ Lead processed: {file.name}")
@@ -390,7 +390,7 @@ def show_help():
     """Show help information."""
     print("""
 ╔══════════════════════════════════════════════════════════════╗
-║           AI EMPLOYEE ORCHESTRATOR - QWEN CODE               ║
+║           AI EMPLOYEE ORCHESTRATOR - AI engine               ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Usage: python orchestrator.py [command]                     ║
 ╠══════════════════════════════════════════════════════════════╣
@@ -405,8 +405,8 @@ def show_help():
 ║    help                  - Show this help message            ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Environment Variables:                                      ║
-║    QWEN_COMMAND        - Qwen CLI command (default: 'qwen')  ║
-║    QWEN_TIMEOUT        - Timeout in seconds (default: 180)   ║
+║    AI_COMMAND        - AI engine command (default: 'opencode')  ║
+║    AI_TIMEOUT        - Timeout in seconds (default: 180)   ║
 ╚══════════════════════════════════════════════════════════════╝
 """)
 
@@ -414,11 +414,11 @@ def show_help():
 def main():
     """Main entry point."""
     print("\n" + "=" * 70)
-    print("🤖 AI EMPLOYEE ORCHESTRATOR - QWEN CODE")
+    print("🤖 AI EMPLOYEE ORCHESTRATOR - AI engine")
     print("=" * 70)
     print(f"   Vault Path: {VAULT_PATH}")
-    print(f"   Qwen Command: {QWEN_COMMAND} {' '.join(QWEN_ARGS)}")
-    print(f"   Timeout: {QWEN_TIMEOUT}s")
+    print(f"   AI Command: {AI_COMMAND} {' '.join(AI_ARGS)}")
+    print(f"   Timeout: {AI_TIMEOUT}s")
     print("=" * 70)
     
     # Get command from args

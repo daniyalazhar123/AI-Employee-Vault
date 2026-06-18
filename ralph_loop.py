@@ -5,8 +5,7 @@ Ralph Loop - AI Employee Vault
 
 A persistent task processor that keeps working on a task until it's complete.
 Implements the Ralph Wiggum "keep working until done" loop with:
-- Claude Code support (preferred for hackathon)
-- Qwen CLI fallback
+- Claude Code support (preferred)
 - File-based completion detection
 - Exponential backoff retry
 - Proper stop hook pattern
@@ -14,10 +13,10 @@ Implements the Ralph Wiggum "keep working until done" loop with:
 Usage:
     python ralph_loop.py "Your task description here"
     python ralph_loop.py "Process all files in Needs_Action" --engine claude
-    python ralph_loop.py "Update Dashboard" --engine qwen --max-iterations 5
+    python ralph_loop.py "Update Dashboard" --max-iterations 5
 
 Environment Variables:
-    RALPH_ENGINE: "claude" or "qwen" (default: claude)
+    RALPH_ENGINE: "claude" (default: claude)
     RALPH_MAX_ITERATIONS: Max retry count (default: 10)
     RALPH_CHECK_INTERVAL: Seconds between checks (default: 2)
 """
@@ -97,7 +96,7 @@ Keep working until the task is fully complete!
 
 
 def run_ai_engine(task_file: Path, iteration: int, engine: str = 'claude') -> bool:
-    """Run AI engine (Claude Code or Qwen CLI) to process the task file."""
+    """Run AI engine (Claude Code) to process the task file."""
 
     engine_name = engine.title()
     print(f"\n🤖 Running {engine_name} (Iteration {iteration}/{MAX_ITERATIONS})...")
@@ -116,7 +115,7 @@ IMPORTANT INSTRUCTIONS:
 Task: Process {task_file.name} completely and move to Done/ folder when finished.
 """
 
-        # Claude Code only — Qwen fallback removed per hackathon requirements
+        # Claude Code as primary AI engine
         cmd = ['claude', '--yes', '--print', prompt]
         timeout = 600  # 10 minutes for Claude
 

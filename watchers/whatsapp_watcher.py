@@ -329,15 +329,15 @@ status: pending
             self.log_error(f"Unexpected error: {e}", exc=e)
             return None
     
-    def trigger_qwen(self, action_file: Path) -> bool:
-        """Trigger Qwen CLI to process message."""
+    def trigger_ai_engine(self, action_file: Path) -> bool:
+        """Trigger AI engine to process message."""
         prompt = (
             f"Read the WhatsApp message action file: {action_file.name} in Needs_Action folder. "
             f"Draft a professional response following Company_Handbook rules. "
             f"Save the reply draft in Pending_Approval folder as REPLY_{action_file.stem}.md"
         )
         
-        return self.trigger_qwen(prompt)
+        return self.trigger_ai_engine(prompt)
     
     def run(self):
         """Main watcher loop."""
@@ -370,7 +370,7 @@ status: pending
                             # Create action file
                             action_file = self.create_action_file(msg)
                             if action_file:
-                                self.trigger_qwen(action_file)
+                                self.trigger_ai_engine(action_file)
                             
                             # Mark as processed
                             self.processed_messages.add(msg['message_id'])

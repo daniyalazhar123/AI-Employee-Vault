@@ -32,8 +32,8 @@ Environment Variables:
     DRY_RUN               - If 'true', don't send actual emails
     RATE_LIMIT            - Max emails per hour (default: 10)
 
-Qwen CLI Integration:
-    This server is compatible with Qwen CLI tool calling.
+AI Engine Integration (OpenCode + DeepSeek V4 Flash):
+    This server is compatible with AI engine tool calling.
     Tools are exposed as JSON-RPC functions.
 
 Author: AI Employee Vault System
@@ -522,7 +522,7 @@ class MCPEmailServer:
             bcc: Optional BCC email address
         
         Returns:
-            JSON response compatible with Qwen CLI tool calling
+            JSON response compatible with AI engine tool calling
         
         ⚠️ Security: Rate limited, respects DRY_RUN mode
         """

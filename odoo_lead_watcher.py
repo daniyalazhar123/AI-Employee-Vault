@@ -256,12 +256,12 @@ Sales Team
     return filepath
 
 
-def trigger_qwen_processing(action_file: Path):
+def trigger_ai_engine_processing(action_file: Path):
     """
-    Trigger Qwen to process the lead and create additional tasks if needed.
+    Trigger AI engine to process the lead and create additional tasks if needed.
     """
     try:
-        qwen_prompt = f"""Read the Odoo lead file: {action_file.name} in Needs_Action folder.
+        ai_prompt = f"""Read the Odoo lead file: {action_file.name} in Needs_Action folder.
 
 Tasks:
 1. Summarize the lead details and qualification status
@@ -272,7 +272,7 @@ Tasks:
 Process this lead completely.
 """
         result = subprocess.run(
-            ["qwen", "-y", qwen_prompt],
+            ['opencode', '-y', ai_prompt],
             check=False,
             capture_output=True,
             text=True,
@@ -282,16 +282,16 @@ Process this lead completely.
             shell=True,
             timeout=180
         )
-        print("✅ Qwen processing triggered for lead")
+        print("✅ AI engine processing triggered for lead")
         if result.stdout:
             print(f"   Output: {result.stdout.strip()[:200]}")
 
     except subprocess.TimeoutExpired:
-        print("⚠️  Qwen timeout")
+        print("⚠️  AI engine timeout")
     except FileNotFoundError:
-        print("⚠️  Qwen CLI not found")
+        print("⚠️  AI engine not found")
     except Exception as e:
-        print(f"⚠️  Error triggering Qwen: {e}")
+        print(f"⚠️  Error triggering AI engine: {e}")
 
 
 def update_dashboard_lead_summary(lead_count: int = 0):
@@ -427,8 +427,8 @@ def main():
                 # Create follow-up draft
                 create_follow_up_draft(lead, action_file)
 
-                # Trigger Qwen for additional processing
-                trigger_qwen_processing(action_file)
+                # Trigger AI engine for additional processing
+                trigger_ai_engine_processing(action_file)
 
                 # Mark as processed
                 save_processed_lead(str(lead_id))
