@@ -239,7 +239,7 @@ created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             f"Save the reply draft in Pending_Approval folder as REPLY_{action_file.stem}.md"
         )
         
-        return self.trigger_ai_engine(prompt)
+        return super().trigger_ai_engine(prompt)
 
     def mark_as_read(self, message_id: str) -> bool:
         def _mark():
