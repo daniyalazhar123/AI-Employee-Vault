@@ -98,7 +98,7 @@ def get_new_leads(models, uid, processed_ids):
             {
                 'fields': [
                     'id', 'name', 'partner_name', 'email_from',
-                    'phone', 'company_name', 'description',
+                    'phone', 'description',
                     'priority', 'stage_id', 'create_date'
                 ],
                 'limit': 10  # Max leads to fetch per run
@@ -122,7 +122,7 @@ def create_lead_action_file(lead: dict) -> Path:
     partner_name = lead.get('partner_name', 'N/A')
     email = lead.get('email_from', 'N/A')
     phone = lead.get('phone', 'N/A')
-    company = lead.get('company_name', 'N/A')
+    company = lead.get('partner_name', 'N/A')
     description = lead.get('description', '')
     priority = lead.get('priority', '0')
     stage = lead.get('stage_id', ['N/A'])[1] if isinstance(lead.get('stage_id'), list) else 'N/A'
@@ -188,7 +188,7 @@ def create_follow_up_draft(lead: dict, action_file: Path) -> Path:
     lead_name = lead.get('name', 'New Lead')
     partner_name = lead.get('partner_name', 'Contact')
     email = lead.get('email_from', '')
-    company = lead.get('company_name', '')
+    company = lead.get('partner_name', '')
 
     filename = f"REPLY_ODOO_LEAD_{lead_id}.md"
     filepath = PENDING_APPROVAL / filename
@@ -386,7 +386,6 @@ def main():
             'partner_name': 'Demo Customer',
             'email_from': 'demo.customer@example.com',
             'phone': '+1-555-0123',
-            'company_name': 'Demo Company Ltd.',
             'description': 'This is a test lead created to demonstrate the Odoo Lead Watcher functionality. Interested in Product A and Product B.',
             'priority': '3',
             'stage_id': ['1', 'New'],

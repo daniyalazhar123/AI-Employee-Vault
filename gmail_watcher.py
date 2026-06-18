@@ -94,12 +94,18 @@ class GmailWatcher(BaseWatcher):
                         "Please download from Google Cloud Console."
                     )
 
-                self.log_info("Starting OAuth flow...")
+                self.log_info("Starting OAuth flow with offline access (browser khulega ek baar)...")
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    str(self.credentials_file), SCOPES
+                    str(self.credentials_file),
+                    SCOPES
                 )
-                creds = flow.run_local_server(port=0)
-                self.log_info("OAuth flow completed successfully")
+                creds = flow.run_local_server(
+                    port=0,
+                    access_type='offline',
+                    prompt='consent',
+                    authorization_prompt_message=""
+                )
+                self.log_info("OAuth flow completed successfully — refresh_token saved, dobara browser nahi khulega")
 
             try:
                 with open(self.token_file, 'wb') as token:

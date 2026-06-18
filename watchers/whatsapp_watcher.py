@@ -36,7 +36,7 @@ if sys.platform == "win32":
 KEYWORDS = ['urgent', 'invoice', 'payment', 'help', 'price', 'order']
 CHECK_INTERVAL = 30  # seconds
 MAX_RETRIES = 3
-SESSION_TIMEOUT = 30  # seconds to wait for QR scan on first run
+SESSION_TIMEOUT = 90  # seconds to wait for QR scan on first run
 
 
 class WhatsAppWatcher(BaseWatcher):
@@ -143,8 +143,15 @@ class WhatsAppWatcher(BaseWatcher):
                 
                 # Wait for QR scan if needed
                 if not self.is_authenticated():
-                    self.log_info("QR code detected - waiting for scan...")
-                    self.log_info(f"Please scan QR code within {SESSION_TIMEOUT} seconds")
+                    self.log_info("=" * 60)
+                    self.log_info("📱 QR CODE DETECTED — SCAN KAREN:")
+                    self.log_info("   1. Apna phone kholo")
+                    self.log_info("   2. WhatsApp kholo")
+                    self.log_info("   3. Menu > Linked Devices (ya WhatsApp Web)")
+                    self.log_info("   4. 'Scan QR Code' dabao")
+                    self.log_info("   5. Is screen ka QR code scan karo")
+                    self.log_info("=" * 60)
+                    self.log_info(f"⏳ Scan karne ke liye {SESSION_TIMEOUT} seconds tak wait karein...")
                     
                     for i in range(SESSION_TIMEOUT, 0, -1):
                         print(f"   Time remaining: {i} seconds", end='\r')

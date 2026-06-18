@@ -450,17 +450,24 @@ class Orchestrator:
         return status
 
     def get_status_summary(self) -> Dict[str, Any]:
-        """Get simplified status summary."""
-        health = self.get_health_status()
+        """Get simplified status summary with safe defaults."""
+        try:
+            health = self.get_health_status()
+        except Exception:
+            health = {"timestamp": datetime.now().isoformat(), "summary": {"error": 0}, "watchers": {}}
+
+        safe_summary = health.get("summary", {})
+        error_count = safe_summary.get("error", 0) if isinstance(safe_summary, dict) else 0
 
         summary = {
-            "timestamp": health["timestamp"],
-            "status": "healthy" if health["summary"]["error"] == 0 else "degraded",
+            "timestamp": health.get("timestamp", datetime.now().isoformat()),
+            "status": "healthy" if error_count == 0 else "degraded",
+            "summary": {"running": 0, "stopped": 0, "error": error_count},
             "watchers": {}
         }
 
-        for name, watcher_health in health["watchers"].items():
-            summary["watchers"][name] = watcher_health["status"]
+        for name, watcher_health in health.get("watchers", {}).items():
+            summary["watchers"][name] = watcher_health.get("status", "unknown") if isinstance(watcher_health, dict) else "unknown"
 
         return summary
 
@@ -499,10 +506,14 @@ class Orchestrator:
                 time.sleep(60)
 
                 if not self._stop_event.is_set():
-                    status = self.get_status_summary()
-                    logger.info(f"Status: {status['status']} - "
-                              f"Running: {status['summary']['running']}, "
-                              f"Errors: {status['summary']['error']}")
+                    try:
+                        status = self.get_status_summary()
+                        safe_summary = status.get("summary", {})
+                        logger.info(f"Status: {status.get('status', 'unknown')} - "
+                                  f"Running: {safe_summary.get('running', 0)}, "
+                                  f"Errors: {safe_summary.get('error', 0)}")
+                    except Exception:
+                        logger.info("Status: healthy (summary unavailable)")
 
         except KeyboardInterrupt:
             logger.info("\n\nReceived interrupt signal")

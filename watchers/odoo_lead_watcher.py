@@ -134,7 +134,7 @@ class OdooLeadWatcher(BaseWatcher):
                 {
                     'fields': [
                         'id', 'name', 'partner_name', 'email_from',
-                        'phone', 'company_name', 'description',
+                        'phone', 'description',
                         'priority', 'stage_id', 'create_date'
                     ],
                     'limit': MAX_LEADS_PER_RUN
@@ -177,7 +177,7 @@ class OdooLeadWatcher(BaseWatcher):
             partner_name = lead.get('partner_name', 'N/A')
             email = lead.get('email_from', 'N/A')
             phone = lead.get('phone', 'N/A')
-            company = lead.get('company_name', 'N/A')
+            company = lead.get('partner_name', 'N/A')
             description = lead.get('description', '')
             priority = lead.get('priority', '0')
             
@@ -260,7 +260,7 @@ created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             lead_name = lead.get('name', 'New Lead')
             partner_name = lead.get('partner_name', 'Contact')
             email = lead.get('email_from', '')
-            company = lead.get('company_name', '')
+            company = lead.get('partner_name', '')
             
             filename = f"REPLY_ODOO_LEAD_{lead_id}.md"
             filepath = self.pending_approval_folder / filename
@@ -387,7 +387,6 @@ Sales Team
             'partner_name': 'Demo Customer',
             'email_from': 'demo.customer@example.com',
             'phone': '+1-555-0123',
-            'company_name': 'Demo Company Ltd.',
             'description': 'This is a test lead created to demonstrate the Odoo Lead Watcher functionality.',
             'priority': '3',
             'stage_id': ['1', 'New'],
