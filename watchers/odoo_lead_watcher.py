@@ -345,7 +345,7 @@ Sales Team
             f"Process this lead completely."
         )
         
-        return self.trigger_ai_engine(prompt, timeout=180)
+        return super().trigger_ai_engine(prompt, timeout=180)
     
     def update_dashboard(self, lead_count: int):
         """Update Dashboard.md with lead summary."""

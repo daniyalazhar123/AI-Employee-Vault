@@ -139,7 +139,7 @@ class WhatsAppWatcher(BaseWatcher):
                 self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
                 
                 self.log_info("Navigating to WhatsApp Web...")
-                self.page.goto('https://web.whatsapp.com', wait_until='networkidle')
+                self.page.goto('https://web.whatsapp.com', wait_until='domcontentloaded', timeout=60000)
                 
                 # Wait for QR scan if needed
                 if not self.is_authenticated():
