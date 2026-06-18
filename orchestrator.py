@@ -258,33 +258,69 @@ class WatcherProcess:
     def run_with_watchdog(self) -> None:
         """Run watcher with watchdog pattern (auto-restart on crash)."""
         while not self._stop_event.is_set():
-            if not self.process or self.process.poll() is not None:
-                # Process has crashed or not started
-                if self.start_time:  # Only restart if it was running before
-                    self.restart_count += 1
-                    self.last_crash_time = datetime.now()
+            if not self.process:
+                # No process yet — initial start
+                if not self.start():
+                    break
+                continue
 
-                    logger.warning(
-                        f"Watcher {self.name} crashed! "
-                        f"Restarting in {RESTART_DELAY} seconds... "
-                        f"(Restart count: {self.restart_count})"
-                    )
-
-                    # Wait before restarting
-                    for _ in range(RESTART_DELAY):
-                        if self._stop_event.is_set():
-                            break
-                        time.sleep(1)
-
-                    if not self._stop_event.is_set():
-                        self.start()
-                else:
-                    # Initial start
-                    if not self.start():
-                        break
-            else:
-                # Process is running, wait a bit before checking again
+            returncode = self.process.poll()
+            if returncode is None:
+                # Process is still running — wait before checking again
                 time.sleep(5)
+                continue
+
+            # Process has exited
+            self.last_crash_time = datetime.now()
+
+            # Capture actual stderr output before the process object is lost
+            stderr_text = ""
+            try:
+                if self.process.stderr:
+                    stderr_text = self.process.stderr.read() or ""
+            except Exception:
+                pass
+
+            if returncode == 0:
+                self.status = "stopped"
+                logger.info(
+                    f"Watcher {self.name} completed normally "
+                    f"(exit code 0) — not restarting"
+                )
+                if stderr_text.strip():
+                    logger.debug(
+                        f"--- {self.name} trailing output ---\n"
+                        f"{stderr_text.strip()[-2000:]}\n"
+                        f"--- END {self.name} ---"
+                    )
+                self.process = None
+                break
+
+            # Non-zero exit — real crash
+            self.restart_count += 1
+            self.status = f"crashed_exit_code_{returncode}"
+
+            logger.warning(
+                f"Watcher {self.name} crashed (exit code {returncode})! "
+                f"Restarting in {RESTART_DELAY} seconds... "
+                f"(Restart count: {self.restart_count})"
+            )
+
+            if stderr_text.strip():
+                logger.error(
+                    f"--- {self.name} STDERR ---\n"
+                    f"{stderr_text.strip()[-2000:]}\n"
+                    f"--- END {self.name} STDERR ---"
+                )
+
+            # Wait before restarting
+            for _ in range(RESTART_DELAY):
+                if self._stop_event.is_set():
+                    break
+                time.sleep(1)
+
+            if not self._stop_event.is_set():
+                self.start()
 
     def start_thread(self) -> None:
         """Start watcher in a background thread."""
