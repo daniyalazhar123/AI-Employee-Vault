@@ -56,7 +56,17 @@ Odoo   ─┘        │           │   Vault      │       │
 
 ## Screenshots
 
-*Coming soon — see demo video for live demonstration*
+### Orchestrator Running
+![Orchestrator](screenshots/orchestrator.png)
+
+### Gmail Real Automation
+![Gmail](screenshots/gmail_watcher.png)
+
+### Odoo Invoice
+![Odoo](screenshots/odoo_invoice.png)
+
+### Obsidian Vault
+![Vault](screenshots/obsidian_vault.png)
 
 ---
 
