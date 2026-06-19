@@ -54,19 +54,28 @@ Odoo   ─┘        │           │   Vault      │       │
 
 ---
 
-## Screenshots
+## 📸 Screenshots
 
-### Orchestrator Running
+### 1. Orchestrator — All 5 Watchers Running
 ![Orchestrator](screenshots/orchestrator.png)
 
-### Gmail Real Automation
-![Gmail](screenshots/gmail_watcher.png)
+### 2. Gmail Watcher — Real Emails Detected & AI Drafts Created  
+![Gmail Watcher](screenshots/gmail_watcher.png)
 
-### Odoo Invoice
-![Odoo](screenshots/odoo_invoice.png)
+### 3. Odoo 19 — Customer Invoice (Docker)
+![Odoo Invoice](screenshots/odoo_invoice.png)
 
-### Obsidian Vault
-![Vault](screenshots/obsidian_vault.png)
+### 4. CEO Briefing — Auto Generated
+![CEO Briefing](screenshots/ceo_briefing.png)
+
+### 5. Obsidian Vault — HITL Pending Approval
+![Obsidian](screenshots/obsidian_vault.png)
+
+### 6. Docker Containers — Healthy
+![Docker](screenshots/docker_ps.png)
+
+### 7. GitHub Commits — Real Development History
+![GitHub](screenshots/github_commits.png)
 
 ---
 
