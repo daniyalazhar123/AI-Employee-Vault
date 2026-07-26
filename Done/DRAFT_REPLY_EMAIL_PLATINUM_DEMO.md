@@ -4,7 +4,7 @@ original_email: EMAIL_PLATINUM_DEMO.md
 to: demo.client@example.com
 subject: RE: Platinum Tier Demo - Pricing Inquiry
 created_by: cloud
-created: 2026-04-04T03:38:36.308283
+created: 2026-07-26T00:54:47.127285
 status: draft
 requires_approval: true
 agent_type: draft_only

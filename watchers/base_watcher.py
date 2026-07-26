@@ -56,9 +56,10 @@ class BaseWatcher:
         # Clear existing handlers
         logger.handlers = []
         
-        # Log format
-        log_format = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        # Log format - SafeConsoleFormatter handles emoji + optional JSON
+        from audit_logger import SafeConsoleFormatter
+        log_format = SafeConsoleFormatter(
+            fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
         

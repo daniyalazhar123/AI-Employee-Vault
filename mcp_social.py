@@ -50,15 +50,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
 load_secrets()
 
-# Setup logging with UTF-8 encoding
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger('MCPSocial')
+from audit_logger import setup_logging
+logger = setup_logging('MCPSocial')
 
 # Check Playwright availability
 try:
@@ -67,6 +60,10 @@ try:
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
     logger.warning("⚠️ Playwright not installed. Run: pip install playwright && playwright install chromium")
+
+# Session-cookie-based social agents
+from x_agent import XAgent
+from facebook_instagram_post import FacebookPoster, InstagramPoster
 
 
 class MCPSocialServer:
@@ -336,8 +333,8 @@ class MCPSocialServer:
             return {'success': False, 'message': str(e)}
 
     def post_to_facebook(self, content: str, approved: bool = False) -> Dict:
-        """Post content to Facebook"""
-        logger.info(f"📘 Posting to Facebook...")
+        """Post content to Facebook using saved session cookies (no password login)."""
+        logger.info(f"Posting to Facebook...")
 
         # HITL safety check
         if self.require_approval and not approved:
@@ -350,252 +347,30 @@ class MCPSocialServer:
             }
 
         if self.dry_run:
-            logger.info(f"📝 [DRY RUN] Facebook post would be published")
+            logger.info(f"[DRY RUN] Facebook post would be published")
             return self._save_draft('facebook', content, dry_run=True)
 
         if not PLAYWRIGHT_AVAILABLE:
-            return {'success': False, 'message': 'Playwright not installed'}
+            return {'success': False, 'platform': 'facebook', 'message': 'Playwright not installed'}
 
-        if not self.facebook_email or not self.facebook_password:
-            return {'success': False, 'message': 'Facebook credentials not set'}
+        session_file = get_secret_path('facebook_session.json')
+        if not session_file.exists():
+            return {
+                'success': False,
+                'platform': 'facebook',
+                'message': f'Facebook session not found at {session_file}. Save cookies first.',
+                'session_file': str(session_file)
+            }
 
-        try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context()
-                page = context.new_page()
-
-                # Login
-                page.goto('https://www.facebook.com/login')
-                page.wait_for_timeout(3000)
-
-                logger.info(f"🔑 Logging in as {self.facebook_email}...")
-
-                # Fill email field
-                email_done = False
-                for sel in ['#email', 'input[name="email"]', 'input[type="text"]']:
-                    try:
-                        el = page.locator(sel).first
-                        if el.is_visible(timeout=2000):
-                            el.fill(self.facebook_email)
-                            email_done = True
-                            logger.info(f"✅ Filled email via: {sel}")
-                            break
-                    except Exception:
-                        continue
-                if not email_done:
-                    browser.close()
-                    return {'success': False, 'message': 'Facebook email field not found'}
-
-                # Fill password field
-                for sel in ['#pass', 'input[name="pass"]', 'input[type="password"]']:
-                    try:
-                        el = page.locator(sel).first
-                        if el.is_visible(timeout=2000):
-                            el.fill(self.facebook_password)
-                            logger.info(f"✅ Filled password via: {sel}")
-                            break
-                    except Exception:
-                        continue
-
-                # Click login button
-                login_clicked = False
-                for sel in ['button[name="login"]', 'button[type="submit"]', 'button:has-text("Log in")']:
-                    try:
-                        el = page.locator(sel).first
-                        if el.is_visible(timeout=2000):
-                            el.click()
-                            login_clicked = True
-                            logger.info(f"✅ Clicked login via: {sel}")
-                            break
-                    except Exception:
-                        continue
-                if login_clicked:
-                    page.wait_for_timeout(5000)
-                else:
-                    page.keyboard.press('Enter')
-                    page.wait_for_timeout(5000)
-
-                # Create post
-                logger.info("🌐 Navigating to Facebook feed...")
-                page.goto('https://www.facebook.com/')
-                page.wait_for_timeout(5000)
-
-                current_url = page.url
-                logger.info(f"📍 Feed URL: {current_url}")
-
-                # Step 1: Click the "What's on your mind?" trigger to open composer
-                logger.info("🔍 Opening post composer...")
-
-                # Build selector list based on detected Facebook domain
-                trigger_selectors = [
-                    f'[placeholder*="What\'s on your mind"]',
-                    f'[aria-label*="What\'s on your mind"]',
-                    'span:has-text("What\'s on your mind")',
-                    f'[role="button"]:has-text("What\'s on your mind")',
-                    '[data-pagelet="FeedComposer"] [role="button"]',
-                    'form [contenteditable="true"]',
-                ]
-
-                composer_opened = False
-                for sel in trigger_selectors:
-                    try:
-                        el = page.locator(sel).first
-                        if el.is_visible(timeout=2000):
-                            el.click()
-                            page.wait_for_timeout(2000)
-                            composer_opened = True
-                            logger.info(f"✅ Clicked trigger: {sel}")
-                            break
-                    except Exception:
-                        continue
-
-                # Fallback: press 'p' keyboard shortcut to open composer
-                if not composer_opened:
-                    logger.info("⌨️ Trying keyboard shortcut 'p' to open composer...")
-                    page.keyboard.press('p')
-                    page.wait_for_timeout(3000)
-                    for sel in [
-                        '[contenteditable="true"]',
-                        'div[contenteditable="true"][role="textbox"]',
-                        '[data-lexical-editor="true"]',
-                    ]:
-                        try:
-                            if page.locator(sel).first.is_visible(timeout=2000):
-                                composer_opened = True
-                                logger.info(f"✅ Composer opened via keyboard, found: {sel}")
-                                break
-                        except Exception:
-                            continue
-
-                # Fallback: navigate directly to composer URL
-                if not composer_opened:
-                    logger.info("🌐 Trying composer URL directly...")
-                    try:
-                        page.goto('https://www.facebook.com/composer/mbasic/?basic_composer=1')
-                        page.wait_for_timeout(3000)
-                        for sel in [
-                            '[contenteditable="true"]',
-                            'textarea',
-                            'div[contenteditable="true"][role="textbox"]',
-                        ]:
-                            try:
-                                if page.locator(sel).first.is_visible(timeout=2000):
-                                    composer_opened = True
-                                    logger.info(f"✅ Composer via URL, found: {sel}")
-                                    break
-                            except Exception:
-                                continue
-                    except Exception:
-                        pass
-
-                if not composer_opened:
-                    logger.warning("⚠️ Could not open Facebook composer — saving draft instead")
-                    result = self._save_draft('facebook', content, dry_run=False)
-                    browser.close()
-                    result['message'] += ' (composer not accessible, saved as draft)'
-                    return result
-
-                # Step 2: Find the contenteditable div or textarea in the expanded composer
-                logger.info("✍️ Finding text editor...")
-                text_editor = None
-                editor_selectors = [
-                    '[contenteditable="true"]',
-                    'div[contenteditable="true"][role="textbox"]',
-                    '[data-lexical-editor="true"]',
-                    '[contenteditable="true"]:not([style*="none"])',
-                    'textarea:not([name*="pass"])',
-                ]
-                for sel in editor_selectors:
-                    try:
-                        editor = page.locator(sel).first
-                        if editor.is_visible(timeout=2000):
-                            text_editor = editor
-                            logger.info(f"✅ Found editor: {sel}")
-                            break
-                    except Exception:
-                        continue
-
-                if not text_editor:
-                    logger.warning("⚠️ Text editor not found — saving as draft")
-                    result = self._save_draft('facebook', content, dry_run=False)
-                    browser.close()
-                    result['message'] += ' (editor not found, saved as draft)'
-                    return result
-
-                # Step 3: Type content
-                logger.info("📝 Typing content...")
-                text_editor.click()
-                page.wait_for_timeout(500)
-                text_editor.fill(content)
-                page.wait_for_timeout(1500)
-
-                # Step 4: Find and click Post button
-                logger.info("🚀 Finding Post button...")
-                post_button = None
-                button_selectors = [
-                    '[aria-label="Post"]',
-                    'button:has-text("Post")',
-                    '[role="button"]:has-text("Post")',
-                    'div[aria-label="Post"][role="button"]',
-                    '[data-pagelet="FeedComposer"] button:has-text("Post")',
-                    '[type="submit"]:has-text("Post")',
-                ]
-                for sel in button_selectors:
-                    try:
-                        btn = page.locator(sel).first
-                        if btn.is_visible(timeout=2000) and btn.is_enabled():
-                            post_button = btn
-                            logger.info(f"✅ Found Post button: {sel}")
-                            break
-                    except Exception:
-                        continue
-
-                if not post_button:
-                    logger.warning("⚠️ Post button not found — trying keyboard submit...")
-                    page.keyboard.press('Control+Enter')
-                    page.wait_for_timeout(3000)
-
-                if post_button:
-                    post_button.click()
-                    page.wait_for_timeout(5000)
-
-                # Step 5: Verify post was published (editor should close)
-                editor_still_open = page.locator('[contenteditable="true"]').first
-                try:
-                    still_visible = editor_still_open.is_visible(timeout=3000)
-                except Exception:
-                    still_visible = True
-
-                browser.close()
-
-                if not still_visible:
-                    logger.info("✅ Facebook post published successfully!")
-                    self._save_post_log('facebook', content, status='published')
-                    return {
-                        'success': True,
-                        'platform': 'facebook',
-                        'message': 'Post published to Facebook',
-                        'timestamp': datetime.now().isoformat()
-                    }
-                else:
-                    logger.warning("⚠️ Editor still open — saving draft for safety")
-                    result = self._save_draft('facebook', content, dry_run=False)
-                    return {
-                        'success': False,
-                        'platform': 'facebook',
-                        'message': 'Facebook post may not have published — saved draft in Social_Drafts',
-                        'draft_saved': True,
-                        'draft_file': result.get('draft_file')
-                    }
-
-        except Exception as e:
-            logger.error(f"❌ Facebook post failed: {e}")
-            return {'success': False, 'message': str(e)}
+        poster = FacebookPoster()
+        result = poster.post(content)
+        if result['success']:
+            self._save_post_log('facebook', content, status='published')
+        return result
 
     def post_to_instagram(self, content: str, image_path: Optional[str] = None, approved: bool = False) -> Dict:
-        """Post content to Instagram"""
-        logger.info(f"📷 Posting to Instagram...")
+        """Post content to Instagram using saved session cookies."""
+        logger.info(f"Posting to Instagram...")
 
         # HITL safety check
         if self.require_approval and not approved:
@@ -608,65 +383,34 @@ class MCPSocialServer:
             }
 
         if self.dry_run:
-            logger.info(f"📝 [DRY RUN] Instagram post would be published")
+            logger.info(f"[DRY RUN] Instagram post would be published")
             return self._save_draft('instagram', content, dry_run=True)
 
         if not PLAYWRIGHT_AVAILABLE:
-            return {'success': False, 'message': 'Playwright not installed'}
+            return {'success': False, 'platform': 'instagram', 'message': 'Playwright not installed'}
 
-        if not self.instagram_username or not self.instagram_password:
-            return {'success': False, 'message': 'Instagram credentials not set'}
+        session_file = get_secret_path('instagram_session.json')
+        if not session_file.exists():
+            return {
+                'success': False,
+                'platform': 'instagram',
+                'message': f'Instagram session not found at {session_file}. Save cookies first.',
+                'session_file': str(session_file)
+            }
 
-        try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context()
-                page = context.new_page()
-
-                # Login
-                page.goto('https://www.instagram.com/accounts/login/')
-                time.sleep(3)
-
-                username_field = page.locator('input[name="username"]')
-                if username_field.is_visible():
-                    username_field.fill(self.instagram_username)
-
-                password_field = page.locator('input[name="password"]')
-                if password_field.is_visible():
-                    password_field.fill(self.instagram_password)
-
-                login_button = page.locator('button[type="submit"]')
-                if login_button.is_visible():
-                    login_button.click()
-                    time.sleep(3)
-
-                # Create post (Instagram web has limited posting capability)
-                # This is a stub - Instagram web doesn't support full posting
-                # For production, use Instagram Graph API
-
-                browser.close()
-
-                self._save_post_log('instagram', content, status='draft_web_limitation')
-
-                return {
-                    'success': True,
-                    'platform': 'instagram',
-                    'message': 'Instagram post saved as draft (web posting limited). Use mobile app or Graph API.',
-                    'draft_saved': True,
-                    'timestamp': datetime.now().isoformat()
-                }
-
-        except Exception as e:
-            logger.error(f"❌ Instagram post failed: {e}")
-            return {'success': False, 'message': str(e)}
+        poster = InstagramPoster()
+        result = poster.post(content, image_path=image_path)
+        if result.get('success'):
+            self._save_post_log('instagram', content, status='published')
+        return result
 
     def post_to_twitter(self, content: str, approved: bool = False) -> Dict:
-        """Post content to Twitter/X"""
-        logger.info(f"🐦 Posting to Twitter/X...")
+        """Post content to Twitter/X using saved session cookies (no password login)."""
+        logger.info(f"Posting to Twitter/X...")
 
         # Validate tweet length
         if len(content) > 280:
-            return {'success': False, 'message': f'Tweet too long: {len(content)}/280 characters'}
+            return {'success': False, 'platform': 'twitter', 'message': f'Tweet too long: {len(content)}/280 characters'}
 
         # HITL safety check
         if self.require_approval and not approved:
@@ -679,138 +423,26 @@ class MCPSocialServer:
             }
 
         if self.dry_run:
-            logger.info(f"📝 [DRY RUN] Tweet would be published")
+            logger.info(f"[DRY RUN] Tweet would be published")
             return self._save_draft('twitter', content, dry_run=True)
 
         if not PLAYWRIGHT_AVAILABLE:
-            return {'success': False, 'message': 'Playwright not installed'}
+            return {'success': False, 'platform': 'twitter', 'message': 'Playwright not installed'}
 
-        if not self.twitter_username or not self.twitter_password:
-            return {'success': False, 'message': 'Twitter credentials not set'}
+        session_file = get_secret_path('twitter_session.json')
+        if not session_file.exists():
+            return {
+                'success': False,
+                'platform': 'twitter',
+                'message': f'Twitter session not found at {session_file}. Save cookies first.',
+                'session_file': str(session_file)
+            }
 
-        try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context(
-                    viewport={'width': 1280, 'height': 800},
-                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                )
-                page = context.new_page()
-
-                # Login (X.com new unified login flow)
-                logger.info("🌐 Logging into X/Twitter...")
-                page.goto('https://x.com/i/flow/login', timeout=60000)
-                page.wait_for_timeout(5000)
-
-                # Find and fill username/email field
-                logger.info("🔍 Finding login fields...")
-                username_field = page.locator('input[name="username_or_email"]').first
-                if username_field.is_visible():
-                    username_field.fill(self.twitter_username)
-                    page.wait_for_timeout(500)
-                else:
-                    # Try alternative selector
-                    username_field = page.locator('input[autocomplete*="username"]').first
-                    if username_field.is_visible():
-                        username_field.fill(self.twitter_username)
-                        page.wait_for_timeout(500)
-
-                # Find and fill password field
-                password_field = page.locator('input[name="password"]').first
-                if password_field.is_visible():
-                    password_field.fill(self.twitter_password)
-                    page.wait_for_timeout(500)
-
-                # Look for login/submit button (X.com uses "Continue" button)
-                login_btn = page.locator('button[type="submit"]').first
-                if not login_btn.is_visible():
-                    login_btn = page.locator('button:text-is("Continue")').first
-                if not login_btn.is_visible():
-                    login_btn = page.locator('button:has-text("Log in")').first
-                if not login_btn.is_visible():
-                    login_btn = page.locator('[role="button"]:has-text("Next")').first
-
-                if login_btn.is_visible():
-                    login_text = login_btn.inner_text()
-                    login_btn.click()
-                    page.wait_for_timeout(3000)
-                    logger.info(f"✅ Login submitted ({login_text})")
-
-                    # Handle X.com onboarding flow (may include email verification)
-                    for step in range(5):
-                        # Check if we're on home page
-                        current_url = page.url
-                        if 'home' in current_url or 'compose' in current_url:
-                            logger.info(f"✅ On home page after {step} steps")
-                            break
-
-                        # Check for email/phone input
-                        email_input = page.locator('input[name="email"], input[type="email"], input[name="phone"]').first
-                        if email_input.is_visible():
-                            email_val = email_input.input_value()
-                            if not email_val:
-                                # Fill email (use username which is the email)
-                                email_input.fill(self.twitter_username)
-                                page.wait_for_timeout(500)
-                                logger.info("✅ Filled email field")
-                            else:
-                                logger.info(f"✅ Email prefilled: {email_val}")
-
-                        # Click continue/next button
-                        next_btn = page.locator('button[type="submit"]').first
-                        if next_btn.is_visible():
-                            btn_text = next_btn.inner_text()
-                            next_btn.click()
-                            page.wait_for_timeout(2000)
-                            logger.info(f"✅ Onboarding step: {btn_text}")
-                        else:
-                            # Try Enter key
-                            page.keyboard.press('Enter')
-                            page.wait_for_timeout(2000)
-                            if page.url == current_url:
-                                logger.warning(f"⚠️ Stuck at: {page.url}")
-                                break
-
-                    page.wait_for_timeout(2000)
-                else:
-                    logger.warning("⚠️ Login button not found")
-                    page.keyboard.press('Enter')
-                    page.wait_for_timeout(3000)
-
-                # Create tweet
-                logger.info("✍️ Composing tweet...")
-                page.goto('https://x.com/compose/post', timeout=30000)
-                page.wait_for_timeout(3000)
-
-                tweet_box = page.locator('div[contenteditable="true"]').first
-                if tweet_box.is_visible():
-                    tweet_box.fill(content)
-                    page.wait_for_timeout(1000)
-
-                    tweet_button = page.locator('div[data-testid="tweetButtonInline"]').first
-                    if tweet_button.is_visible():
-                        tweet_button.click()
-                        page.wait_for_timeout(3000)
-
-                        browser.close()
-                        self._save_post_log('twitter', content, status='published')
-                        logger.info("✅ Tweet published successfully!")
-                        return {
-                            'success': True,
-                            'platform': 'twitter',
-                            'message': 'Tweet published',
-                            'timestamp': datetime.now().isoformat()
-                        }
-                    else:
-                        browser.close()
-                        return {'success': False, 'message': 'Tweet button not found'}
-                else:
-                    browser.close()
-                    return {'success': False, 'message': 'Tweet box not found'}
-
-        except Exception as e:
-            logger.error(f"❌ Twitter post failed: {e}")
-            return {'success': False, 'message': str(e)}
+        xagent = XAgent()
+        result = xagent.post(content)
+        if result['success']:
+            self._save_post_log('twitter', content, status='published')
+        return result
 
     def _save_draft(self, platform: str, content: str, dry_run: bool = True) -> Dict:
         """Save post as draft"""
@@ -865,25 +497,33 @@ status: {status}
         return log_file
 
     def get_platform_status(self) -> Dict:
-        """Get status of all platforms"""
+        """Get status of all platforms (session-cookie based)"""
+        linkedin_session = get_secret_path('linkedin_session.json').exists()
+        twitter_session = get_secret_path('twitter_session.json').exists()
+        facebook_session = get_secret_path('facebook_session.json').exists()
+        instagram_session = get_secret_path('instagram_session.json').exists()
         return {
             'linkedin': {
-                'configured': bool(self.linkedin_email and self.linkedin_password),
+                'configured': linkedin_session,
+                'auth_method': 'session_cookies' if linkedin_session else 'none',
                 'dry_run': self.dry_run,
                 'approval_required': self.require_approval
             },
             'facebook': {
-                'configured': bool(self.facebook_email and self.facebook_password),
+                'configured': facebook_session,
+                'auth_method': 'session_cookies' if facebook_session else 'none',
                 'dry_run': self.dry_run,
                 'approval_required': self.require_approval
             },
             'instagram': {
-                'configured': bool(self.instagram_username and self.instagram_password),
+                'configured': instagram_session,
+                'auth_method': 'session_cookies' if instagram_session else 'none',
                 'dry_run': self.dry_run,
                 'approval_required': self.require_approval
             },
             'twitter': {
-                'configured': bool(self.twitter_username and self.twitter_password),
+                'configured': twitter_session,
+                'auth_method': 'session_cookies' if twitter_session else 'none',
                 'dry_run': self.dry_run,
                 'approval_required': self.require_approval
             },

@@ -132,7 +132,7 @@ def generate_platform_summary(platform, days=7):
                         analysis = analyze_post(content, metadata)
                         analysis['file'] = file.name
                         recent_posts.append(analysis)
-                except:
+                except Exception:
                     # Include if date parsing fails
                     analysis = analyze_post(content, metadata)
                     analysis['file'] = file.name

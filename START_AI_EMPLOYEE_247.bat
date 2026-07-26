@@ -25,7 +25,7 @@ echo.
 echo ============================================
 echo.
 
-cd /d "C:\Users\CC\Documents\Obsidian Vault"
+cd /d "%~dp0"
 
 REM Check if PM2 is installed
 where pm2 >nul 2>nul

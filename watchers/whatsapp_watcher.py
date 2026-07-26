@@ -235,7 +235,8 @@ class WhatsAppWatcher(BaseWatcher):
                             try:
                                 count_text = unread_elem.inner_text()
                                 unread_count = int(count_text) if count_text.isdigit() else 1
-                            except:
+                            except Exception:
+                                self.log_warning(f"Failed to parse unread count for chat row, defaulting to 1")
                                 unread_count = 1
                             break
                     

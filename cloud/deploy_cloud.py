@@ -17,17 +17,9 @@ import time
 from pathlib import Path
 from typing import Optional
 import logging
-
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('cloud_deploy.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger('CloudDeploy')
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from audit_logger import setup_logging
+logger = setup_logging('CloudDeploy', log_file='cloud_deploy.log')
 
 
 class CloudDeployment:

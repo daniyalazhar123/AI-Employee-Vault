@@ -141,6 +141,10 @@ class CircuitBreaker:
         error_msg = str(error) if error else "Unknown error"
         self.logger.error(f"Failure recorded for {self.service_name}: {error_msg}")
     
+    def is_open(self) -> bool:
+        """Check if circuit is currently open (failing)."""
+        return self.state == CircuitState.OPEN
+
     def get_state(self) -> Dict[str, Any]:
         """Get circuit breaker state."""
         return {
@@ -458,7 +462,8 @@ def add_to_dlq(item_id: str, item_type: str, error: str, **kwargs):
 
 if __name__ == "__main__":
     # Test error recovery system
-    logging.basicConfig(level=logging.INFO)
+    from audit_logger import setup_logging
+    setup_logging('ErrorRecoveryTest')
     
     print("="*70)
     print("🛡️  ERROR RECOVERY SYSTEM TEST")

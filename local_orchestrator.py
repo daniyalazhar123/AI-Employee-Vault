@@ -38,19 +38,8 @@ CHECK_INTERVAL = int(os.getenv('CHECK_INTERVAL', '30'))
 AGENT_ID = 'local'
 AGENT_TYPE = 'execute'
 
-# Setup logging
-LOG_FILE = VAULT_PATH / 'Logs' / 'local_agent.log'
-LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger('LocalOrchestrator')
+from audit_logger import setup_logging
+logger = setup_logging('LocalOrchestrator', log_file=str(VAULT_PATH / 'Logs' / 'local_agent.log'))
 
 
 class LocalOrchestrator:

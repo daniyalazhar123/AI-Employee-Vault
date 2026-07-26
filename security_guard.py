@@ -31,16 +31,8 @@ if sys.platform == "win32":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('security_guard.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger('SecurityGuard')
+from audit_logger import setup_logging
+logger = setup_logging('SecurityGuard', log_file='security_guard.log')
 
 
 class SecurityLevel(Enum):
@@ -207,8 +199,8 @@ class SecurityGuard:
                 )
                 if result.returncode == 0:
                     issues.append(f"Secret file in git: {pattern}")
-            except:
-                pass
+            except Exception:
+                logger.debug(f"git ls-files check failed for pattern: {pattern}")
         
         # Also check .gitignore
         gitignore_file = self.vault / '.gitignore'
@@ -326,7 +318,7 @@ def main():
         sys.exit(1)
     
     # Get vault path
-    vault_path = sys.argv[2] if len(sys.argv) > 2 else 'C:/Users/CC/Documents/Obsidian Vault'
+    vault_path = sys.argv[2] if len(sys.argv) > 2 else os.path.dirname(os.path.abspath(__file__))
     
     print(f"🎯 Agent Type: {agent_type}")
     print(f"📂 Vault Path: {vault_path}")

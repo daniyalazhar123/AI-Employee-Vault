@@ -262,13 +262,11 @@ metadata:
   labels:
     app: ai-employee
 type: Opaque
-# Data should be created via kubectl create secret
-# DO NOT store actual secrets in this file!
-stringData:
-  # Placeholder - replace with actual secrets via kubectl
-  GMAIL_CLIENT_ID: "placeholder"
-  GMAIL_CLIENT_SECRET: "placeholder"
-  ODOO_API_KEY: "placeholder"
+# Secrets are NOT stored in this file.
+# Create with: kubectl create secret generic ai-employee-secrets
+# See DEPLOYMENT_INSTRUCTIONS section below for the full command.
+# Using an empty data map ensures nothing slips into version control.
+data: {}
 
 ---
 # ============================================

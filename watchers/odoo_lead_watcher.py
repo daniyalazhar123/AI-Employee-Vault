@@ -379,30 +379,8 @@ Sales Team
     
     def create_placeholder_lead(self):
         """Create a test lead for demonstration when Odoo is not connected."""
-        self.log_info("Creating placeholder test lead for demonstration...")
-        
-        test_lead = {
-            'id': 'TEST001',
-            'name': 'Test Lead - Demo',
-            'partner_name': 'Demo Customer',
-            'email_from': 'demo.customer@example.com',
-            'phone': '+1-555-0123',
-            'description': 'This is a test lead created to demonstrate the Odoo Lead Watcher functionality.',
-            'priority': '3',
-            'stage_id': ['1', 'New'],
-            'create_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }
-        
-        action_file = self.create_lead_action_file(test_lead)
-        
-        if action_file:
-            self.create_follow_up_draft(test_lead, action_file)
-            self.trigger_ai_engine(action_file)
-            self.processed_ids.add(str(test_lead['id']))
-            self.save_processed_ids('processed_odoo_leads.txt', self.processed_ids)
-            self.update_dashboard(1)
-            
-            self.log_info("✅ Placeholder test lead created successfully")
+        self.log_warning("Odoo not connected - cannot fetch leads")
+        self.log_info("To connect, ensure ODOO_URL, ODOO_DB, ODOO_USERNAME, ODOO_PASSWORD are set in secrets")
     
     def run(self):
         """Main watcher loop."""
@@ -416,15 +394,13 @@ Sales Team
         self.connect()
         
         if not self.odoo_connected:
-            self.log_warning("=" * 60)
-            self.log_warning("ODOO NOT CONNECTED - Running in Placeholder Mode")
-            self.log_warning("=" * 60)
+            self.log_error("=" * 60)
+            self.log_error("ODOO NOT CONNECTED - Aborting run")
+            self.log_error("=" * 60)
             self.log_info("\nTo enable full functionality:")
             self.log_info("  1. Install Odoo library: pip install odoo")
             self.log_info("  2. Update ODOO_CONFIG with your Odoo instance details")
             self.log_info("  3. Ensure network connectivity to Odoo server\n")
-            
-            self.create_placeholder_lead()
             return
         
         # Fetch and process leads

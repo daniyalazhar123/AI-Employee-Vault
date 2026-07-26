@@ -12,7 +12,6 @@ import os
 import sys
 import json
 import time
-import requests
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Optional
@@ -20,16 +19,14 @@ import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('a2a_messenger.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger('A2AMessenger')
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+
+from audit_logger import setup_logging
+logger = setup_logging('A2AMessenger', log_file='a2a_messenger.log')
 
 
 class A2AMessenger:
@@ -90,24 +87,28 @@ class A2AMessenger:
         
         try:
             # Try HTTP first
-            response = requests.post(
-                f"{endpoint}/message",
-                json=message,
-                timeout=10
-            )
-            response.raise_for_status()
-            
-            self.stats['messages_sent'] += 1
-            self.stats['http_success'] += 1
-            logger.info(f"✅ Sent {message_type} via HTTP to {endpoint}")
-            return True
+            if REQUESTS_AVAILABLE:
+                response = requests.post(
+                    f"{endpoint}/message",
+                    json=message,
+                    timeout=10
+                )
+                response.raise_for_status()
+                
+                self.stats['messages_sent'] += 1
+                self.stats['http_success'] += 1
+                logger.info(f"✅ Sent {message_type} via HTTP to {endpoint}")
+                return True
+            else:
+                logger.info("ℹ️ requests not available, using file fallback")
             
         except Exception as e:
             logger.warning(f"⚠️ HTTP failed, using file fallback: {e}")
-            self._write_signal_file(message_type, payload)
-            self.stats['messages_sent'] += 1
-            self.stats['file_fallback'] += 1
-            return True
+        
+        self._write_signal_file(message_type, payload)
+        self.stats['messages_sent'] += 1
+        self.stats['file_fallback'] += 1
+        return True
     
     def _write_signal_file(self, message_type: str, payload: Dict):
         """Fallback: Write to /Signals/ folder"""
@@ -272,7 +273,7 @@ def main():
     port = int(sys.argv[2]) if len(sys.argv) > 2 else (8081 if agent_type == 'cloud' else 8082)
     
     # Get vault path
-    vault_path = sys.argv[3] if len(sys.argv) > 3 else 'C:/Users/CC/Documents/Obsidian Vault'
+    vault_path = sys.argv[3] if len(sys.argv) > 3 else os.path.dirname(os.path.abspath(__file__))
     
     print(f"🎯 Agent Type: {agent_type}")
     print(f"🔌 Port: {port}")

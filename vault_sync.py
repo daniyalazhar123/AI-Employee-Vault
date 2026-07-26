@@ -37,19 +37,8 @@ SYNC_INTERVAL = int(os.getenv('SYNC_INTERVAL', '300'))  # 5 minutes
 GIT_REMOTE = os.getenv('GIT_REMOTE', 'origin')
 GIT_BRANCH = os.getenv('GIT_BRANCH', 'main')
 
-# Setup logging
-LOG_FILE = VAULT_PATH / 'Logs' / 'sync.log'
-LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger('VaultSync')
+from audit_logger import setup_logging
+logger = setup_logging('VaultSync', log_file=str(VAULT_PATH / 'Logs' / 'sync.log'))
 
 
 class VaultSync:
@@ -307,8 +296,14 @@ class VaultSync:
                 self.stats['last_sync'] = timestamp
                 return True
             
-            # Step 3: Filter excluded files
-            files_to_add = [f for f in changed_files if not self.should_exclude(f)]
+            # Step 3: Filter excluded files and verify they exist on disk
+            files_to_add = [
+                f for f in changed_files
+                if not self.should_exclude(f) and (self.vault / f).exists()
+            ]
+            missing = [f for f in changed_files if not self.should_exclude(f) and not (self.vault / f).exists()]
+            if missing:
+                logger.warning(f"Skipping {len(missing)} file(s) that no longer exist on disk")
             
             if not files_to_add:
                 logger.info("ℹ️ All changes are excluded")

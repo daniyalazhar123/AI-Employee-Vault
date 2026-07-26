@@ -41,15 +41,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
 load_secrets()
 
-# Setup logging with UTF-8 encoding
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger('MCPEmail')
+from audit_logger import setup_logging
+logger = setup_logging('MCPEmail')
 
 # Try to import Gmail API (optional, falls back to SMTP if not available)
 try:
@@ -342,30 +335,22 @@ mode: {self.mode}
     def list_emails(self, query: str = 'INBOX', max_results: int = 10) -> Dict:
         """List emails via IMAP"""
         try:
-            logger.info(f"📬 Listing emails from: {query}")
+            logger.info(f"Listing emails from: {query}")
             
-            if self.dry_run or not self.email_user:
-                # Return mock data for dry run
-                mock_emails = [
-                    {
-                        'id': '1',
-                        'from': 'client@example.com',
-                        'subject': 'Project Update',
-                        'date': datetime.now().isoformat(),
-                        'preview': 'Hi, I wanted to update you on the project...'
-                    },
-                    {
-                        'id': '2',
-                        'from': 'team@company.com',
-                        'subject': 'Meeting Tomorrow',
-                        'date': datetime.now().isoformat(),
-                        'preview': 'Don\'t forget about the meeting tomorrow at 2 PM...'
-                    }
-                ]
+            if not self.email_user:
+                return {
+                    'success': False,
+                    'message': 'EMAIL_USER not configured. Set EMAIL_USER and EMAIL_PASSWORD in .env',
+                    'emails': []
+                }
+            
+            if self.dry_run:
+                logger.info("DRY RUN: Would list emails from IMAP")
                 return {
                     'success': True,
-                    'emails': mock_emails[:max_results],
-                    'count': len(mock_emails)
+                    'message': 'Dry run - no emails fetched',
+                    'emails': [],
+                    'count': 0
                 }
             
             # Actual IMAP connection

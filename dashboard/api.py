@@ -7,17 +7,17 @@ Personal AI Employee Hackathon 0
 Platinum Tier: Dashboard UI
 """
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from dependency_fallback_guard import (
+    FastAPIProxy, HTTPException,
+    CORSMiddleware, StaticFiles, FileResponse,
+)
 from pathlib import Path
 import json
 import os
 from datetime import datetime
 from typing import Dict, List
 
-app = FastAPI(title="AI Employee Dashboard API")
+app = FastAPIProxy(title="AI Employee Dashboard API")
 
 # Enable CORS
 app.add_middleware(
@@ -163,5 +163,5 @@ async def health_check() -> Dict:
 
 
 if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    from dependency_fallback_guard import UvicornProxy
+    UvicornProxy.run(app, host='0.0.0.0', port=8000)

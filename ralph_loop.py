@@ -182,7 +182,8 @@ def check_task_status(task_file: Path) -> tuple:
             iteration = int(iter_match.group(1)) if iter_match else 0
             
             return False, status, task_file
-        except:
+        except Exception as exc:
+            print(f"   ⚠️  Could not read task file {task_file.name}: {exc}")
             return False, 'unknown', task_file
     
     # File not found anywhere - might have been moved with different name
@@ -192,7 +193,7 @@ def check_task_status(task_file: Path) -> tuple:
             content = done_file.read_text(encoding='utf-8')
             if task_file.stem in content or 'ralph_task' in content.lower():
                 return True, 'done', done_file
-        except:
+        except Exception:
             continue
     
     return False, 'missing', None

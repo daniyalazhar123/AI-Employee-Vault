@@ -40,26 +40,8 @@ if sys.platform == "win32":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-# Setup logging with UTF-8 encoding for Windows console
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('local_agent.log', encoding='utf-8'),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-
-# Fix StreamHandler encoding for Windows
-for handler in logging.getLogger().handlers:
-    if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
-        try:
-            handler.setStream(sys.stdout)
-            handler.encoding = 'utf-8'
-        except:
-            pass
-
-logger = logging.getLogger('LocalAgent')
+from audit_logger import setup_logging
+logger = setup_logging('LocalAgent', log_file='local_agent.log')
 
 # Import MCP servers
 sys.path.insert(0, str(Path(__file__).parent))
@@ -707,7 +689,7 @@ def main():
     print("="*60)
     
     # Get vault path from argument or use default
-    vault_path = sys.argv[1] if len(sys.argv) > 1 else 'C:/Users/CC/Documents/Obsidian Vault'
+    vault_path = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))
     
     print(f"📂 Vault Path: {vault_path}")
     print("\n🚀 Starting Local Agent in 3 seconds...")

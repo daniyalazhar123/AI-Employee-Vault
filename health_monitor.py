@@ -31,16 +31,8 @@ if sys.platform == "win32":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('health_monitor.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger('HealthMonitor')
+from audit_logger import setup_logging
+logger = setup_logging('HealthMonitor', log_file='health_monitor.log')
 
 
 class HealthMonitor:

@@ -8,18 +8,23 @@ Bhai: Yeh agent automatically language detect karta hai
 aur usi language mein jawab deta hai!
 """
 
+import logging
 import os
 import sys
 import json
 from pathlib import Path
 from datetime import datetime
 import subprocess
+
+from audit_logger import setup_logging
+logger = setup_logging('MultiLangAgent')
+
 # Fix Windows console encoding
 if sys.platform == "win32":
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    except (AttributeError, Exception):
+    except AttributeError:
         import io
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
@@ -30,7 +35,7 @@ try:
     LANGDETECT_AVAILABLE = True
 except ImportError:
     LANGDETECT_AVAILABLE = False
-    print("⚠️  Installing langdetect...")
+    logger.info("Installing langdetect...")
     subprocess.check_call([sys.executable, "-m", "pip", "install", "langdetect"])
     from langdetect import detect, DetectorFactory
     LANGDETECT_AVAILABLE = True
@@ -39,10 +44,10 @@ except ImportError:
 try:
     from deep_translator import GoogleTranslator
     TRANSLATOR_AVAILABLE = True
-    print("✅ deep-translator loaded")
+    logger.info("deep-translator loaded")
 except ImportError:
     TRANSLATOR_AVAILABLE = False
-    print("⚠️  Installing deep-translator (Python 3.14 compatible)...")
+    logger.info("Installing deep-translator (Python 3.14 compatible)...")
     subprocess.check_call([sys.executable, "-m", "pip", "install", "deep-translator"])
     from deep_translator import GoogleTranslator
     TRANSLATOR_AVAILABLE = True
@@ -90,9 +95,9 @@ class MultiLanguageAIAgent:
             'nahi', 'nai', 'nhi', 'hein', 'han'
         ]
         
-        print("🌍 Multi-Language AI Agent initialized")
-        print(f"📂 Vault: {self.vault}")
-        print(f"🗣️  Supported Languages: {len(self.language_codes)}+")
+        logger.info("Multi-Language AI Agent initialized")
+        logger.info(f"Vault: {self.vault}")
+        logger.info(f"Supported Languages: {len(self.language_codes)}+")
     
     def _load_config(self) -> dict:
         """Load AI Employee configuration"""
@@ -119,7 +124,8 @@ class MultiLanguageAIAgent:
                 DetectorFactory.seed = 0
                 lang_code = detect(text)
                 return self.language_codes.get(lang_code, f'Language_{lang_code}')
-            except:
+            except Exception as exc:
+                logger.warning(f"Language detection failed: {exc}")
                 return 'English_US'
         
         return 'English_US'
@@ -137,7 +143,8 @@ class MultiLanguageAIAgent:
                 translator = GoogleTranslator(source='auto', target='en')
                 translated = translator.translate(text)
                 return translated if translated else text
-            except:
+            except Exception as exc:
+                logger.warning(f"Translation to English failed: {exc}")
                 return text
         
         return text
@@ -155,7 +162,8 @@ class MultiLanguageAIAgent:
                 translator = GoogleTranslator(source='en', target=target_lang.lower()[:2])
                 translated = translator.translate(text)
                 return translated if translated else text
-            except:
+            except Exception as exc:
+                logger.warning(f"Translation from English failed: {exc}")
                 return text
         
         return text
@@ -164,12 +172,12 @@ class MultiLanguageAIAgent:
         """Process user query in their language"""
         # Step 1: Detect language
         detected_lang = self.detect_language(user_query)
-        print(f"\n🗣️  Detected Language: {detected_lang}")
-        print(f"📝 Query: {user_query}")
+        logger.info(f"Detected Language: {detected_lang}")
+        logger.info(f"Query: {user_query}")
         
         # Step 2: Translate to English (if needed)
         english_query = self.translate_to_english(user_query, detected_lang)
-        print(f"🔄 English Query: {english_query}")
+        logger.info(f"English Query: {english_query}")
         
         # Step 3: Process with AI engine
         ai_response = self._process_with_ai(english_query, user_name)
@@ -228,7 +236,7 @@ Response: """
                             'action': 'none',
                             'permission_required': False
                         }
-                except:
+                except Exception:
                     continue
             
             # If AI engine not available, use simple response
@@ -277,17 +285,17 @@ Response: """
 
 def main():
     """Main entry point - Interactive mode"""
-    print("="*70)
-    print("🌍 MULTI-LANGUAGE AI EMPLOYEE AGENT")
-    print("Python 3.14 Compatible - 25+ Languages")
-    print("="*70)
+    logger.info("="*70)
+    logger.info("MULTI-LANGUAGE AI EMPLOYEE AGENT")
+    logger.info("Python 3.14 Compatible - 25+ Languages")
+    logger.info("="*70)
     
     vault_path = sys.argv[1] if len(sys.argv) > 1 else 'C:/Users/CC/Documents/Obsidian Vault'
     agent = MultiLanguageAIAgent(vault_path)
     
     print("\n" + agent.greet_user('Roman_Urdu'))
     print("\n" + "="*70)
-    print("💬 Start chatting! Type 'quit' to exit.\n")
+    print("Start chatting! Type 'quit' to exit.\n")
     
     while True:
         try:

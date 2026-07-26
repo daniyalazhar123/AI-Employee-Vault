@@ -106,7 +106,8 @@ WATCHERS = {
 # =============================================================================
 
 def setup_logging() -> logging.Logger:
-    """Setup logging configuration."""
+    """Setup logging configuration with SafeConsoleFormatter."""
+    from audit_logger import SafeConsoleFormatter
     logger = logging.getLogger("orchestrator")
     logger.setLevel(getattr(logging, LOG_LEVEL.upper()))
 
@@ -118,9 +119,9 @@ def setup_logging() -> logging.Logger:
     console_handler = logging.StreamHandler()
     console_handler.setLevel(getattr(logging, LOG_LEVEL.upper()))
 
-    # Formatter
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    # SafeConsoleFormatter handles emoji on cp1252 + optional JSON mode
+    formatter = SafeConsoleFormatter(
+        fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     file_handler.setFormatter(formatter)
@@ -247,8 +248,8 @@ class WatcherProcess:
                     stderr = self.process.stderr.read()
                     if stderr:
                         health["error_output"] = stderr[:500]  # First 500 chars
-                except:
-                    pass
+                except Exception as exc:
+                    logger.warning(f"Could not read stderr for {self.name}: {exc}")
 
                 self.process = None
                 self.status = health["status"]
@@ -278,8 +279,8 @@ class WatcherProcess:
             try:
                 if self.process.stderr:
                     stderr_text = self.process.stderr.read() or ""
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning(f"Could not capture stderr for {self.name}: {exc}")
 
             if returncode == 0:
                 self.status = "stopped"
@@ -364,8 +365,7 @@ class Orchestrator:
             """HTTP handler for health check requests."""
 
             def log_message(self, format, *args):
-                """Suppress default logging."""
-                pass
+                logger.debug(f"Health server: {format % args}")
 
             def do_GET(self):
                 """Handle GET requests."""

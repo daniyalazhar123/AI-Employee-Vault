@@ -16,12 +16,8 @@ from datetime import datetime
 import logging
 import asyncio
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger('MCPBrowser')
+from audit_logger import setup_logging
+logger = setup_logging('MCPBrowser')
 
 try:
     from playwright.sync_api import sync_playwright

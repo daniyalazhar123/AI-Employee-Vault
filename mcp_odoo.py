@@ -21,12 +21,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
 load_secrets()
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger('MCPOdoo')
+from audit_logger import setup_logging
+logger = setup_logging('MCPOdoo')
 
 
 class MCPOdooServer:
@@ -152,34 +148,22 @@ status: draft (dry run)
     def get_leads(self, limit: int = 10) -> Dict:
         """Get CRM leads"""
         try:
-            logger.info(f"🎯 Getting leads (limit: {limit})")
+            logger.info(f"Getting leads (limit: {limit})")
+            
+            if not self.uid:
+                return {
+                    'success': False,
+                    'message': 'Not authenticated to Odoo. Check ODOO_URL, ODOO_DB, ODOO_USERNAME, ODOO_PASSWORD',
+                    'leads': []
+                }
             
             if self.dry_run:
-                # Mock data
-                mock_leads = [
-                    {
-                        'id': 1,
-                        'name': 'Demo Lead 1',
-                        'partner_name': 'ABC Company',
-                        'email_from': 'contact@abc.com',
-                        'phone': '+1234567890',
-                        'priority': '3',
-                        'stage_id': [1, 'New']
-                    },
-                    {
-                        'id': 2,
-                        'name': 'Demo Lead 2',
-                        'partner_name': 'XYZ Corp',
-                        'email_from': 'info@xyz.com',
-                        'phone': '+0987654321',
-                        'priority': '4',
-                        'stage_id': [2, 'Qualified']
-                    }
-                ]
+                logger.info("DRY RUN: Would fetch leads from Odoo CRM")
                 return {
                     'success': True,
-                    'leads': mock_leads[:limit],
-                    'count': len(mock_leads)
+                    'message': 'Dry run - no leads fetched',
+                    'leads': [],
+                    'count': 0
                 }
             
             # Actual Odoo query

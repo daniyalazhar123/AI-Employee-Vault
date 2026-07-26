@@ -38,19 +38,8 @@ CHECK_INTERVAL = int(os.getenv('CHECK_INTERVAL', '30'))
 AGENT_ID = 'cloud'
 AGENT_TYPE = 'draft_only'
 
-# Setup logging
-LOG_FILE = VAULT_PATH / 'Logs' / 'cloud_agent.log'
-LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger('CloudOrchestrator')
+from audit_logger import setup_logging
+logger = setup_logging('CloudOrchestrator', log_file=str(VAULT_PATH / 'Logs' / 'cloud_agent.log'))
 
 
 class CloudOrchestrator:

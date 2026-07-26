@@ -13,8 +13,12 @@ Usage:
     creds_path = get_secret_path('credentials.json')
 """
 
+import logging
 import os
 from pathlib import Path
+
+from audit_logger import setup_logging
+logger = setup_logging('secrets_config')
 
 # Singleton: compute once
 _SECRETS_DIR = Path(os.environ.get(
@@ -28,7 +32,7 @@ SECRETS_DIR = _SECRETS_DIR
 def load_secrets():
     """Load all .env files from secrets directory into os.environ."""
     if not SECRETS_DIR.exists():
-        print(f"[SECRETS] WARNING: Secrets directory not found: {SECRETS_DIR}")
+        logger.warning(f"Secrets directory not found: {SECRETS_DIR}")
         return
 
     # Load the merged .env first, then any specific ones
@@ -51,7 +55,7 @@ def load_secrets():
     os.environ.setdefault('DRY_RUN', 'true')
     os.environ.setdefault('REQUIRE_APPROVAL', 'true')
 
-    print(f"[SECRETS] Loaded from {SECRETS_DIR}")
+    logger.info(f"Loaded secrets from {SECRETS_DIR}")
 
 
 def get_secret_path(filename: str) -> Path:

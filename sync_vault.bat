@@ -5,7 +5,7 @@ REM ============================================
 REM Run on Local machine every 5 minutes
 REM Syncs vault with Cloud VM via Git
 
-cd /d "C:\Users\CC\Documents\Obsidian Vault"
+cd /d "%~dp0"
 
 echo ============================================ >> sync.log
 echo %date% %time%: Starting Git sync... >> sync.log
