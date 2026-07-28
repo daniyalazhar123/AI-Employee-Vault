@@ -67,6 +67,13 @@ class MCPEmailServer:
         self.dry_run = os.getenv('DRY_RUN', 'false').lower() == 'true'
         self.require_approval = os.getenv('REQUIRE_APPROVAL', 'true').lower() == 'true'
 
+        # SMTP/IMAP credentials (used as fallback in both modes)
+        self.smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        self.smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        self.email_user = os.getenv('EMAIL_USER', '')
+        self.email_password = os.getenv('EMAIL_PASSWORD', '')
+        self.imap_server = os.getenv('IMAP_SERVER', 'imap.gmail.com')
+
         # Mode 1: Gmail API OAuth (preferred) - paths from secrets_config
         self.gmail_token_path = get_secret_path('token.pickle')
         self.gmail_credentials_path = get_secret_path('credentials.json')
@@ -86,12 +93,7 @@ class MCPEmailServer:
 
         # Mode 2: SMTP fallback
         if self.mode == 'smtp':
-            self.smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
-            self.smtp_port = int(os.getenv('SMTP_PORT', '587'))
-            self.email_user = os.getenv('EMAIL_USER', '')
-            self.email_password = os.getenv('EMAIL_PASSWORD', '')
-            self.imap_server = os.getenv('IMAP_SERVER', 'imap.gmail.com')
-            logger.info(f"📧 SMTP mode initialized (Dry Run: {self.dry_run}, Approval Required: {self.require_approval})")
+            logger.info(f"SMTP mode initialized (Dry Run: {self.dry_run}, Approval Required: {self.require_approval})")
 
     def _init_gmail_api(self):
         """Initialize Gmail API service with OAuth token"""
@@ -101,19 +103,21 @@ class MCPEmailServer:
         if not self.gmail_token_path.exists():
             raise Exception(f"Token file not found: {self.gmail_token_path}")
 
-        # Load token
-        with open(self.gmail_token_path, 'r') as f:
-            token_data = json.load(f)
+        # Load token (could be pickle Credentials object or dict)
+        with open(self.gmail_token_path, 'rb') as f:
+            import pickle
+            token_data = pickle.load(f)
 
-        # Handle both old and new token formats
-        if 'refresh_token' in token_data:
+        # Handle both Credentials object and dict formats
+        if hasattr(token_data, 'valid'):
+            creds = token_data
+        elif 'refresh_token' in token_data:
             creds = Credentials.from_authorized_user_info(token_data, scopes=[
                 'https://www.googleapis.com/auth/gmail.send',
                 'https://www.googleapis.com/auth/gmail.compose',
                 'https://www.googleapis.com/auth/gmail.readonly'
             ])
         else:
-            # Try older format
             creds = Credentials(
                 token=token_data.get('access_token'),
                 refresh_token=token_data.get('refresh_token'),
@@ -128,7 +132,7 @@ class MCPEmailServer:
             )
 
         self.gmail_service = build('gmail', 'v1', credentials=creds)
-        logger.info("✅ Gmail API service initialized successfully")
+        logger.info("Gmail API service initialized successfully")
     
     def send_email(self, to: str, subject: str, body: str,
                    attachment_path: Optional[str] = None,
@@ -332,6 +336,24 @@ mode: {self.mode}
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
     
+    def _get_email_preview(self, email_msg) -> str:
+        """Extract text preview from an email message safely"""
+        try:
+            if email_msg.is_multipart():
+                for part in email_msg.walk():
+                    content_type = part.get_content_type()
+                    if content_type == 'text/plain':
+                        payload = part.get_payload(decode=True)
+                        if payload:
+                            return str(payload[:100], errors='replace')
+                return ''
+            payload = email_msg.get_payload(decode=True)
+            if payload:
+                return str(payload[:100], errors='replace')
+            return ''
+        except Exception:
+            return ''
+
     def list_emails(self, query: str = 'INBOX', max_results: int = 10) -> Dict:
         """List emails via IMAP"""
         try:
@@ -371,7 +393,7 @@ mode: {self.mode}
                     'from': email_msg['From'],
                     'subject': email_msg['Subject'],
                     'date': email_msg['Date'],
-                    'preview': str(email_msg.get_payload(decode=True)[:100]) if email_msg.get_payload() else ''
+                    'preview': self._get_email_preview(email_msg)
                 })
             
             mail.close()

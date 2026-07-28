@@ -18,6 +18,11 @@ from typing import Any, Callable, Optional, List, Dict
 from logging.handlers import TimedRotatingFileHandler
 import traceback
 
+# Ensure parent directory is on sys.path for audit_logger import
+_watcher_parent = str(Path(__file__).resolve().parent.parent)
+if _watcher_parent not in sys.path:
+    sys.path.insert(0, _watcher_parent)
+
 
 class BaseWatcher:
     """
