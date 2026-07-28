@@ -13,6 +13,7 @@ module.exports = {
       max_memory_restart: '2G',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-orchestrator-error.log'),
@@ -28,6 +29,7 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-cloud-agent-error.log'),
@@ -43,6 +45,7 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-local-agent-error.log'),
@@ -58,6 +61,7 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-cloud-orch-error.log'),
@@ -73,6 +77,7 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-local-orch-error.log'),
@@ -88,6 +93,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-vault-sync-error.log'),
@@ -104,6 +110,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-a2a-error.log'),
@@ -120,6 +127,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-health-monitor-error.log'),
@@ -136,6 +144,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-security-guard-error.log'),
@@ -151,6 +160,7 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-multi-lang-error.log'),
@@ -168,6 +178,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-gmail-watcher-error.log'),
@@ -183,6 +194,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-whatsapp-watcher-error.log'),
@@ -198,6 +210,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-office-watcher-error.log'),
@@ -213,6 +226,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-social-watcher-error.log'),
@@ -228,6 +242,7 @@ module.exports = {
       max_memory_restart: '500M',
       env: {
         PYTHONUNBUFFERED: '1',
+        PYTHONIOENCODING: 'utf-8',
         VAULT_PATH: VAULT_PATH
       },
       error_file: path.join(VAULT_PATH, 'Logs', 'pm2-odoo-lead-watcher-error.log'),
