@@ -394,9 +394,19 @@ Sales Team
         """Main watcher loop."""
         self.print_status_header("🎯 ODOO LEAD WATCHER STARTED")
         
-        # Load processed IDs
-        self.processed_ids = self.load_processed_ids('processed_odoo_leads.txt')
-        self.log_info(f"Loaded {len(self.processed_ids)} previously processed lead IDs")
+        # Load processed IDs and migrate any stale non-integer entries (e.g. 'TEST001'
+        # left from earlier runs) that otherwise break the NOT IN integer domain.
+        raw_ids = self.load_processed_ids('processed_odoo_leads.txt')
+        self.log_info(f"Loaded {len(raw_ids)} previously processed lead IDs")
+        cleaned = set()
+        for pid in raw_ids:
+            try:
+                cleaned.add(str(int(pid)))
+            except (ValueError, TypeError):
+                self.log_warning(f"Discarding stale non-integer lead ID: {pid!r}")
+        self.processed_ids = cleaned
+        # Persist cleaned set immediately so corruption is wiped even if later steps fail.
+        self.save_processed_ids('processed_odoo_leads.txt', self.processed_ids)
         
         # Try to connect to Odoo
         self.connect()
