@@ -122,7 +122,15 @@ class OdooLeadWatcher(BaseWatcher):
             return []
         
         def _fetch():
-            domain = [('id', 'not in', list(self.processed_ids))]
+            # Coerce processed IDs to integers; drop stale non-integer entries
+            # (e.g. 'TEST001' string saved by earlier runs causes InvalidTextRepresentation)
+            int_ids = set()
+            for pid in self.processed_ids:
+                try:
+                    int_ids.add(int(pid))
+                except (ValueError, TypeError):
+                    self.log_warning(f"Dropping non-integer processed ID: {pid!r}")
+            domain = [('id', 'not in', sorted(int_ids))]
             
             leads = self.models.execute_kw(
                 ODOO_CONFIG['db'],
