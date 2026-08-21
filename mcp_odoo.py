@@ -16,6 +16,17 @@ from typing import Dict, List, Optional
 from datetime import datetime
 import logging
 
+# --- MCP stdio mode detection (must precede logging-configuring imports) ---
+# MCP-over-stdio uses stdout for the JSON-RPC channel; any log line written to
+# stdout corrupts the protocol. When this file is launched as an MCP server
+# (no CLI args, or an explicit --mcp flag), route ALL logging to stderr BEFORE
+# importing secrets_config / audit_logger, both of which emit log lines at
+# import time. When imported as a module (local_agent), __name__ != '__main__'
+# so nothing changes.
+_MCP_MODE = __name__ == '__main__' and (len(sys.argv) == 1 or '--mcp' in sys.argv)
+if _MCP_MODE:
+    os.environ['AI_EMPLOYEE_LOG_STREAM'] = 'stderr'
+
 # Load secrets from outside vault
 sys.path.insert(0, str(Path(__file__).parent))
 from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
@@ -399,39 +410,120 @@ status: draft (dry run)
 
 # CLI Interface
 if __name__ == '__main__':
-    import argparse
-    
-    parser = argparse.ArgumentParser(description='MCP Odoo Server')
-    parser.add_argument('--action', choices=['create_invoice', 'get_leads', 'update_lead', 'record_payment'], required=True)
-    parser.add_argument('--partner-id', type=int, help='Partner ID')
-    parser.add_argument('--amount', type=float, help='Amount')
-    parser.add_argument('--lead-id', type=int, help='Lead ID')
-    parser.add_argument('--invoice-id', type=int, help='Invoice ID')
-    parser.add_argument('--approved', action='store_true',
-                        help='Mark a flagged payment as human-approved (bypasses the approval gate)')
-    parser.add_argument('--payee-known', action='store_true',
-                        help='Assert the payee is known/trusted (skips new-payee detection)')
-    parser.add_argument('--vault', help='Vault path')
-    
-    args = parser.parse_args()
-    
-    server = MCPOdooServer(Path(args.vault) if args.vault else None)
-    
-    if args.action == 'create_invoice' and args.partner_id and args.amount:
-        result = server.create_invoice(args.partner_id, args.amount)
-    elif args.action == 'get_leads':
-        result = server.get_leads()
-    elif args.action == 'update_lead' and args.lead_id:
-        result = server.update_lead(args.lead_id, {'priority': '4'})
-    elif args.action == 'record_payment' and args.invoice_id and args.amount:
-        result = server.record_payment(
-            args.invoice_id, args.amount,
-            partner_id=args.partner_id,
-            payee_known=(True if args.payee_known else None),
-            approved=args.approved,
-        )
+    if _MCP_MODE:
+        # ---- Real MCP protocol server over stdio (Silver #5 / Gold #3, #6) ----
+        # Speaks JSON-RPC over stdin/stdout via the official `mcp` SDK. The
+        # MCPOdooServer logic class (incl. the security-gated record_payment) is
+        # reused unchanged; mcp_server_base wraps each method as a tool.
+        from mcp_server_base import ToolSpec, run_mcp_server
+
+        server = MCPOdooServer()
+
+        tools = [
+            ToolSpec(
+                name='create_invoice',
+                description='Create a customer invoice in Odoo for a partner and amount.',
+                input_schema={
+                    'type': 'object',
+                    'properties': {
+                        'partner_id': {'type': 'integer'},
+                        'amount': {'type': 'number'},
+                        'description': {'type': 'string', 'default': 'Service'},
+                    },
+                    'required': ['partner_id', 'amount'],
+                },
+                handler=lambda a: server.create_invoice(
+                    int(a['partner_id']), float(a['amount']),
+                    description=a.get('description', 'Service'),
+                ),
+            ),
+            ToolSpec(
+                name='get_leads',
+                description='Fetch recent CRM leads from Odoo (read-only).',
+                input_schema={
+                    'type': 'object',
+                    'properties': {'limit': {'type': 'integer', 'default': 10}},
+                },
+                handler=lambda a: server.get_leads(limit=int(a.get('limit', 10))),
+            ),
+            ToolSpec(
+                name='update_lead',
+                description='Update fields on an Odoo CRM lead by id.',
+                input_schema={
+                    'type': 'object',
+                    'properties': {
+                        'lead_id': {'type': 'integer'},
+                        'values': {'type': 'object', 'description': 'Field/value map to write'},
+                    },
+                    'required': ['lead_id', 'values'],
+                },
+                handler=lambda a: server.update_lead(int(a['lead_id']), dict(a.get('values') or {})),
+            ),
+            ToolSpec(
+                name='record_payment',
+                description=('Register a payment against an invoice. Security-gated: a '
+                             'payment over PAYMENT_APPROVAL_THRESHOLD (default $100) OR to '
+                             'a new/unknown payee is refused unless approved=true. Honors '
+                             'DRY_RUN.'),
+                input_schema={
+                    'type': 'object',
+                    'properties': {
+                        'invoice_id': {'type': 'integer'},
+                        'amount': {'type': 'number'},
+                        'payment_date': {'type': 'string', 'description': 'YYYY-MM-DD; defaults to today'},
+                        'partner_id': {'type': 'integer'},
+                        'payee_known': {'type': 'boolean', 'description': 'Assert payee is known/trusted'},
+                        'approved': {'type': 'boolean', 'default': False},
+                        'ref': {'type': 'string', 'default': ''},
+                    },
+                    'required': ['invoice_id', 'amount'],
+                },
+                handler=lambda a: server.record_payment(
+                    int(a['invoice_id']), float(a['amount']),
+                    payment_date=a.get('payment_date'),
+                    partner_id=(int(a['partner_id']) if a.get('partner_id') is not None else None),
+                    payee_known=a.get('payee_known'),
+                    approved=bool(a.get('approved', False)),
+                    ref=a.get('ref', ''),
+                ),
+            ),
+        ]
+
+        run_mcp_server('ai-employee-odoo', tools)
     else:
-        parser.print_help()
-        sys.exit(1)
-    
-    print(json.dumps(result, indent=2))
+        import argparse
+
+        parser = argparse.ArgumentParser(description='MCP Odoo Server')
+        parser.add_argument('--action', choices=['create_invoice', 'get_leads', 'update_lead', 'record_payment'], required=True)
+        parser.add_argument('--partner-id', type=int, help='Partner ID')
+        parser.add_argument('--amount', type=float, help='Amount')
+        parser.add_argument('--lead-id', type=int, help='Lead ID')
+        parser.add_argument('--invoice-id', type=int, help='Invoice ID')
+        parser.add_argument('--approved', action='store_true',
+                            help='Mark a flagged payment as human-approved (bypasses the approval gate)')
+        parser.add_argument('--payee-known', action='store_true',
+                            help='Assert the payee is known/trusted (skips new-payee detection)')
+        parser.add_argument('--vault', help='Vault path')
+
+        args = parser.parse_args()
+
+        server = MCPOdooServer(Path(args.vault) if args.vault else None)
+
+        if args.action == 'create_invoice' and args.partner_id and args.amount:
+            result = server.create_invoice(args.partner_id, args.amount)
+        elif args.action == 'get_leads':
+            result = server.get_leads()
+        elif args.action == 'update_lead' and args.lead_id:
+            result = server.update_lead(args.lead_id, {'priority': '4'})
+        elif args.action == 'record_payment' and args.invoice_id and args.amount:
+            result = server.record_payment(
+                args.invoice_id, args.amount,
+                partner_id=args.partner_id,
+                payee_known=(True if args.payee_known else None),
+                approved=args.approved,
+            )
+        else:
+            parser.print_help()
+            sys.exit(1)
+
+        print(json.dumps(result, indent=2))

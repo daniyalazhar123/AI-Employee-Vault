@@ -36,6 +36,17 @@ from datetime import datetime
 import logging
 import base64
 
+# --- MCP stdio mode detection (must precede logging-configuring imports) ---
+# MCP-over-stdio uses stdout for the JSON-RPC channel; any log line written to
+# stdout corrupts the protocol. When this file is launched as an MCP server
+# (no CLI args, or an explicit --mcp flag), route ALL logging to stderr BEFORE
+# importing secrets_config / audit_logger, both of which emit log lines at
+# import time. When imported as a module (local_agent), __name__ != '__main__'
+# so nothing changes.
+_MCP_MODE = __name__ == '__main__' and (len(sys.argv) == 1 or '--mcp' in sys.argv)
+if _MCP_MODE:
+    os.environ['AI_EMPLOYEE_LOG_STREAM'] = 'stderr'
+
 # Load secrets from outside vault
 sys.path.insert(0, str(Path(__file__).parent))
 from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
@@ -460,27 +471,92 @@ status: draft
 
 # CLI Interface
 if __name__ == '__main__':
-    import argparse
-    
-    parser = argparse.ArgumentParser(description='MCP Email Server')
-    parser.add_argument('--action', choices=['send', 'list', 'draft'], required=True)
-    parser.add_argument('--to', help='Recipient email')
-    parser.add_argument('--subject', help='Email subject')
-    parser.add_argument('--body', help='Email body')
-    parser.add_argument('--vault', help='Vault path')
-    
-    args = parser.parse_args()
-    
-    server = MCPEmailServer(Path(args.vault) if args.vault else None)
-    
-    if args.action == 'send' and args.to and args.subject and args.body:
-        result = server.send_email(args.to, args.subject, args.body)
-    elif args.action == 'list':
-        result = server.list_emails()
-    elif args.action == 'draft' and args.to and args.subject and args.body:
-        result = server.draft_email(args.to, args.subject, args.body)
+    if _MCP_MODE:
+        # ---- Real MCP protocol server over stdio (Silver #5 / Gold #3, #6) ----
+        # Speaks JSON-RPC over stdin/stdout via the official `mcp` SDK. The
+        # MCPEmailServer logic class is reused unchanged; mcp_server_base wraps
+        # each method as an advertised tool.
+        from mcp_server_base import ToolSpec, run_mcp_server
+
+        server = MCPEmailServer()
+
+        tools = [
+            ToolSpec(
+                name='send_email',
+                description=('Send an email to a recipient. Honors DRY_RUN (simulated '
+                             'unless DRY_RUN=false) and the human-approval gate; pass '
+                             'approved=true to release a message that requires approval.'),
+                input_schema={
+                    'type': 'object',
+                    'properties': {
+                        'to': {'type': 'string', 'description': 'Recipient email address'},
+                        'subject': {'type': 'string'},
+                        'body': {'type': 'string'},
+                        'attachment_path': {'type': 'string', 'description': 'Optional path to a file to attach'},
+                        'approved': {'type': 'boolean', 'default': False},
+                    },
+                    'required': ['to', 'subject', 'body'],
+                },
+                handler=lambda a: server.send_email(
+                    a['to'], a['subject'], a['body'],
+                    attachment_path=a.get('attachment_path'),
+                    approved=bool(a.get('approved', False)),
+                ),
+            ),
+            ToolSpec(
+                name='list_emails',
+                description='List recent emails from a mailbox/query (read-only).',
+                input_schema={
+                    'type': 'object',
+                    'properties': {
+                        'query': {'type': 'string', 'default': 'INBOX'},
+                        'max_results': {'type': 'integer', 'default': 10},
+                    },
+                },
+                handler=lambda a: server.list_emails(
+                    query=a.get('query', 'INBOX'),
+                    max_results=int(a.get('max_results', 10)),
+                ),
+            ),
+            ToolSpec(
+                name='draft_email',
+                description='Create a local draft email in the vault (never sends).',
+                input_schema={
+                    'type': 'object',
+                    'properties': {
+                        'to': {'type': 'string'},
+                        'subject': {'type': 'string'},
+                        'body': {'type': 'string'},
+                    },
+                    'required': ['to', 'subject', 'body'],
+                },
+                handler=lambda a: server.draft_email(a['to'], a['subject'], a['body']),
+            ),
+        ]
+
+        run_mcp_server('ai-employee-email', tools)
     else:
-        parser.print_help()
-        sys.exit(1)
-    
-    print(json.dumps(result, indent=2))
+        import argparse
+
+        parser = argparse.ArgumentParser(description='MCP Email Server')
+        parser.add_argument('--action', choices=['send', 'list', 'draft'], required=True)
+        parser.add_argument('--to', help='Recipient email')
+        parser.add_argument('--subject', help='Email subject')
+        parser.add_argument('--body', help='Email body')
+        parser.add_argument('--vault', help='Vault path')
+
+        args = parser.parse_args()
+
+        server = MCPEmailServer(Path(args.vault) if args.vault else None)
+
+        if args.action == 'send' and args.to and args.subject and args.body:
+            result = server.send_email(args.to, args.subject, args.body)
+        elif args.action == 'list':
+            result = server.list_emails()
+        elif args.action == 'draft' and args.to and args.subject and args.body:
+            result = server.draft_email(args.to, args.subject, args.body)
+        else:
+            parser.print_help()
+            sys.exit(1)
+
+        print(json.dumps(result, indent=2))

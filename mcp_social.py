@@ -45,6 +45,17 @@ if sys.platform == "win32":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
+# --- MCP stdio mode detection (must precede logging-configuring imports) ---
+# MCP-over-stdio uses stdout for the JSON-RPC channel; any log line written to
+# stdout corrupts the protocol. When this file is launched as an MCP server
+# (no CLI args, or an explicit --mcp flag), route ALL logging to stderr BEFORE
+# importing secrets_config / audit_logger, both of which emit log lines at
+# import time. When imported as a module (local_agent), __name__ != '__main__'
+# so nothing changes.
+_MCP_MODE = __name__ == '__main__' and (len(sys.argv) == 1 or '--mcp' in sys.argv)
+if _MCP_MODE:
+    os.environ['AI_EMPLOYEE_LOG_STREAM'] = 'stderr'
+
 # Load secrets from outside vault
 sys.path.insert(0, str(Path(__file__).parent))
 from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
@@ -535,39 +546,103 @@ status: {status}
 
 # CLI Interface
 if __name__ == '__main__':
-    import argparse
+    if _MCP_MODE:
+        # ---- Real MCP protocol server over stdio (Silver #5 / Gold #3, #6) ----
+        # Speaks JSON-RPC over stdin/stdout via the official `mcp` SDK. The
+        # MCPSocialServer logic class is reused unchanged; mcp_server_base wraps
+        # each method as an advertised tool.
+        from mcp_server_base import ToolSpec, run_mcp_server
 
-    parser = argparse.ArgumentParser(description='MCP Social Media Server')
-    parser.add_argument('--action', choices=['post', 'draft', 'status'], required=True,
-                        help='Action: post (publish), draft (save draft), status (check platforms)')
-    parser.add_argument('--platform', choices=['linkedin', 'facebook', 'instagram', 'twitter'],
-                        help='Platform to post/draft')
-    parser.add_argument('--content', help='Post content')
-    parser.add_argument('--approved', action='store_true', help='Mark as human-approved')
-    parser.add_argument('--vault', help='Vault path')
+        server = MCPSocialServer()
 
-    args = parser.parse_args()
+        def _post_social(a):
+            platform = (a.get('platform') or '').lower()
+            content = a.get('content', '')
+            approved = bool(a.get('approved', False))
+            if platform == 'linkedin':
+                return server.post_to_linkedin(content, approved=approved)
+            if platform == 'facebook':
+                return server.post_to_facebook(content, approved=approved)
+            if platform == 'instagram':
+                return server.post_to_instagram(content, image_path=a.get('image_path'), approved=approved)
+            if platform == 'twitter':
+                return server.post_to_twitter(content, approved=approved)
+            return {'success': False, 'message': f'Unknown platform: {platform!r}'}
 
-    server = MCPSocialServer(Path(args.vault) if args.vault else None)
+        tools = [
+            ToolSpec(
+                name='post_social',
+                description=('Publish a post to a social platform (linkedin/facebook/'
+                             'instagram/twitter). Honors DRY_RUN and the human-approval '
+                             'gate; pass approved=true to publish for real.'),
+                input_schema={
+                    'type': 'object',
+                    'properties': {
+                        'platform': {'type': 'string', 'enum': ['linkedin', 'facebook', 'instagram', 'twitter']},
+                        'content': {'type': 'string'},
+                        'image_path': {'type': 'string', 'description': 'Optional image path (instagram)'},
+                        'approved': {'type': 'boolean', 'default': False},
+                    },
+                    'required': ['platform', 'content'],
+                },
+                handler=_post_social,
+            ),
+            ToolSpec(
+                name='draft_social',
+                description='Save a social post as a local draft (never publishes).',
+                input_schema={
+                    'type': 'object',
+                    'properties': {
+                        'platform': {'type': 'string', 'enum': ['linkedin', 'facebook', 'instagram', 'twitter']},
+                        'content': {'type': 'string'},
+                    },
+                    'required': ['platform', 'content'],
+                },
+                handler=lambda a: server._save_draft(a['platform'], a.get('content', ''), dry_run=True),
+            ),
+            ToolSpec(
+                name='get_platform_status',
+                description='Report configured/available status for each social platform.',
+                input_schema={'type': 'object', 'properties': {}},
+                handler=lambda a: server.get_platform_status(),
+            ),
+        ]
 
-    if args.action == 'status':
-        result = server.get_platform_status()
-    elif args.action == 'post' and args.platform and args.content:
-        if args.platform == 'linkedin':
-            result = server.post_to_linkedin(args.content, approved=args.approved)
-        elif args.platform == 'facebook':
-            result = server.post_to_facebook(args.content, approved=args.approved)
-        elif args.platform == 'instagram':
-            result = server.post_to_instagram(args.content, approved=args.approved)
-        elif args.platform == 'twitter':
-            result = server.post_to_twitter(args.content, approved=args.approved)
+        run_mcp_server('ai-employee-social', tools)
+    else:
+        import argparse
+
+        parser = argparse.ArgumentParser(description='MCP Social Media Server')
+        parser.add_argument('--action', choices=['post', 'draft', 'status'], required=True,
+                            help='Action: post (publish), draft (save draft), status (check platforms)')
+        parser.add_argument('--platform', choices=['linkedin', 'facebook', 'instagram', 'twitter'],
+                            help='Platform to post/draft')
+        parser.add_argument('--content', help='Post content')
+        parser.add_argument('--approved', action='store_true', help='Mark as human-approved')
+        parser.add_argument('--vault', help='Vault path')
+
+        args = parser.parse_args()
+
+        server = MCPSocialServer(Path(args.vault) if args.vault else None)
+
+        if args.action == 'status':
+            result = server.get_platform_status()
+        elif args.action == 'post' and args.platform and args.content:
+            if args.platform == 'linkedin':
+                result = server.post_to_linkedin(args.content, approved=args.approved)
+            elif args.platform == 'facebook':
+                result = server.post_to_facebook(args.content, approved=args.approved)
+            elif args.platform == 'instagram':
+                result = server.post_to_instagram(args.content, approved=args.approved)
+            elif args.platform == 'twitter':
+                result = server.post_to_twitter(args.content, approved=args.approved)
+            else:
+                parser.print_help()
+                sys.exit(1)
+        elif args.action == 'draft' and args.platform and args.content:
+            result = server._save_draft(args.platform, args.content, dry_run=True)
         else:
             parser.print_help()
             sys.exit(1)
-    elif args.action == 'draft' and args.platform and args.content:
-        result = server._save_draft(args.platform, args.content, dry_run=True)
-    else:
-        parser.print_help()
-        sys.exit(1)
 
-    print(json.dumps(result, indent=2))
+        print(json.dumps(result, indent=2))

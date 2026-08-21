@@ -304,7 +304,15 @@ def setup_logging(
         force_safe=force_safe,
     )
 
-    console_handler = logging.StreamHandler(sys.stdout)
+    # Console stream defaults to stdout, but can be routed to stderr via
+    # AI_EMPLOYEE_LOG_STREAM=stderr. MCP stdio servers set this so log lines
+    # never corrupt the JSON-RPC protocol channel (which owns stdout).
+    _console_stream = (
+        sys.stderr
+        if os.getenv('AI_EMPLOYEE_LOG_STREAM', 'stdout').strip().lower() == 'stderr'
+        else sys.stdout
+    )
+    console_handler = logging.StreamHandler(_console_stream)
     console_handler.setLevel(level)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
