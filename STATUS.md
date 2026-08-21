@@ -1,106 +1,108 @@
+---
+title: STATUS — AI Employee Vault (Honest Baseline)
+last_updated: 2026-08-21
+supersedes: prior STATUS.md dated 2026-07-25 (which overstated completion — see "Correction Notice")
+basis: Independent code audit (7 parallel sub-audits), source read + py_compile + live pm2 logs + git tracking + grep sweeps
+grading: "✅ VERIFIED = confirmed by code/logs/git · ⚠️ PARTIAL = exists but incomplete/flawed/unverified · ❌ NOT MET = missing or not-as-specified · 🕓 PLANNED = scripted but not deployed/run"
+---
+
 # STATUS — AI Employee Vault
 
-**Last Updated:** 2026-07-25
-**Hackathon:** Personal AI Employee Hackathon 0
+> **This is the honest single source of truth.** It intentionally replaces the earlier optimistic status. Where an earlier claim could not be reproduced from the code, it is marked **UNVERIFIED** rather than PASS — that is a fairness stance, not an accusation.
 
-## Tier Assessment (HONEST — No Sugar)
+---
 
-| Tier | Status | Notes |
-|------|--------|-------|
-| **Bronze** | ✅ 100% | Dashboard, Company_Handbook, folders, watchers, skills |
-| **Silver** | ✅ 100% | Gmail/WhatsApp/LinkedIn credentials set, MCP servers loaded |
-| **Gold** | ✅ ~93% | See detailed breakdown below |
-| **Platinum** | ✅ ~98% | 21/21 components pass. Dependency guard + SafeConsoleFormatter + bank reconciliation + voice approval. |
+## Correction Notice (why this file changed)
 
-## Gold Tier — Real Status (July 25, 2026) — Session Cookie Upgrade
+The previous `STATUS.md` (and `FINAL_HACKATHON_REPORT.md`) reported **Gold 14/14 (100%)**, **Platinum 21/21**, **overall 47/52 (90%) "Gold-Ready"**, and **"554/554 tests 100%"**. An independent audit found several of those PASS entries are **not defensible**:
 
-| # | Requirement | Result | Evidence |
-|---|-------------|--------|----------|
-| 1 | Full cross-domain (Personal+Business) | ✅ PASS | Gmail (672 inbox emails) + WhatsApp session + Odoo CRM+Account |
-| 2 | Odoo 19 MCP + Accounting | ✅ PASS | Odoo 19.0, 50 modules, invoice INV/2026/00003 (Rs.11,700) posted, payment #1 |
-| 3 | Facebook + Instagram | ✅ PASS | `facebook_instagram_post.py` — session cookie JSON injection replaces password login, bypasses Meta 2FA |
-| 4 | Twitter (X) | ✅ PASS | `x_agent.py` — saved cookie approach (`twitter_session.json`) bypasses X.com rate-limiting |
-| 5 | Multiple MCP servers | ✅ PASS | email, odoo, social, browser — all load and functional |
-| 6 | Weekly CEO Briefing | ✅ PASS | Jun 18 briefing: Rs.113K, 42 tasks, 5 clients, 2 pending approvals |
-| 7 | Error recovery | ✅ PASS | CircuitBreaker + DeadLetterQueue (9 items) + HealthCheck with degradation |
-| 8 | Audit logging | ✅ PASS | 5 JSONL audit files in proper format, email actions logged |
-| 9 | Ralph Wiggum loop | ✅ PASS | Task creation, graceful CLI failure, exponential backoff |
-| 10 | Documentation | ✅ PASS | 10 docs + STATUS + README + architecture guide |
-| 11 | AI as Agent Skills | ✅ PASS | 8 skills in .claude/skills/ |
-| 12 | LinkedIn auto-post | ✅ PASS | Shadow DOM fix: `.type()` not `.fill()`, Post button inside open Shadow Root, real post published at 05:10 AM |
-| 13 | Social summaries | ✅ PASS | Summary generator reads real post files; engagement score derived from hashtags/mentions in actual content (not mock) |
-| 14 | Scheduling (cron/Task Scheduler) | ✅ PASS | `Install_Background_Scheduler.ps1` — boots `START_AI_EMPLOYEE_247.bat` as SYSTEM, auto-restart. `install_scheduled_tasks.ps1` — 13 watchers as SYSTEM |
+1. **"MCP servers" are not MCP servers.** `mcp_email.py`, `mcp_odoo.py`, `mcp_social.py`, `mcp_browser.py` are ordinary Python **argparse CLI scripts**. None import the MCP SDK, open an `stdio_server`, or register tools. They perform real actions — but not over the MCP protocol.
+2. **Odoo "payment #1 via JSON-RPC" is false.** `mcp_odoo.py` uses **XML-RPC, not JSON-RPC**, and `record_payment` is a **no-op stub** (`mcp_odoo.py:249-257`).
+3. **CEO-briefing revenue "Rs. 113,000" is hand-typed static text** (`Dashboard.md`, `Business_Goals.md`, echoed into `Briefings/`). It is never queried from Odoo.
+4. **Audit logging is not wired.** `audit_logger.log_action()` is called **0 times** by any action script — real sends leave no structured audit record. ✅ **RESOLVED 2026-08-21** — now wired + verified at the `local_agent` execution chokepoint; see "What Genuinely Works".
+5. **The Platinum demo is a mock.** `platinum_demo.py` auto-approves and writes a log file instead of calling the real send path. The "minimum passing gate" is narrated, not executed.
+6. **"554/554 tests (100%)" is misleading.** `integration_test.py` is dominated by file-existence and `py_compile` checks (and does **not** exclude `.venv`, so third-party library files are compiled and counted). Its end-to-end "handoff" test performs the `shutil.move` steps **itself** rather than driving the real agents, and its Platinum-demo assertion passes precisely **because the demo is a mock**. It does not evidence a working live system.
+7. **`DRY_RUN=false` was listed as an achievement.** It is actually a **safety defect** (fail-open real sends by default).
 
-**Gold Score: 14/14 PASS (✅ 100%)**
+None of this erases the genuinely working parts (below). It re-grades the overstated ones.
 
-## Platinum Tier — Real Status (July 25, 2026) — Session 3 Hardening
+---
 
-| # | Requirement | Result | Evidence |
-|---|-------------|--------|----------|
-| 1 | Cloud Agent (draft-only 24/7) | ✅ PASS | `cloud_agent.py` + `cloud_orchestrator.py` — draft-only, no send/execute |
-| 2 | Local Agent (approval + execute) | ✅ PASS | `local_agent.py` + `local_orchestrator.py` — real MCP execution |
-| 3 | A2A Messenger (agent-to-agent) | ✅ PASS | `a2a_messenger.py` — HTTP + file fallback, health/stats endpoints |
-| 4 | Vault Sync (git-based) | ✅ PASS | `vault_sync.py` — pull/add/commit/push every 5 min, secret exclusions |
-| 5 | Health Monitor | ✅ PASS | `health_monitor.py` — git, disk, logs, approvals, alerts |
-| 6 | Security Guard | ✅ PASS | `security_guard.py` — action perms, credential validation, secrets sync check |
-| 7 | Platinum Demo (end-to-end) | ✅ PASS | `platinum_demo.py` — email->cloud draft->approval->local execute->Done |
-| 8 | PM2 Ecosystem | ✅ PASS | `ecosystem.config.js` — 15 services, dynamic vault paths |
-| 9 | Windows Task Scheduler | ✅ PASS | `install_scheduled_tasks.ps1` — 13 tasks as SYSTEM, boot start |
-| 10 | Kubernetes Deployment | ✅ PASS | `kubernetes/deployment.yaml` — deployment + service + configmap + secret (no placeholders) + PVC + HPA + ingress |
-| 11 | Oracle Cloud Deploy Scripts | ✅ PASS | `cloud/deploy_cloud.py`, `cloud/deploy.py`, `cloud/setup_oracle_cloud_vm.sh`, `deploy_cloud_vm.sh`, `deploy_cloud_agent.sh` |
-| 12 | Environment Templates | ✅ PASS | `.env.cloud.template`, `.env.local.template` — secure defaults |
-| 13 | Integration Tests | ✅ PASS | `integration_test.py` — 12 test suites, 554/554 passes (100%) |
-| 14 | Error Recovery Architecture | ✅ PASS | CircuitBreaker, DeadLetterQueue, RetryHandler — integrated with all agents |
-| 15 | Audit Logging System | ✅ PASS | JSONL rotation, claims/security/actions trail, 5 log files |
-| 16 | Multi-Agent Platform | ✅ PASS | 8 agent skills, 5 watchers, 4 MCP servers, multi-language support |
-| 17 | A2A Batch + Signal Scripts | ✅ PASS | `batch_operations.py` (bat/A2A batch), signal/a2a_signal dispatcher |
-| 18 | All hardcoded paths fixed | ✅ PASS | `C:/Users/CC/Documents/Obsidian Vault` replaced with dynamic `__file__`/`%~dp0` |
-| 19 | Voice Approval System (Twilio) | ✅ PASS | `mcp_voice_approval.py` — FastAPI webhooks, TwiML Gather/Say, file approve/reject/escalate, 554/554 tests |
-| 20 | Odoo Bank Reconciliation Engine | ✅ PASS | `odoo_bank_reconciliation.py` — deterministic matching, CSV/PDF parser, auto-payment, HITL exceptions |
-| 21 | Dependency Injection Guard | ✅ PASS | `dependency_fallback_guard.py` — importlib.util proxy for twilio/fastapi/uvicorn/PyPDF2, zero bare exceptions |
+## Honest Tier Assessment
 
-**Platinum Score: 21/21 PASS** (+ Bank Reconciliation, Dependency Guard)
+| Tier | Honest Status | One-line reason |
+|------|---------------|-----------------|
+| 🥉 **Bronze** | ✅ **MET** (~95%) | Vault, folders, Gmail watcher (live-proven), secrets hygiene all real. Skills present but 5/8 have corrupted frontmatter. |
+| 🥈 **Silver** | ⚠️ **PARTIAL** | Watchers + HITL + scheduling real; but **"one working MCP server" not met** (none are MCP) and **LinkedIn auto-post broken**. |
+| 🥇 **Gold** | ❌ **NOT MET (as specified)** | Strong error-recovery, **and audit logging now wired + verified (Gold #9)**; but Odoo-via-MCP/JSON-RPC and multiple MCP servers still fail. |
+| 💎 **Platinum** | ❌ **NOT MET** | Work-zone split + secrets-never-sync correct; but no running cloud, HTTP-only Odoo (no TLS/backups), and the passing-gate demo is a mock. |
 
-## Production Hardening — Session 4 (July 25, 2026) — Logging + Dependency Guard
+---
 
-### Change 1: SafeConsoleFormatter — Emoji-safe centralized logging
+## What Genuinely Works Today (✅ VERIFIED)
 
-Every `logging.basicConfig(...)` call replaced. New `SafeConsoleFormatter` (in `audit_logger.py`):
-- Lazily detects cp1252/latin-1 stream encoding → auto-strips/replaces emoji (`✅→[SUCCESS]`, `❌→[FAIL]`, `⚠️→[WARN]`, etc.)
-- Supports `PRODUCTION_JSON_LOGS=1` env var → structured JSON output (`{"timestamp","logger","level","message","module","line"}`)
-- `setup_logging(name, log_file)` replaces all 19 `logging.basicConfig` + 5 manual handler setups
-- `patch_root_logger()` retroactively fixes legacy root handlers
+- **Gmail watcher** — real Google OAuth, dedupe, frontmatter action files, run-loop. Live proof in pm2 logs (2026-08-13: "Processed 5 email(s)", "Saved 44 processed IDs"). `watchers/gmail_watcher.py`
+- **Error recovery** — real `CircuitBreaker` + `DeadLetterQueue` + exponential-backoff `RetryHandler`, actually wired into `watchers/base_watcher.py:138`, gmail/odoo watchers, and `odoo_bank_reconciliation.py`. `error_recovery.py`
+- **HITL file-flow (execution)** — `local_agent.py` run loop reads `Approved/*.md`, routes by filename to real actions, moves to `Done/`, sends failures to `Dead_Letter_Queue/`.
+- **Secrets hygiene** — no secrets committed (grep for `sk-`, `ya29.`, `AIza`, `ghp_`, `AKIA` = 0 hits); secrets loaded from `~/.ai_employee/secrets/` outside the vault; thorough `.gitignore`.
+- **Work-zone split** — Cloud layer is draft-only (writes to `Drafts/`+`Pending_Approval/`, zero send/post); Local executes. `cloud_agent.py` / `local_agent.py`
+- **Vault sync (git)** — `vault_sync.py` commits on an interval; real commit history present.
+- **Health monitor** — `health_monitor.py` runs real checks (git/disk/logs/pending) and wrote alerts (`health_monitor.log`).
+- **Orchestrator** — real process supervisor: spawns watchers, auto-restarts on crash, health endpoint :8765, `--dry-run`.
+- **Scheduling** — Task Scheduler + `schtasks` + PM2 `ecosystem.config.js` all real (weekly Mon 08:00 briefing task).
+- **Bank reconciliation logic** — genuinely implemented (proper `account.payment.register` wizard, 3-tier matcher, CSV/PDF parse). *(Not wired into orchestrator; needs a live Odoo.)*
+- **Wired audit logging (Gold #9)** — every executed action at the HITL chokepoint now writes a structured row to `Logs/Audit/audit_YYYYMMDD.jsonl` via `AuditLogger.log_action()`. Success path: `_log_action` → `self.audit.log_action(...)` at `local_agent.py:575`; failure path (before DLQ) at `local_agent.py:213`. **Verified 2026-08-21** by `verify_audit_wiring.py`: a dry-run approved email produced `{action_type:email_send, actor:local_agent, status:success}` and a recipient-less file produced `{…status:failed, error:"Could not extract recipient…"}` — both rows confirmed on disk in `Logs/Audit/audit_20260821.jsonl`; the same run logged `email_mcp.dry_run=True` (no real send). *(Scope: the `local_agent` execution path only. Direct-CLI runs of `mcp_*.py` still don't call `log_action()` — tracked separately.)*
 
-**24 files refactored:** `a2a_messenger.py`, `cloud/deploy.py`, `cloud/deploy_cloud.py`, `cloud_agent.py`, `cloud_orchestrator.py`, `error_recovery.py`, `facebook_instagram_post.py`, `health_monitor.py`, `local_agent.py`, `local_orchestrator.py`, `mcp_browser.py`, `mcp_email.py`, `mcp_odoo.py`, `mcp_social.py`, `mcp_voice_approval.py`, `multi_language_agent.py`, `odoo_bank_reconciliation.py`, `orchestrator.py`, `platinum_demo.py`, `secrets_config.py`, `security_guard.py`, `vault_sync.py`, `x_agent.py`, `watchers/base_watcher.py`
+## What's Partial or Flawed (⚠️)
 
-### Change 2: dependency_fallback_guard.py — Decoupled third-party dependency tier
+- **WhatsApp watcher** — real Playwright, but (1) keyword filter is dead (flags all unread), (2) dedupe key embeds `HH:MM` → duplicate action files every minute.
+- **Odoo lead watcher** — real XML-RPC, but hardcoded `admin/admin` and single-shot (no run-loop).
+- **Agent Skills** — 8 exist but are thin docs; 5/8 have corrupted frontmatter (closing `---` fused to H1) → 2 drop from the live listing; several dead file references.
+- **Ralph loop** — subprocess polling loop, **not** a Claude Code Stop hook; uses invalid flag `claude --yes` → would fail on a live run.
+- **CEO briefings** — files exist and some metrics are real (folder/file counts, log JSONL), but revenue is static placeholder and there is no subscription/accounting-audit code.
+- **Social (FB/IG/Twitter)** — real posting code exists (Playwright/XAgent); runtime not reproduced in audit; not exposed as MCP.
+- **Claim-by-move** — atomic move code is correct, but `In_Progress/` is gitignored → claim state does **not** sync between VMs.
 
-New structural infrastructure file using `importlib.util` for transparent pass-through/fallback:
+## What's Not Met / Not Real Yet (❌)
 
-| Proxy | Real (Production Cloud) | Fallback (Local Dev — throttled) |
-|-------|------------------------|----------------------------------|
-| `TwilioClientProxy` | `twilio.rest.Client(sid, token)` → real calls | Logs via `audit_logger.log_action`, returns `FALLBACK_SID` |
-| `FastAPIProxy` | `fastapi.FastAPI(title)` → real routes | `_RouteStore` — dict-based, all decorators (`@.get`, `@.post`, `@.on_event`) work identically |
-| `UvicornProxy.run()` | `uvicorn.run(app, host, port)` | Logs "skipped" and returns cleanly |
-| `PyPDF2Proxy.PdfReader()` | `PyPDF2.PdfReader(file)` → real pages | Returns empty `PdfPageProxy` list; `.extract_text()` → `""` |
+- **Any MCP-protocol server** — the `mcp_*.py` are CLIs, not MCP servers. (Blocks Silver #5, Gold #3, Gold #6.)
+- **Odoo payment via JSON-RPC** — stubbed; XML-RPC only.
+- **Platinum passing-gate demo** — `platinum_demo.py` is a mock (auto-approve + log file, no real send).
+- **Always-on cloud** — no provisioned VM; deploy scripts are stubs (placeholder OCIDs, `cd mcp-email && npm install` on a nonexistent dir, `@anthropic/qwen`); K8s `/health:8080` probe targets a server that doesn't exist → crash-loop.
+- **Odoo HTTPS + backups** — HTTP-only compose; no TLS/reverse-proxy; no `pg_dump`/backup job.
+- **LinkedIn auto-post (automated)** — `save_linkedin_session.py.md` is broken; no LinkedIn watcher (the referenced one is a filesystem watcher). A one-time manual post may have occurred but is **UNVERIFIED** from code.
 
-FastAPI sub-imports (`Response`, `FileResponse`, `HTMLResponse`, `PlainTextResponse`, `Request`, `HTTPException`, `CORSMiddleware`, `StaticFiles`) resolved once at module level — real or fallback.
+## Unverified Historical Claims (need live re-demonstration to claim)
 
-**Zero bare exceptions** — every `except` specifies a type. All fallback paths return exact payload signatures.
+- "Real email sent, Message ID `19eaf0416b78f363`" — send capability is real (`mcp_email.py`), but this specific historical send is not reproducible from the audit.
+- "LinkedIn real post published Jun 18 05:10 AM" — automation path is broken in code; treat as a manual/one-off unless re-demonstrated.
+- "Facebook 8 cookies / Instagram 11 cookies / Twitter session" — session files may exist (gitignored), but working automated posting is unverified.
 
-**Downstream files updated to import exclusively through guard:**
-- `mcp_voice_approval.py` — removed 3 `try/except ImportError` blocks, 2 availability flags, 4 `if FASTAPI_AVAILABLE:` guards
-- `odoo_bank_reconciliation.py` — removed `try: import PyPDF2` block; uses `PyPDF2Proxy.PdfReader()`
-- `dashboard/api.py` — imports `FastAPIProxy`, `HTTPException`, `CORSMiddleware`, `StaticFiles`, `FileResponse` from guard; uses `UvicornProxy.run()` in `__main__`
+---
 
-### Remaining Cosmetic Issues
+## Safety Gaps to Fix Before Any Unattended Run (priority order)
 
-- Unicode emoji in `logger.info()` / `logger.warning()` calls (~20 files) — **now fixed** via `SafeConsoleFormatter`. No more `charmap` `Logging error` traceback on cp1252. Emojis automatically replaced with `[SUCCESS]`, `[FAIL]`, `[WARN]` etc. based on stream encoding detection.
+1. **Payment gate** — `record_payment` (`mcp_odoo.py`) has no `>$100`/new-payee/approval check; `security_guard.py`'s matrix exists but is never invoked by the payment path.
+2. ~~**`DRY_RUN` default** — flip to `true` (currently fail-open `false`).~~ ✅ **DONE 2026-08-21** — all four action servers now default dry-run ON unless `DRY_RUN` is explicitly `false` (`os.getenv('DRY_RUN','true').strip().lower() != 'false'`): `mcp_email.py:69`, `mcp_odoo.py:51`, `mcp_social.py:82`, `mcp_browser.py:43`. The audit-logging verification run above confirmed `email_mcp.dry_run=True` at runtime (no real send).
+3. ~~**Wire `log_action()`** — call it on every real send/post/payment.~~ ✅ **DONE 2026-08-21** at the `local_agent` execution chokepoint (success + failure), verified via `verify_audit_wiring.py`. *(Remaining: direct-CLI `mcp_*.py` invocations.)*
+4. **Rate limiting** — declared in `.env.example` but not implemented; add real counters.
+5. **WhatsApp dedupe** — remove `HH:MM` from the key; fix the keyword filter.
+6. **Committed default DB password** — `odoo/odoo.config:16` + docker-compose fallbacks; move to secrets.
 
-## Notes
+---
 
-1. **Engine:** OpenCode + DeepSeek V4 Flash Free (instructor confirmed — any AI engine acceptable)
-2. **LinkedIn breakthrough (June 18):** Share box uses **open Shadow DOM** (`<DIV class="theme--light">`). `document.querySelector()` can't reach inside. Fixed by: (a) using `el.getRootNode()` to access Shadow Root, (b) using `textbox.type()` instead of `textbox.fill()` to trigger React events and enable the Post button, (c) clicking button via `shadowRoot.querySelector('button')`. Result: **real post published successfully.**
-3. **Secrets:** Loaded from `C:\Users\<user>\.ai_employee\secrets\` via `secrets_config.py`
-4. **All integration tests pass:** `python integration_test.py` — 554/554 (100%)
-5. **Syntax check:** All project Python files pass `py_compile`
+## Preserved Implementation Notes (real engineering, kept for reference)
+
+- **SafeConsoleFormatter** (`audit_logger.py`) — emoji-safe centralized logging; auto-strips emoji on cp1252/latin-1 streams; supports `PRODUCTION_JSON_LOGS=1`. `setup_logging()` is genuinely imported across many modules. *(This is real and useful — separate from the `log_action()` wiring, which is now done and verified; see above.)*
+- **dependency_fallback_guard.py** — `importlib.util` proxies for twilio/fastapi/uvicorn/PyPDF2 with typed fallbacks. Real structural code.
+- **LinkedIn Shadow DOM technique (Jun 18 notes)** — share box uses open Shadow DOM; fix used `getRootNode()` + `textbox.type()` (not `.fill()`) to trigger React and enable the Post button. Valid technique; the *automated watcher* around it is still missing/broken.
+
+---
+
+## Engine
+
+Reasoning engine is a **free non-Claude LLM** (report says "OpenCode + DeepSeek V4 Flash Free"; current `settings.local.json` routes to OpenRouter `minimax/minimax-m2.5:free`). This is **permitted** — the hackathon allows any LLM/CLI on the back end. Just disclose it plainly in the submission; reconcile the two engine names so the report matches the live config.
+
+---
+
+*Honest baseline established 2026-08-21 from an independent, evidence-based audit. Update this file as items move from ⚠️/❌ to ✅ — with the file:line or log proof that justifies the change.*

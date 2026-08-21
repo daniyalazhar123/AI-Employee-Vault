@@ -1,194 +1,195 @@
 # FINAL HACKATHON REPORT — Personal AI Employee
 
 **Hackathon:** Personal AI Employee Hackathon 0
-**Date:** July 26, 2026
-**Engine:** OpenCode + DeepSeek V4 Flash Free
+**Report date (revised):** August 21, 2026
+**Engine:** Free non-Claude LLM via Claude-Code-compatible router (OpenRouter `minimax/minimax-m2.5:free`; earlier sessions used OpenCode + DeepSeek V4 Flash Free). *Permitted — any LLM/CLI allowed on the back end.*
 **Vault:** `D:\Desktop4\Obsidian Vault`
 **GitHub:** https://github.com/daniyalazhar123/AI-Employee-Vault
 
----
-
-## BRONZE TIER — Foundation
-
-| # | Requirement | Implementation | Evidence | Result |
-|---|-------------|----------------|----------|--------|
-| 1 | Dashboard.md with live agent status | `Dashboard.md` shows sales summary (Rs.113K), task counts (846 total), Gold tier test results | Live file at `Dashboard.md:1-114` | ✅ PASS |
-| 2 | Company_Handbook.md / project documentation | 10 docs in `docs/`: ARCHITECTURE.md (901 lines), ORCHESTRATOR.md, WATCHERS_GUIDE.md, BRONZE_TIER.md, SILVER_TIER.md, GOLD_TIER.md, PLATINUM_TIER.md, ODOO_SETUP.md, ORACLE_CLOUD_VM_SETUP.md, TASK_SCHEDULER_SETUP.md | Files exist with full content | ✅ PASS |
-| 3 | Folder structure (Needs_Action, Pending_Approval, Done, etc.) | 11 folders: Needs_Action, Pending_Approval, Done, Drafts, Social_Drafts, Logs, Dead_Letter_Queue, Approved, Social_Summaries, In_Progress, Rejected | All directories present with files | ✅ PASS |
-| 4 | At least 1 watcher running | 6/6 watchers OK: Gmail, WhatsApp, Social, Office, Odoo Lead watchers via `watchers/` | `watchers/base_watcher.py` + 5 platform watchers | ✅ PASS |
-| 5 | Agent skills installed and configured | 8 skills in `.claude/skills/`: audit-logger, ceo-briefing, ceo-briefing-generator, email-processor, error-recovery, odoo-accounting, social-media-manager, whatsapp-responder | `skills-lock.json` + `.claude/skills/` directory | ✅ PASS |
-| 6 | Secrets outside vault | All credentials at `C:\Users\%USERNAME%\.ai_employee\secrets\` loaded via `secrets_config.py` | `secrets_config.py` + `.gitignore` excludes all secrets | ✅ PASS |
-| 7 | .gitignore correct | 168 rules excluding `.env`, `*.pickle`, `credentials.json`, `token.json`, `linkedin_session.json`, `__pycache__/`, `Logs/` | `.gitignore` file present and verified | ✅ PASS |
-
-**Bronze Score: 7/7 PASS (100%)**
+> ### ⚠️ Revision Notice (read first)
+> This version was **revised for accuracy on 2026-08-21** after an independent code audit. The previous version reported **47/52 (90%) "Gold-Ready"** with **Gold 12/14** and **Platinum 18/21**. Several of those "✅ PASS" entries were **not defensible** and have been corrected below. Corrections are called out inline as **↳ Correction**, and summarized in *§ Corrections Applied*. The honest single source of truth is [`STATUS.md`](STATUS.md).
+>
+> **Grading:** ✅ VERIFIED · ⚠️ PARTIAL / UNVERIFIED · ❌ NOT MET (missing or not-as-specified) · 🕓 PLANNED (scripted, not deployed/run).
 
 ---
 
-## SILVER TIER — Communications & Reasoning
+## HONEST HEADLINE
 
-| # | Requirement | Implementation | Evidence | Result |
-|---|-------------|----------------|----------|--------|
-| 1 | Gmail API integration | `watchers/gmail_watcher.py` monitors inbox via IMAP/Gmail API, creates task files in Needs_Action | Gmail watcher script exists; needs OAuth re-auth (one-time bootstrap) | ✅ PASS* |
-| 2 | WhatsApp messaging | `watchers/whatsapp_whatcher.py` + Playwright + `whatsapp_session/` | Playwright ready, QR scan needed on first run | ✅ PASS* |
-| 3 | LinkedIn watcher | `watchers/social_watcher.py` monitors LinkedIn; 24 cookies saved | LinkedIn VERIFIED (24 cookies) in dashboard | ✅ PASS |
-| 4 | MCP email server | `mcp_email.py` with Gmail API + SMTP support; listed in `config/mcp.json` | `mcp_email.py` exists, `DRY_RUN=false` | ✅ PASS |
-| 5 | HITL approval workflow | `REQUIRE_APPROVAL` config; `Pending_Approval/` folder with 397 items; approval flow in orchestrator | `Pending_Approval/` directory with content, HITL logic in code | ✅ PASS |
-| 6 | Claude reasoning loop (Ralph Wiggum) | `ralph_loop.py` + `orchestrator.py` — persistent task executor using opencode CLI | Ralph loop code with exponential backoff, graceful failure | ✅ PASS |
-| 7 | MCP social server | `mcp_social.py` with LinkedIn/Facebook/Instagram/Twitter support | File exists with all 4 platforms | ✅ PASS |
-| 8 | MCP Odoo server | `mcp_odoo.py` with Odoo 19 ERP integration (JSON-RPC + XML-RPC) | File exists, authenticated | ✅ PASS |
-| 9 | Dead Letter Queue | Failed items routed to `Dead_Letter_Queue/` for review | `Dead_Letter_Queue/` directory with items, CircuitBreaker integration | ✅ PASS |
-| 10 | Batch processor | `batch_processor.py` handles backlog of 385+ files | File exists | ✅ PASS |
+| Tier | Honest Result | Note |
+|------|---------------|------|
+| 🥉 Bronze | ✅ **MET (~95%)** | Real foundation; skills need a frontmatter fix. |
+| 🥈 Silver | ⚠️ **PARTIAL** | Blocked by "one working MCP server" (none are MCP) + broken LinkedIn auto-post. |
+| 🥇 Gold | ❌ **NOT MET as specified** | Strong error-recovery; Odoo-via-MCP/JSON-RPC, multiple MCP servers, wired audit logging all fail. |
+| 💎 Platinum | ❌ **NOT MET** | Two ideas correct (work-zone split, secrets-never-sync); no running cloud, HTTP-only Odoo, mock passing-demo. |
 
-*Needs one-time bootstrap (Gmail re-auth, WhatsApp QR scan) — code and infrastructure are ready.
-
-**Silver Score: 10/10 PASS (100%)**
+**Recommended tier declaration:** **Bronze (fully met)**, with Silver/Gold/Platinum presented transparently as *substantial in-progress work* (this candor scores better than an overstated claim a judge can disprove in one grep).
 
 ---
 
-## GOLD TIER — Production Integration
+## BRONZE TIER — Foundation → ✅ MET
 
-| # | Requirement | Implementation | Evidence | Result |
-|---|-------------|----------------|----------|--------|
-| 1 | Odoo 19 running via Docker | `odoo/docker-compose.yml` + root `docker-compose.yml` (Odoo 19 + PostgreSQL 15) + `odoo/odoo.config` | Config ready; server currently off — needs `docker compose -f odoo/docker-compose.yml up -d` | ⚠️ PARTIAL |
-| 2 | mcp_odoo.py authenticated with invoice creation | Invoice INV/2026/00003 (Rs.11,700) posted, payment #1 via JSON-RPC | Logs and STATUS.md evidence; 50 Odoo modules installed | ✅ PASS |
-| 3 | DRY_RUN=false in all MCP servers | `mcp_email.py`, `mcp_social.py`, `mcp_odoo.py` all set to real mode | Code reviewed — no dry-run flags active | ✅ PASS |
-| 4 | Real email sent via Gmail API | Message ID `19eaf0416b78f363` sent to smartydaniyazhar234@gmail.com | STATUS.md + Dashboard.md evidence; Gmail watcher handled 672 inbox emails | ✅ PASS |
-| 5 | LinkedIn session saved | 24 cookies with `li_at` cookie; Shadow DOM fix for posting; real post published Jun 18 05:10 AM | Dashboard.md T4 evidence; `linkedin_browser_data/` directory | ✅ PASS |
-| 6 | Facebook/Instagram/Twitter code ready | `mcp_social.py` + `facebook_instagram_post.py` + `x_agent.py`; Facebook 8 cookies, Instagram 11 cookies verified | All 3 platforms have saved sessions | ✅ PASS |
-| 7 | CEO Briefing generation | `ceo-briefing-generator` skill; 11 briefings in `Briefings/` + `CEO_Briefings/` (Rs.113K revenue, 42 tasks) | Files present with real data | ✅ PASS |
-| 8 | Error recovery with circuit breaker | `error-recovery` skill: CircuitBreaker, RetryHandler, DeadLetterQueue; 9 DLQ items | `Dead_Letter_Queue/` with items; error recovery code in skill | ✅ PASS |
-| 9 | Audit logging | `audit-logger` skill; 17 JSONL audit files in `Logs/Audit/` (Mar-Jul 2026) | `Logs/Audit/audit_*.jsonl` files present | ✅ PASS |
-| 10 | Ralph Wiggum loop | Persistent task executor using opencode CLI; handles CLI failures gracefully with exponential backoff | STATUS.md evidence; `ralph_loop.py` exists | ✅ PASS |
-| 11 | All AI as Agent Skills | 8 skills registered in `.claude/skills/` + `skills-lock.json` | `skills-lock.json` with 8 entries | ✅ PASS |
-| 12 | LinkedIn auto-post working | Shadow DOM fix: `.type()` not `.fill()`, Post button inside open Shadow Root; real post published | Dashboard.md T4 — real post at 05:10 AM Jun 18 | ✅ PASS |
-| 13 | Social summaries | 18 summary files in `Social_Summaries/` covering Facebook, Instagram, LinkedIn, Twitter (Mar 2026) | `Social_Summaries/` directory with .md + .json files | ✅ PASS |
-| 14 | Scheduling (Task Scheduler) | `install_scheduled_tasks.ps1` (13 tasks) + `Install_Background_Scheduler.ps1` | Script ready; not installed — needs admin: `.\install_scheduled_tasks.ps1` | ⚠️ PARTIAL |
+| # | Requirement | Result | Evidence / Correction |
+|---|-------------|--------|-----------------------|
+| 1 | `Dashboard.md` with agent status | ✅ VERIFIED | Dashboard exists and tracks tasks/status. **↳ Correction:** the "Rs.113K" revenue figure is **static hand-typed text**, not queried from Odoo — treat as placeholder/demo data. |
+| 2 | Company_Handbook / project docs | ✅ VERIFIED | `docs/` set (ARCHITECTURE.md, tier guides, ODOO_SETUP.md, etc.). *(Confirm a `Company_Handbook.md` per the spec's wording.)* |
+| 3 | Folder structure | ✅ VERIFIED | `Needs_Action`, `Pending_Approval`, `Approved`, `Rejected`, `Done`, `Dead_Letter_Queue`, `In_Progress`, etc. present. |
+| 4 | At least 1 watcher running | ✅ VERIFIED | **Gmail watcher live-proven** (pm2 log 2026-08-13: "Processed 5 email(s)"). 4 watchers exist total. **↳ Correction:** "6/6 OK" overstated — WhatsApp/Odoo watchers have real flaws (see Silver/§Known Issues). |
+| 5 | Agent skills installed | ⚠️ PARTIAL | 8 skill folders + `skills-lock.json`. **↳ Correction:** 5/8 have **corrupted frontmatter** (closing `---` fused to H1) → `social-media-manager` & `whatsapp-responder` drop from the live listing; logic lives in `.py`, not the skills. |
+| 6 | Secrets outside vault | ✅ VERIFIED | `~/.ai_employee/secrets/` via `secrets_config.py`; no secrets tracked. |
+| 7 | `.gitignore` correct | ✅ VERIFIED | Thorough; grep for real secret patterns across tracked files = 0 hits. |
 
-**Gold Score: 12/14 PASS (86%)** — 2 partial (Odoo server off, Task Scheduler not installed)
+**Bronze: 6 VERIFIED / 1 PARTIAL → MET.**
 
 ---
 
-## PLATINUM TIER — 24/7 Enterprise
+## SILVER TIER — Communications & Reasoning → ⚠️ PARTIAL
 
-| # | Requirement | Implementation | Evidence | Result |
-|---|-------------|----------------|----------|--------|
-| 1 | Cloud VM (Oracle Free Tier) | `cloud/deploy.py`, `cloud/deploy_cloud.py`, `cloud/setup_oracle_cloud_vm.sh`, `deploy_cloud_vm.sh`, `deploy_cloud_agent.sh` | Deploy scripts ready; no VM provisioned | ⚠️ PARTIAL |
-| 2 | 24/7 deployment with PM2 | `ecosystem.config.js` with 15 services (orchestrator, cloud-agent, local-agent, vault-sync, a2a, health-monitor, security-guard, multi-lang, 5 watchers) | PM2 daemon running; needs `pm2 start ecosystem.config.js` if stopped | ✅ PASS |
-| 3 | Vault sync via Git | `vault_sync.py` — pull/add/commit/push every 5 min, secret exclusions | Vault Sync VERIFIED (git active) in dashboard | ✅ PASS |
-| 4 | Cloud Odoo deployment | Same `docker-compose.yml` would run on VM; Oracle Cloud scripts handle deployment | Not deployed — requires VM first | ❌ PARTIAL |
-| 5 | A2A communication | `a2a_messenger.py` — HTTP + file fallback, health/stats endpoints; `a2a_batch.py`, `a2a_signal.py` | Files exist with full implementation | ✅ PASS |
-| 6 | Health Monitor | `health_monitor.py` — git, disk, logs, approvals, alerts | File exists | ✅ PASS |
-| 7 | Security Guard | `security_guard.py` — action perms, credential validation, secrets sync check; `security_guard.log` | File exists + log present | ✅ PASS |
-| 8 | Platinum Demo (end-to-end) | `platinum_demo.py` — email → cloud draft → approval → local execute → Done | File exists | ✅ PASS |
-| 9 | Kubernetes Deployment | `kubernetes/deployment.yaml` — Deployment + Service + ConfigMap + Secret + PVC + HPA + Ingress | File exists; needs `minikube start` then apply | ⚠️ PARTIAL |
-| 10 | Oracle Cloud Deploy Scripts | 5 scripts: `cloud/deploy.py`, `cloud/deploy_cloud.py`, `cloud/setup_oracle_cloud_vm.sh`, `deploy_cloud_vm.sh`, `deploy_cloud_agent.sh` | All files present | ✅ PASS |
-| 11 | Environment Templates | `.env.cloud.template`, `.env.local.template`, `odoo/example.env`, `config/.env.example` | All templates with secure defaults | ✅ PASS |
-| 12 | Integration Tests | 554/554 passes (100%) — 12 test suites | `integration_test.py` + `Logs/test_results_*.json` | ✅ PASS |
-| 13 | Error Recovery Architecture | CircuitBreaker, DeadLetterQueue, RetryHandler integrated with all agents | Code present across all MCP servers | ✅ PASS |
-| 14 | Audit Logging System | JSONL rotation, claims/security/actions trail, 17 log files | `Logs/Audit/` with dated files | ✅ PASS |
-| 15 | Multi-Agent Platform | 8 agent skills, 6 watchers, 4 MCP servers, multi-language support (`multi_language_agent.py`) | All components exist and verified | ✅ PASS |
-| 16 | Voice Approval (Twilio) | `mcp_voice_approval.py` — FastAPI webhooks, TwiML Gather/Say, approve/reject/escalate | File exists | ✅ PASS |
-| 17 | Bank Reconciliation | `odoo_bank_reconciliation.py` — deterministic matching, CSV/PDF parser, auto-payment, HITL | File exists | ✅ PASS |
-| 18 | Dependency Guard | `dependency_fallback_guard.py` — importlib.util proxy for twilio/fastapi/uvicorn/PyPDF2 | File exists; integrated into 3 downstream files | ✅ PASS |
-| 19 | SafeConsoleFormatter | Emoji-safe logging replaces all `logging.basicConfig`; 24 files refactored | STATUS.md evidence; `setup_logging()` in audit_logger | ✅ PASS |
-| 20 | All hardcoded paths fixed | `C:/Users/CC/...` replaced with dynamic `__file__`/`%~dp0` | STATUS.md evidence | ✅ PASS |
-| 21 | Orchestrator running | `orchestrator.py` — central orchestrator; opencode CLI integration | File exists, opencode CLI available | ✅ PASS |
+| # | Requirement | Result | Evidence / Correction |
+|---|-------------|--------|-----------------------|
+| 1 | Gmail API integration | ✅ VERIFIED | `watchers/gmail_watcher.py`; needs one-time OAuth re-auth. |
+| 2 | WhatsApp messaging | ⚠️ PARTIAL | Real Playwright persistent context; needs QR. **↳ Correction:** keyword filter is dead (flags all unread) + time-based dedupe → duplicate action files every minute. |
+| 3 | LinkedIn watcher / auto-post | ❌ NOT MET | **↳ Correction:** there is **no LinkedIn watcher** — `social_watcher.py` is a filesystem watcher; `save_linkedin_session.py.md` **fails to compile**; `linkedin_post_generator.py` is **missing**. Cookies may exist, but automated LinkedIn posting is not working. |
+| 4 | **One working MCP server** (email) | ❌ NOT MET (as MCP) | `mcp_email.py` **really sends** via Gmail/SMTP — but it is an **argparse CLI, not an MCP server** (no MCP SDK, no `stdio_server`, no tool registration). `config/mcp.json` uses a non-standard `servers[]` schema and the script exits with an argparse error, not a JSON-RPC handshake. **Capability: works. MCP requirement: unmet.** |
+| 5 | HITL approval workflow | ✅ VERIFIED | `local_agent.py` reads `Approved/*.md` → real action → `Done/`; failures → `Dead_Letter_Queue/`. |
+| 6 | Claude reasoning loop (Ralph) | ⚠️ PARTIAL | Loop exists. **↳ Correction:** it is **not a Stop hook** (none registered anywhere) — it's subprocess polling; uses invalid flag `claude --yes` → would fail live. |
+| 7 | MCP social server | ❌ NOT MET (as MCP) | Social posting code is real; **not an MCP server** (same as #4). |
+| 8 | MCP Odoo server | ❌ NOT MET | **↳ Correction:** not MCP; uses **XML-RPC, not JSON-RPC**; `record_payment` is a **stub**. Earlier "(JSON-RPC + XML-RPC)" claim was false. |
+| 9 | Dead Letter Queue | ✅ VERIFIED | Real, integrated with CircuitBreaker. |
+| 10 | Batch processor | ✅ VERIFIED | `batch_processor.py` exists. |
 
-**Platinum Score: 18/21 PASS (86%)** — 3 partial (Oracle VM not provisioned, Cloud Odoo not deployed, Kubernetes needs minikube start)
+**Silver: 4 VERIFIED / 2 PARTIAL / ❌ core MCP-server + LinkedIn unmet → PARTIAL.**
+The single blocking gap is the spec's **"one working MCP server"** — the capabilities work as scripts but not over the MCP protocol.
 
 ---
 
-## SYSTEM STATUS OVERVIEW
+## GOLD TIER — Production Integration → ❌ NOT MET (as specified)
 
-| System | Status | Details |
-|--------|--------|---------|
-| WhatsApp | ⚠️ Bootstrap | Playwright ready, needs QR scan on first run |
-| Gmail | ⚠️ Bootstrap | Gmail watcher ready, needs OAuth re-auth |
-| LinkedIn | ✅ PASS | 24 cookies verified, Shadow DOM fix working |
-| Facebook | ✅ PASS | 8 cookies verified |
-| Instagram | ✅ PASS | 11 cookies verified |
-| Odoo | ⚠️ Bootstrap | Config ready, server off — `docker compose up -d` |
-| MCP Servers | ✅ PASS | 5/5 servers OK (email, odoo, social, browser, voice) |
-| Watchers | ✅ PASS | 6/6 watchers OK (Gmail, WhatsApp, Social, Office, Odoo, Base) |
-| PM2 | ✅ PASS | Daemon running, 15 services in ecosystem.config.js |
-| Vault Sync | ✅ PASS | Git sync active and verified |
-| Oracle Cloud | ⚠️ Bootstrap | Deploy scripts ready, no VM provisioned |
-| Kubernetes | ⚠️ Start | kubectl + config ready, needs `minikube start` |
-| Task Scheduler | ⚠️ Install | Script ready, needs admin `.\install_scheduled_tasks.ps1` |
+| # | Requirement | Result | Evidence / Correction |
+|---|-------------|--------|-----------------------|
+| 1 | Odoo 19 via Docker | ⚠️ PARTIAL | `docker-compose.yml` pulls `odoo:19.0`; **deployable but server off**; `odoo_installer/` empty. |
+| 2 | Odoo invoice + payment | ❌ NOT MET | **↳ Correction:** "payment #1 via JSON-RPC ✅" was **false** — `record_payment` is a stub, no JSON-RPC. Invoice-creation code is real (XML-RPC) and artifacts suggest a dev-time invoice, but **no payment is posted by code**. |
+| 3 | `DRY_RUN=false` in all servers | ❌ RE-CLASSIFIED | **↳ Correction:** this is a **safety defect, not an achievement**. `DRY_RUN` defaults **false** (fail-open real sends) in `mcp_email.py:67`, `mcp_odoo.py:49`. Recommend defaulting to `true`. |
+| 4 | Real email sent via Gmail API | ⚠️ UNVERIFIED | Send capability is real; the specific historical send (`Message ID 19eaf...`) is **not reproducible from the audit**. Re-demonstrate to claim. |
+| 5 | LinkedIn session/post | ⚠️ UNVERIFIED | Manual one-off post may have occurred; **automation path is broken in code** (see Silver #3). |
+| 6 | Facebook/Instagram/Twitter | ⚠️ PARTIAL | Real posting code (`facebook_instagram_post.py`, `x_agent.py`, `mcp_social.py`); runtime unverified; not MCP. |
+| 7 | Weekly CEO Briefing | ⚠️ PARTIAL | Briefings exist & scheduled. **↳ Correction:** revenue is static placeholder; **no accounting/subscription-audit code** (grep = 0). Real parts: folder counts + log metrics. |
+| 8 | Error recovery + circuit breaker | ✅ VERIFIED | `error_recovery.py` genuinely implemented **and wired** into watchers & bank-recon. *(Strongest Gold item.)* |
+| 9 | Audit logging | ❌ NOT WIRED | **↳ Correction:** `audit_logger` is capable but **`log_action()` is called 0 times** by any action script → real sends emit no audit record. Schema/retention/path also deviate from spec. |
+| 10 | Ralph Wiggum loop | ⚠️ PARTIAL | Not a Stop hook (see Silver #6). |
+| 11 | AI as Agent Skills | ⚠️ PARTIAL | Corrupted frontmatter (see Bronze #5). |
+| 12 | LinkedIn auto-post working | ⚠️ UNVERIFIED | Same as #5 — code path broken; do not claim as a working automated capability. |
+| 13 | Social summaries | ⚠️ PARTIAL | Summary files exist; generation runtime unverified. |
+| 14 | Scheduling (Task Scheduler) | ⚠️ PARTIAL | Scripts real; not installed (needs admin). |
 
-**8 Systems PASS · 4 Need Bootstrap · 2 Need Start Command**
-
----
-
-## REMAINING RISKS
-
-### High
-1. **Gmail OAuth expiry** — Token will expire again; no auto-refresh mechanism running without Task Scheduler/PM2
-2. **WhatsApp QR dependency** — Requires manual QR scan on each container restart; no headless session persistence
-3. **No cloud VM** — Entire system runs locally; no 24/7 uptime if machine sleeps/crashes; Oracle scripts untested
-4. **Odoo server offline** — Docker container not running; all Odoo-dependent watchers/MCP will fail until started
-
-### Medium
-5. **Task Scheduler not installed** — Watchers/orchestrator not set to auto-start on boot; requires manual admin install
-6. **Kubernetes not started** — `minikube` not running; K8s manifest untested against real cluster
-7. **PM2 not auto-started** — PM2 daemon is running but not configured to start on boot (`pm2 startup`)
-8. **Secrets bootstrap** — New machine setup requires manual recreation of `C:\Users\.ai_employee\secrets\` directory and all credential files
-
-### Low
-9. **Facebook rate limiting** — Meta 2FA bypass via cookies may need periodic refresh
-10. **LinkedIn cookie expiry** — `li_at` cookie expires; refresh strategy needed for long-term 24/7 posting
-11. **Twitter/X rate limiting** — X.com session may get rate-limited again (as seen in June 18 test)
-12. **Cross-platform path bugs** — Hardcoded paths fixed but Windows-specific paths may break on Linux/WSL
+**Gold: 1 VERIFIED (error recovery), rest PARTIAL/UNVERIFIED/NOT MET.** The three Gold-defining criteria — **Odoo via MCP/JSON-RPC (#2/#8-equiv), multiple MCP servers, wired audit logging** — are unmet. **Gold NOT MET as specified.**
 
 ---
 
-## OVERALL COMPLETION
+## PLATINUM TIER — 24/7 Enterprise → ❌ NOT MET
 
-| Tier | Score | Status |
-|------|-------|--------|
-| 🥉 Bronze | **7/7 (100%)** | ✅ Complete |
-| 🥈 Silver | **10/10 (100%)** | ✅ Complete |
-| 🥇 Gold | **12/14 (86%)** | ✅ Near Complete |
-| 💎 Platinum | **18/21 (86%)** | ✅ Near Complete |
-| **Overall** | **47/52 (90%)** | 🟢 Gold-Ready |
+| # | Requirement | Result | Evidence / Correction |
+|---|-------------|--------|-----------------------|
+| 1 | Cloud VM (Oracle Free Tier) | 🕓 PLANNED | Deploy scripts exist but are **stubs** (placeholder OCIDs `ocid1..xxxxxx`); no VM provisioned. |
+| 2 | 24/7 deployment with PM2 | ⚠️ PARTIAL | `ecosystem.config.js` real; **24/7 uptime not proven**. |
+| 3 | Vault sync via Git | ✅ VERIFIED | `vault_sync.py`; real commit history. |
+| 4 | Cloud Odoo deployment | ❌ NOT MET | Not deployed; and **no HTTPS/TLS, no backups** (`pg_dump`/cron absent) — spec explicitly requires these. |
+| 5 | A2A communication | ⚠️ PARTIAL | `a2a_messenger.py` exists (HTTP + file fallback); optional per spec. |
+| 6 | Health Monitor | ✅ VERIFIED | `health_monitor.py` ran (real alerts in `health_monitor.log`). |
+| 7 | Security Guard | ⚠️ PARTIAL | Exists, but its permission matrix is **never invoked** by the real payment path. |
+| 8 | **Platinum Demo (end-to-end)** | ❌ NOT MET | **↳ Correction:** `platinum_demo.py` is a **mock** — `local_approve()` auto-moves with a "Human approves" log; `local_execute_send()` writes `Demo_Send_Log.md` **instead of calling MCP** (line 310: "In production, this would call MCP to send"). **The minimum passing gate is narrated, not executed.** |
+| 9 | Kubernetes Deployment | ❌ NOT MET | Manifest present but `/health:8080` probe targets a server that **doesn't exist** → pod crash-loop; untested. |
+| 10 | Oracle Cloud Deploy Scripts | 🕓 PLANNED | Files present but stubs (`cd mcp-email && npm install` on a **nonexistent** dir; `@anthropic/qwen` bogus). |
+| 11 | Environment Templates | ✅ VERIFIED | `.env.*.template` with placeholders. |
+| 12 | Integration Tests | ⚠️ RE-CLASSIFIED | **↳ Correction:** "554/554 (100%)" is **misleading**. `integration_test.py` is dominated by **file-existence + `py_compile`** checks (and does **not** exclude `.venv`, so library files are counted). Its end-to-end "handoff" test performs the `shutil.move` steps **itself** (not the real agents), and its Platinum-demo assertion passes **because the demo is a mock**. Real unit tests inside it (CircuitBreaker, DLQ, voice-approval parsing) do pass — but the suite does **not** evidence a working live system. |
+| 13 | Error Recovery Architecture | ✅ VERIFIED | Real (see Gold #8). |
+| 14 | Audit Logging System | ❌ NOT WIRED | Same as Gold #9. |
+| 15 | Multi-Agent Platform | ⚠️ PARTIAL | Components exist; "4 MCP servers" is inaccurate (none are MCP). |
+| 16 | Voice Approval (Twilio) | ⚠️ PARTIAL | `mcp_voice_approval.py` is a real FastAPI/Twilio webhook (unit-tested), **not MCP**; not wired into the main flow. |
+| 17 | Bank Reconciliation | ⚠️ PARTIAL | **Genuinely real logic** (payment-register wizard + 3-tier matcher); **unwired**; needs live Odoo. |
+| 18 | Dependency Guard | ✅ VERIFIED | `dependency_fallback_guard.py`, integrated downstream. |
+| 19 | SafeConsoleFormatter | ✅ VERIFIED | Real emoji-safe logging in `audit_logger.py`; `setup_logging()` widely imported. |
+| 20 | Hardcoded paths fixed | ⚠️ PARTIAL | Paths mostly dynamic; but hardcoded `admin/admin`, `journal_id=1`, `localhost` defaults remain. |
+| 21 | Orchestrator running | ✅ VERIFIED | Real process supervisor (auto-restart, health endpoint :8765). |
 
-### Completion Breakdown by Component
-- **Code written:** 90%+ (all scripts, MCPs, watchers, configs exist)
-- **Systems tested:** 8/13 PASS live (62%)
-- **Integration tests:** 554/554 PASS (100%)
-- **Documentation:** 10 docs + README + STATUS + Dashboard (100%)
-- **Deployment scripts:** All written, 5/7 need execution
-- **Secrets isolation:** 100% (all secrets outside vault)
+**Platinum: several real infra pieces, but the defining passing-gate demo is a mock and there is no running cloud / HTTPS / backups → NOT MET.**
 
 ---
 
-## BOOTSTRAP COMMANDS
+## Corrections Applied (summary of what changed vs the prior version)
+
+| Prior claim | Prior grade | Corrected |
+|-------------|-------------|-----------|
+| "MCP email/social/odoo servers" | ✅ PASS | ❌ Not MCP — argparse CLIs (capabilities work, protocol doesn't) |
+| Odoo "payment #1 via JSON-RPC" | ✅ PASS | ❌ Stub; XML-RPC only |
+| `DRY_RUN=false` "in real mode" | ✅ PASS | ❌ Safety defect (fail-open) — should default true |
+| CEO briefing "Rs.113K revenue" | ✅ PASS | ⚠️ Static placeholder, not from Odoo |
+| Audit logging | ✅ PASS | ❌ `log_action()` never called by actions |
+| Ralph Wiggum "loop" | ✅ PASS | ⚠️ Not a Stop hook; invalid flag |
+| Platinum demo end-to-end | ✅ PASS | ❌ Mock (auto-approve, no MCP send) |
+| Integration tests "554/554 100%" | ✅ PASS | ⚠️ Dominated by file-exists/compile; end-to-end self-simulated |
+| LinkedIn watcher / auto-post | ✅ / VERIFIED | ❌/⚠️ No watcher; save-session script broken; post unverified |
+| "6/6 watchers OK" / "5/5 MCP OK" | ✅ PASS | ⚠️ 4 real watchers w/ caveats; 0 MCP servers |
+| Overall "47/52 (90%) Gold-Ready" | — | Bronze MET · Silver PARTIAL · Gold/Platinum NOT MET |
+
+---
+
+## What Genuinely Works (credit where due)
+
+Gmail watcher (live-proven) · error recovery (real + wired) · HITL execution flow (`local_agent.py`) · secrets hygiene (no leaks, outside vault) · work-zone split (Cloud draft-only / Local execute) · vault sync (git) · health monitor · orchestrator supervisor · bank-reconciliation logic (real, unwired) · SafeConsoleFormatter + dependency guard.
+
+---
+
+## REMAINING RISKS (augmented)
+
+**Critical (safety):**
+1. **Payment path has no approval/amount/new-payee gate** (`mcp_odoo.py record_payment`) — only dry-run.
+2. **`DRY_RUN` fail-open** — real sends by default unless the secrets dir exists.
+3. **Audit trail incomplete** — `log_action()` not called by action scripts.
+4. **Rate limiting unimplemented** — declared in `.env.example`, no code.
+
+**High (operational):** Gmail OAuth expiry (no auto-refresh) · WhatsApp QR dependency · no cloud VM / no 24/7 uptime · Odoo server offline · WhatsApp duplicate-flooding bug.
+
+**Medium:** Task Scheduler / PM2 boot-start not installed · K8s manifest would crash-loop · corrupted SKILL.md frontmatter · committed default DB password (`odoo/odoo.config:16`).
+
+**Low:** social cookie/session expiry · Windows-specific path fragility on Linux.
+
+---
+
+## HONEST COMPLETION SUMMARY
+
+| Tier | Honest Result |
+|------|---------------|
+| 🥉 Bronze | ✅ MET (~95%) |
+| 🥈 Silver | ⚠️ PARTIAL (MCP-server + LinkedIn gaps) |
+| 🥇 Gold | ❌ NOT MET as specified (error-recovery excellent; MCP/JSON-RPC/audit-logging unmet) |
+| 💎 Platinum | ❌ NOT MET (real infra pieces; mock demo, no live cloud) |
+
+- **Code written:** extensive and largely compiles.
+- **Live-verified systems:** Gmail watcher, error recovery, HITL flow, secrets hygiene, health monitor, vault sync, orchestrator.
+- **Biggest gaps:** no real MCP server; audit logging + payment gate unwired; Platinum demo is a mock.
+- **Biggest integrity fix (done here):** removed false PASS claims (JSON-RPC payment, "554/554", mock-demo-as-PASS).
+
+---
+
+## BOOTSTRAP / NEXT-STEP COMMANDS
 
 ```bash
-# Start Odoo
+# Start Odoo (deployable, currently off)
 docker compose -f odoo/docker-compose.yml up -d
 
 # Start PM2 ecosystem
 pm2 start ecosystem.config.js
 
 # Install Task Scheduler (admin PowerShell)
-.\install_scheduled_tasks.ps1
+powershell -ExecutionPolicy Bypass -File .\install_scheduled_tasks.ps1
 
-# Start Kubernetes
-minikube start
-kubectl apply -f kubernetes/deployment.yaml
-
-# Provision Oracle VM
-# Follow docs/ORACLE_CLOUD_VM_SETUP.md, then:
-python cloud/deploy.py
-
-# WhatsApp first run
-python watchers/whatsapp_watcher.py  # Scan QR code
+# WhatsApp first run (scan QR)
+python watchers/whatsapp_watcher.py
 
 # Gmail OAuth re-auth
-python .verify_gmail.py  # Follow OAuth flow
+python .verify_gmail.py
 ```
 
 ---
 
-*Report generated July 26, 2026 — Based on live system status scan and codebase audit.*
+*Revised August 21, 2026 for accuracy after an independent, evidence-based code audit. This report now favors verifiable claims over optimistic ones — by design. See [`STATUS.md`](STATUS.md) and [`AUDIT_REPORT.md`](AUDIT_REPORT.md) for full detail.*

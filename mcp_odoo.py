@@ -46,7 +46,9 @@ class MCPOdooServer:
         self.models = None
         
         # Dry run mode
-        self.dry_run = os.getenv('DRY_RUN', 'false').lower() == 'true'
+        # Fail-safe: dry-run is ON unless DRY_RUN is explicitly set to "false".
+        # A missing var or a typo keeps Odoo writes simulated, never real.
+        self.dry_run = os.getenv('DRY_RUN', 'true').strip().lower() != 'false'
         
         logger.info(f"💼 MCP Odoo Server initialized (URL: {self.odoo_url}, Dry Run: {self.dry_run})")
         

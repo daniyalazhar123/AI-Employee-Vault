@@ -40,7 +40,7 @@ if sys.platform == "win32":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-from audit_logger import setup_logging
+from audit_logger import setup_logging, AuditLogger
 logger = setup_logging('LocalAgent', log_file='local_agent.log')
 
 # Import MCP servers
@@ -116,6 +116,14 @@ class LocalAgent:
                 logger.info("✅ Social MCP server initialized")
             except Exception as e:
                 logger.warning(f"⚠️ Social MCP init failed: {e}")
+
+        # Comprehensive audit logger (Gold #9 - every executed action is logged)
+        self.audit = None
+        try:
+            self.audit = AuditLogger(vault_path=self.vault)
+            logger.info("✅ Audit logger initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Audit logger init failed: {e}")
 
         # Statistics
         self.stats = {
@@ -201,6 +209,13 @@ class LocalAgent:
         except Exception as e:
             logger.error(f"❌ Failed to execute {approval_file.name}: {e}", exc_info=True)
             self.stats['errors'] += 1
+            # Audit the failure before moving to DLQ (Gold #9 - failures are logged too)
+            self._log_action(
+                self._action_type_for(approval_file.name),
+                {'approval_file': str(approval_file)},
+                status='failed',
+                error=str(e),
+            )
             self._move_to_dlq(approval_file, str(e))
     
     def execute_email_send(self, approval_file: Path, content: str):
@@ -527,13 +542,27 @@ class LocalAgent:
         self.dashboard.write_text(dashboard_content, encoding='utf-8')
         logger.info(f"✅ Dashboard updated: {message}")
     
-    def _log_action(self, action_type: str, details: Dict):
-        """Log action to audit log"""
+    def _action_type_for(self, name: str) -> str:
+        """Map an approval filename to an audit action_type label."""
+        if 'EMAIL' in name:
+            return 'email_send'
+        if 'SOCIAL' in name:
+            return 'social_post'
+        if 'ODOO' in name:
+            return 'odoo_action'
+        if 'WHATSAPP' in name:
+            return 'whatsapp_send'
+        return 'local_action'
+
+    def _log_action(self, action_type: str, details: Dict, status: str = 'success', error: Optional[str] = None):
+        """Log action to the legacy local-actions log AND the comprehensive audit trail (Gold #9)."""
         log_entry = {
             'timestamp': datetime.now().isoformat(),
             'agent': 'local',
             'action_type': action_type,
-            'details': details
+            'status': status,
+            'details': details,
+            'error': error,
         }
         
         log_file = self.logs / 'Audit' / f"local_actions_{datetime.now().strftime('%Y%m%d')}.jsonl"
@@ -541,6 +570,21 @@ class LocalAgent:
         
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
+
+        # Feed the comprehensive audit trail (Logs/Audit/audit_YYYYMMDD.jsonl)
+        if self.audit:
+            try:
+                self.audit.log_action(
+                    action_type=action_type,
+                    parameters=details,
+                    status=status,
+                    actor='local_agent',
+                    target=details.get('approval_file'),
+                    result={'message': details.get('result')} if details.get('result') else None,
+                    error=error,
+                )
+            except Exception as exc:
+                logger.warning(f"⚠️ Audit trail write failed: {exc}")
     
     def _move_to_dlq(self, file: Path, error: str):
         """Move failed item to Dead Letter Queue"""
