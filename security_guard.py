@@ -145,7 +145,62 @@ class SecurityGuard:
         
         self._audit_action(action_type, True, 'permission_granted')
         return True
-    
+
+    def evaluate_payment(self, amount, payee_known: bool,
+                         high_value_threshold: Optional[float] = None,
+                         approved: bool = False) -> Dict:
+        """Decide whether a payment may auto-execute or needs human approval.
+
+        Reuses the action-permission matrix instead of inventing a parallel
+        rule set: a high-value (> threshold) OR new/unknown-payee payment maps
+        to 'large_payment' (HUMAN_APPROVAL); an ordinary payment to a known
+        payee maps to 'odoo_payment' (LOCAL_EXECUTE). Threshold defaults to the
+        env var PAYMENT_APPROVAL_THRESHOLD, else 100.0.
+
+        Returns a decision dict; the caller must refuse to execute when
+        requires_approval is True and the human has not approved.
+        """
+        try:
+            amount = float(amount)
+        except (TypeError, ValueError):
+            amount = 0.0
+
+        if high_value_threshold is None:
+            try:
+                high_value_threshold = float(os.getenv('PAYMENT_APPROVAL_THRESHOLD', '100'))
+            except ValueError:
+                high_value_threshold = 100.0
+
+        reasons = []
+        if amount > high_value_threshold:
+            reasons.append(f"amount {amount:.2f} exceeds approval threshold {high_value_threshold:.2f}")
+        if not payee_known:
+            reasons.append("new/unknown payee")
+
+        effective_action = 'large_payment' if reasons else 'odoo_payment'
+        auto_allowed = self.check_action_permission(effective_action)
+        requires_approval = not auto_allowed
+        # A flagged payment can still proceed once a human has approved it.
+        allowed = auto_allowed or (requires_approval and approved)
+
+        decision = {
+            'action_type': effective_action,
+            'amount': amount,
+            'threshold': high_value_threshold,
+            'payee_known': bool(payee_known),
+            'reasons': reasons,
+            'requires_approval': requires_approval,
+            'approved': bool(approved),
+            'allowed': allowed,
+        }
+        self._audit_action(
+            'payment_gate',
+            allowed,
+            f"action={effective_action}; allowed={allowed}; approved={approved}; "
+            f"reasons={reasons or 'none'}"
+        )
+        return decision
+
     def validate_credentials(self, credential_type: str) -> bool:
         """
         Validate that required credentials exist
