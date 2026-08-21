@@ -64,7 +64,9 @@ class MCPEmailServer:
         self.logs_folder.mkdir(exist_ok=True)
 
         # Safety flags
-        self.dry_run = os.getenv('DRY_RUN', 'false').lower() == 'true'
+        # Fail-safe: dry-run is ON unless DRY_RUN is explicitly set to "false".
+        # A missing var or a typo (e.g. "flase") keeps sends simulated, never real.
+        self.dry_run = os.getenv('DRY_RUN', 'true').strip().lower() != 'false'
         self.require_approval = os.getenv('REQUIRE_APPROVAL', 'true').lower() == 'true'
 
         # SMTP/IMAP credentials (used as fallback in both modes)

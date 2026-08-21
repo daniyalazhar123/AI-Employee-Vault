@@ -8,7 +8,7 @@ Uses Playwright for browser automation (no API keys needed for basic posting).
 ⚠️ SECURITY:
     - Credentials loaded from environment variables ONLY
     - NEVER hardcode credentials
-    - DRY_RUN=true by default (must explicitly disable)
+    - DRY_RUN=true by default (MUST explicitly set DRY_RUN=false to post for real)
     - All posts require human approval before publishing
 
 Usage:
@@ -22,7 +22,7 @@ Environment Variables:
     FACEBOOK_EMAIL, FACEBOOK_PASSWORD
     INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD
     TWITTER_USERNAME, TWITTER_PASSWORD
-    DRY_RUN=true (default - safe mode)
+    DRY_RUN=true (default - safe mode; set DRY_RUN=false to post for real)
     REQUIRE_APPROVAL=true (default - HITL safety)
 """
 
@@ -77,7 +77,9 @@ class MCPSocialServer:
         self.logs_folder.mkdir(parents=True, exist_ok=True)
 
         # Safety flags
-        self.dry_run = os.getenv('DRY_RUN', 'false').lower() == 'true'
+        # Fail-safe: dry-run is ON unless DRY_RUN is explicitly set to "false".
+        # A missing var or a typo (e.g. "flase") keeps posts simulated, never real.
+        self.dry_run = os.getenv('DRY_RUN', 'true').strip().lower() != 'false'
         self.require_approval = os.getenv('REQUIRE_APPROVAL', 'true').lower() == 'true'
 
         # Credentials (from env only)

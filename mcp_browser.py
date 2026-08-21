@@ -38,7 +38,9 @@ class MCPBrowserServer:
         self.screenshots_folder.mkdir(exist_ok=True)
         
         # Dry run mode
-        self.dry_run = os.getenv('DRY_RUN', 'true').lower() == 'true'
+        # Fail-safe: dry-run is ON unless DRY_RUN is explicitly set to "false".
+        # A missing var or a typo keeps browser actions simulated, never real.
+        self.dry_run = os.getenv('DRY_RUN', 'true').strip().lower() != 'false'
         
         # Browser instance
         self.browser = None

@@ -21,8 +21,15 @@ sys.path.insert(0, str(Path(__file__).parent))
 from secrets_config import SECRETS_DIR, load_secrets, get_secret_path
 load_secrets()
 
-from audit_logger import setup_logging
+from audit_logger import setup_logging, log_mcp_action
 logger = setup_logging('MCPOdoo')
+
+# Security matrix gate for the payment path (>$100 or new payee => approval).
+try:
+    from security_guard import SecurityGuard
+except Exception as _sg_err:  # pragma: no cover - guard import must never break Odoo ops
+    SecurityGuard = None
+    logger.warning(f"⚠️ SecurityGuard unavailable ({_sg_err}); payments will fail-safe to requiring approval")
 
 
 class MCPOdooServer:
@@ -46,10 +53,20 @@ class MCPOdooServer:
         self.models = None
         
         # Dry run mode
-        self.dry_run = os.getenv('DRY_RUN', 'false').lower() == 'true'
+        # Fail-safe: dry-run is ON unless DRY_RUN is explicitly set to "false".
+        # A missing var or a typo keeps Odoo writes simulated, never real.
+        self.dry_run = os.getenv('DRY_RUN', 'true').strip().lower() != 'false'
         
         logger.info(f"💼 MCP Odoo Server initialized (URL: {self.odoo_url}, Dry Run: {self.dry_run})")
-        
+
+        # Security matrix gate for payments (local agent enforces >threshold / new-payee approval)
+        self.security = None
+        if SecurityGuard is not None:
+            try:
+                self.security = SecurityGuard('local', str(self.vault_path))
+            except Exception as e:
+                logger.warning(f"⚠️ Could not initialize SecurityGuard: {e}; payments will require approval")
+
         # Try to authenticate
         if not self.dry_run:
             self._authenticate()
@@ -225,39 +242,155 @@ status: draft (dry run)
                 'message': str(e)
             }
     
-    def record_payment(self, invoice_id: int, amount: float, 
-                       payment_date: str = None) -> Dict:
-        """Record payment for invoice"""
+    def _payee_has_history(self, partner_id) -> bool:
+        """Best-effort 'known payee' check.
+
+        True only if the partner already has a posted payment in Odoo. Without
+        a partner_id, without a live connection, or in dry-run, returns False
+        so an unknown payee fails safe (new payee => approval required).
+        """
+        if not partner_id or self.dry_run or not self.uid:
+            return False
         try:
-            logger.info(f"💰 Recording payment for invoice {invoice_id}, amount: {amount}")
-            
-            if self.dry_run:
-                logger.info(f"📝 [DRY RUN] Payment would be recorded")
-                
-                # Log to payments log
-                log_file = self.logs_folder / 'payments.log'
-                with open(log_file, 'a') as f:
-                    f.write(f"{datetime.now().isoformat()} - Payment recorded (dry run): Invoice {invoice_id}, Amount {amount}\n")
-                
-                return {
-                    'success': True,
-                    'message': 'Payment logged (dry run)',
-                    'invoice_id': invoice_id,
-                    'amount': amount
-                }
-            
-            # Actual payment recording would go here
-            # This is simplified - real implementation needs account.payment model
-            
+            count = self.models.execute_kw(
+                self.odoo_db, self.uid, self.odoo_password,
+                'account.payment', 'search_count',
+                [[['partner_id', '=', int(partner_id)], ['state', '=', 'posted']]]
+            )
+            return bool(count and count > 0)
+        except Exception as e:
+            logger.warning(f"⚠️ Could not check payee history: {e}; treating as new payee")
+            return False
+
+    def record_payment(self, invoice_id: int, amount: float,
+                       payment_date: str = None, partner_id: Optional[int] = None,
+                       payee_known: Optional[bool] = None, approved: bool = False,
+                       ref: str = '') -> Dict:
+        """Register a customer payment against an invoice via the
+        account.payment.register wizard, gated by the security matrix.
+
+        Gate: a payment > PAYMENT_APPROVAL_THRESHOLD (default $100) OR to a
+        new/unknown payee maps to 'large_payment' (HUMAN_APPROVAL) and is
+        refused unless approved=True. Ordinary payments to a known payee map to
+        'odoo_payment' (LOCAL_EXECUTE) and proceed. The gate runs BEFORE the
+        dry-run branch so it is enforced in every mode.
+        """
+        try:
+            amount = float(amount)
+        except (TypeError, ValueError):
+            return {'success': False, 'message': f'Invalid amount: {amount!r}'}
+
+        logger.info(f"💰 Recording payment for invoice {invoice_id}, amount: {amount}")
+
+        # --- Resolve payee_known (best-effort) if the caller didn't assert it ---
+        if payee_known is None:
+            payee_known = self._payee_has_history(partner_id)
+
+        # --- Security gate (matrix): >threshold OR new payee => human approval ---
+        if self.security is not None:
+            decision = self.security.evaluate_payment(amount, payee_known, approved=approved)
+        else:
+            # Fail-safe: no guard available => treat as needing approval.
+            decision = {
+                'action_type': 'large_payment', 'amount': amount, 'threshold': None,
+                'payee_known': bool(payee_known), 'reasons': ['security guard unavailable'],
+                'requires_approval': True, 'approved': bool(approved),
+                'allowed': bool(approved),
+            }
+
+        if decision['requires_approval'] and not approved:
+            logger.warning(f"🔒 [BLOCKED] Payment requires human approval: {decision['reasons']}")
+            log_mcp_action(
+                'odoo', 'record_payment',
+                {'invoice_id': invoice_id, 'amount': amount, 'partner_id': partner_id,
+                 'payee_known': bool(payee_known), 'reasons': decision['reasons']},
+                'requires_approval'
+            )
+            return {
+                'success': False,
+                'requires_approval': True,
+                'reasons': decision['reasons'],
+                'message': ('Payment of %.2f requires human approval: %s'
+                            % (amount, ', '.join(decision['reasons']))),
+                'invoice_id': invoice_id,
+                'amount': amount,
+            }
+
+        # --- Dry run: gate passed, but no real write ---
+        if self.dry_run:
+            logger.info("📝 [DRY RUN] Payment would be registered (gate passed, no real Odoo write)")
+            log_file = self.logs_folder / 'payments.log'
+            with open(log_file, 'a', encoding='utf-8') as f:
+                f.write(f"{datetime.now().isoformat()} - [DRY RUN] Invoice {invoice_id}, "
+                        f"Amount {amount}, approved={approved}, payee_known={payee_known}\n")
+            log_mcp_action(
+                'odoo', 'record_payment',
+                {'invoice_id': invoice_id, 'amount': amount, 'dry_run': True,
+                 'approved': approved, 'payee_known': bool(payee_known)},
+                'success'
+            )
             return {
                 'success': True,
-                'message': f'Payment recorded for invoice {invoice_id}',
+                'dry_run': True,
+                'message': 'Payment simulated (dry run) - approval gate passed',
                 'invoice_id': invoice_id,
-                'amount': amount
+                'amount': amount,
+                'approved': approved,
             }
-            
+
+        # --- REAL payment via account.payment.register wizard ---
+        if not self.uid:
+            self._authenticate()
+        if not self.uid:
+            return {'success': False, 'message': 'Not authenticated to Odoo'}
+
+        try:
+            payment_date = payment_date or datetime.now().strftime('%Y-%m-%d')
+            payment_ctx = {
+                'active_model': 'account.move',
+                'active_ids': [invoice_id],
+                'active_id': invoice_id,
+            }
+            wizard_data = {
+                'amount': amount,
+                'payment_date': payment_date,
+                'communication': ref or f'AI Employee payment {datetime.now():%Y%m%d}',
+                'payment_type': 'inbound',
+                'partner_type': 'customer',
+                'journal_id': int(os.getenv('ODOO_PAYMENT_JOURNAL_ID', '1')),
+            }
+            wizard_id = self.models.execute_kw(
+                self.odoo_db, self.uid, self.odoo_password,
+                'account.payment.register', 'create', [wizard_data],
+                {'context': payment_ctx}
+            )
+            result = self.models.execute_kw(
+                self.odoo_db, self.uid, self.odoo_password,
+                'account.payment.register', 'action_create_payments',
+                [[wizard_id]], {'context': payment_ctx}
+            )
+            logger.info(f"✅ REAL PAYMENT registered for invoice {invoice_id}: {amount}")
+            log_mcp_action(
+                'odoo', 'record_payment',
+                {'invoice_id': invoice_id, 'amount': amount, 'wizard_id': wizard_id},
+                'success', result={'wizard_id': wizard_id}
+            )
+            return {
+                'success': True,
+                'message': f'Payment of {amount} registered for invoice {invoice_id}',
+                'invoice_id': invoice_id,
+                'amount': amount,
+                'wizard_id': wizard_id,
+                'result': result,
+            }
+
         except Exception as e:
-            logger.error(f"❌ Failed to record payment: {e}")
+            logger.error(f"❌ Failed to register payment: {e}")
+            log_mcp_action(
+                'odoo', 'record_payment',
+                {'invoice_id': invoice_id, 'amount': amount},
+                'failed', error=str(e)
+            )
             return {
                 'success': False,
                 'message': str(e)
@@ -274,6 +407,10 @@ if __name__ == '__main__':
     parser.add_argument('--amount', type=float, help='Amount')
     parser.add_argument('--lead-id', type=int, help='Lead ID')
     parser.add_argument('--invoice-id', type=int, help='Invoice ID')
+    parser.add_argument('--approved', action='store_true',
+                        help='Mark a flagged payment as human-approved (bypasses the approval gate)')
+    parser.add_argument('--payee-known', action='store_true',
+                        help='Assert the payee is known/trusted (skips new-payee detection)')
     parser.add_argument('--vault', help='Vault path')
     
     args = parser.parse_args()
@@ -287,7 +424,12 @@ if __name__ == '__main__':
     elif args.action == 'update_lead' and args.lead_id:
         result = server.update_lead(args.lead_id, {'priority': '4'})
     elif args.action == 'record_payment' and args.invoice_id and args.amount:
-        result = server.record_payment(args.invoice_id, args.amount)
+        result = server.record_payment(
+            args.invoice_id, args.amount,
+            partner_id=args.partner_id,
+            payee_known=(True if args.payee_known else None),
+            approved=args.approved,
+        )
     else:
         parser.print_help()
         sys.exit(1)
